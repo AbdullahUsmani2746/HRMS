@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import Card from '@/components/ui/card';
 import {
   Breadcrumb,
@@ -18,22 +17,18 @@ import {
 } from "@/components/ui/sidebar";
 
 const Dashboard = () => {
-  const [activeClients, setActiveClients] = useState(0);
-  const [inactiveClients, setInactiveClients] = useState(0);
-  const [totalClients, setTotalClients] = useState(0);
+  const [activeClients, setActiveClients] = useState(75); // Demo data
+  const [inactiveClients, setInactiveClients] = useState(25); // Demo data
+  const [totalClients, setTotalClients] = useState(100); // Demo data
+  const [activeSubscriptions, setActiveSubscriptions] = useState(50); // Demo data
+  const [subscriptionBreakdown, setSubscriptionBreakdown] = useState({ basic: 20, standard: 15, premium: 15 }); // Demo data
+  const [totalRevenue, setTotalRevenue] = useState(5000); // Demo data
+  const [activeUsers, setActiveUsers] = useState(150); // Demo data
+  const [turnoverRate, setTurnoverRate] = useState(5); // Demo data
+  const [userGrowth, setUserGrowth] = useState(10); // Demo data
 
   useEffect(() => {
-    // Fetch data from API and update state
-    axios.get('/api/employers')
-      .then(response => {
-        const employers = response.data.data;
-        const active = employers.filter(emp => emp.status === 'ACTIVE').length;
-        const inactive = employers.filter(emp => emp.status === 'INACTIVE').length;
-        setActiveClients(active);
-        setInactiveClients(inactive);
-        setTotalClients(employers.length);
-      })
-      .catch(error => console.error(error));
+    // This useEffect is left here for future data fetching if needed
   }, []);
 
   return (
@@ -61,6 +56,12 @@ const Dashboard = () => {
           <Card title="Active Clients" value={activeClients} />
           <Card title="Inactive Clients" value={inactiveClients} />
           <Card title="Engagement" value={`${((activeClients / totalClients) * 100).toFixed(2)}%`} />
+          <Card title="Active Subscriptions" value={activeSubscriptions} />
+          <Card title="Subscription Breakdown" value={`Basic: ${subscriptionBreakdown.basic}, Standard: ${subscriptionBreakdown.standard}, Premium: ${subscriptionBreakdown.premium}`} />
+          <Card title="Total Revenue" value={`$${totalRevenue}`} />
+          <Card title="Active Users" value={activeUsers} />
+          <Card title="Turnover Rate" value={`${turnoverRate}%`} />
+          <Card title="User Growth" value={`${userGrowth}%`} />
         </div>
       </div>
     </SidebarInset>

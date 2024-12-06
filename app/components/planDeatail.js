@@ -71,14 +71,14 @@ const AssignPlanDetails = ({ planId, applicationIds }) => {
   };
 
   return (
-    <div className="p-4">
-      <h2 className="text-2xl mb-4">Assign Plan Details</h2>
+    <div className="">
+      <h2 className="text-lg mb-4">Assign Plan Details</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
         <Accordion type="single" collapsible>
           <AccordionItem value="employer">
             <AccordionTrigger>Employer Access</AccordionTrigger>
             <AccordionContent>
-              <table className="min-w-full bg-white">
+              <table className="min-w-full">
                 <thead>
                   <tr>
                     <th className="py-2">Application Name</th>
@@ -88,7 +88,7 @@ const AssignPlanDetails = ({ planId, applicationIds }) => {
                 <tbody>
                   {employerDetails.map((detail, index) => (
                     <tr key={detail.applicationId}>
-                      <td className="py-2">{getApplicationName(detail.applicationId)}</td>
+                      <td className="py-2 text-center">{getApplicationName(detail.applicationId)}</td>
                       <td className="py-2">
                         <Select
                           value={detail.status}
@@ -112,7 +112,7 @@ const AssignPlanDetails = ({ planId, applicationIds }) => {
           <AccordionItem value="employee">
             <AccordionTrigger>Employee Access</AccordionTrigger>
             <AccordionContent>
-              <table className="min-w-full bg-white">
+              <table className="min-w-full ">
                 <thead>
                   <tr>
                     <th className="py-2">Application Name</th>
@@ -122,7 +122,7 @@ const AssignPlanDetails = ({ planId, applicationIds }) => {
                 <tbody>
                   {employeeDetails.map((detail, index) => (
                     <tr key={detail.applicationId}>
-                      <td className="py-2">{getApplicationName(detail.applicationId)}</td>
+                      <td className="py-2 text-center">{getApplicationName(detail.applicationId)}</td>
                       <td className="py-2">
                         <Select
                           value={detail.status}

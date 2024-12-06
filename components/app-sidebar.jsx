@@ -102,15 +102,15 @@ export function AppSidebar({
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton size="lg" asChild>
+            <SidebarMenuButton size="lg" asChild className="bg-[#c41e3a]">
               <a href="#">
                 <div
                   className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
                   <Command className="size-4" />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">Ivilasi Consultant</span>
-                  <span className="truncate text-xs">Payroll Softaware</span>
+                  <span className="truncate font-semibold text-white">Ivilasi Consultant</span>
+                  <span className="truncate text-xs text-white">Payroll Softaware</span>
                 </div>
               </a>
             </SidebarMenuButton>

@@ -19,7 +19,7 @@ const SubscriptionProcess = () => {
   };
 
   return (
-    <div className="p-4">
+    <div className="p-2">
       {currentStep === 1 && <SubscriptionPlanMaster onNext={handlePlanCreated} />}
       {currentStep === 2 && <SelectApplications planId={planId} onNext={handleApplicationsSelected} />}
       {currentStep === 3 && <AssignPlanDetails planId={planId} applicationIds={selectedApplications} />}

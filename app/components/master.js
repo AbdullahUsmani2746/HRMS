@@ -19,11 +19,10 @@ const SubscriptionPlanMaster = ({ onNext }) => {
   };
 
   return (
-    <div className="p-4">
-      <h2 className="text-2xl mb-4">Create Subscription Plan</h2>
+    <div className="">
+      <h2 className="text-md mb-4">Create Subscription Plan</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium mb-2">Plan Name</label>
           <Input
             type="text"
             value={planName}
@@ -33,7 +32,6 @@ const SubscriptionPlanMaster = ({ onNext }) => {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium mb-2">Subscription Fee</label>
           <Input
             type="number"
             value={subscriptionFee}
