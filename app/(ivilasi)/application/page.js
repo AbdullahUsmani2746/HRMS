@@ -1,7 +1,7 @@
 // pages/employers.js
 "use client";
 
-import Applications from "@/app/components/application";
+import Applications from "@/components/application";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -15,7 +15,7 @@ import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { useEffect, useState } from 'react'; 
 import axios from 'axios'; 
 import { Button } from '@/components/ui/button'; 
-import Modal from '@/app/components//Modal';
+import Modal from '@/components/Modal';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 

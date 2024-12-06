@@ -2,12 +2,12 @@
   import { useEffect, useState } from 'react';
   import axios from 'axios';
   import { Button } from '@/components/ui/button';
-  import Modal from '@/app/components/Modal';
+  import Modal from '@/components/Modal';
   import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
   import { SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
   import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
   import { Separator } from '@/components/ui/separator';
-  import SubscriptionProcess from '@/app/components/subProcess';
+  import SubscriptionProcess from '@/components/subProcess';
 
   const Subscription = () => {
     const [subscriptions, setSubscriptions] = useState([]);

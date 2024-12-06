@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import connectDB from '@/app/utils/dbConnect';
-import Employer from '@/app/models/employer.models';
+import connectDB from '@/utils/dbConnect';
+import Employer from '@/models/employer.models';
 
 export async function GET() {
   await connectDB();

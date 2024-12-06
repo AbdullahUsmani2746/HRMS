@@ -17,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Input } from "@/components/ui/input"; // Assuming the Shadcn UI button component
+import { Input } from "@/components/ui/input"; // Assuming the Shadcn UI input component
 
 const PopupForm = ({ onClose, setEmployers, employerToEdit }) => {
   const [newEmployer, setNewEmployer] = useState({
@@ -47,6 +47,7 @@ const PopupForm = ({ onClose, setEmployers, employerToEdit }) => {
   );
 
   console.log(employerToEdit.city);
+
   useEffect(() => {
     setCountries(Country.getAllCountries());
   }, []);
@@ -310,52 +311,45 @@ const PopupForm = ({ onClose, setEmployers, employerToEdit }) => {
                 <SelectItem value="INACTIVE">INACTIVE</SelectItem>
               </SelectContent>
             </Select>
-            <div className="flex-1 min-w-[200px]">
-              <label className="block font-semibold">Payment Method:</label>
-              <div className="flex space-x-4">
-                <label className="flex items-center">
-                  <input
-                    type="radio"
-                    name="paymentMethod"
-                    value="DIRECT DEPOSIT"
-                    checked={newEmployer.paymentMethod === "DIRECT DEPOSIT"}
-                    onChange={handleChange}
-                    className="form-radio"
-                  />
-                  <span className="ml-2">Direct Deposit</span>
-                </label>
-                <label className="flex items-center">
-                  <input
-                    type="radio"
-                    name="paymentMethod"
-                    value="CHEQUE"
-                    checked={newEmployer.paymentMethod === "CHEQUE"}
-                    onChange={handleChange}
-                    className="form-radio"
-                  />
-                  <span className="ml-2">Cheque</span>
-                </label>
-              </div>
-            </div>
+            <Select
+              name="paymentMethod"
+              value={newEmployer.paymentMethod}
+              onValueChange={(value) =>
+                setNewEmployer({ ...newEmployer, paymentMethod: value })
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Payment Method" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="DIRECT DEPOSIT">Direct Deposit</SelectItem>
+                <SelectItem value="BANK TRANSFER">Bank Transfer</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-          <Select
-            name="terms"
-            value={newEmployer.terms}
-            onValueChange={(value) =>
-              setNewEmployer({ ...newEmployer, terms: value })
-            }
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Terms" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="MONTHLY">MONTHLY</SelectItem>
-              <SelectItem value="ANNUAL">ANNUAL</SelectItem>
-            </SelectContent>
-          </Select>
-          <DialogFooter>
-            <Button type="submit">Submit</Button>
-          </DialogFooter>
+          <div className="flex flex-wrap gap-4">
+            <Select
+              name="terms"
+              value={newEmployer.terms}
+              onValueChange={(value) =>
+                setNewEmployer({ ...newEmployer, terms: value })
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Terms" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="MONTHLY">Monthly</SelectItem>
+                <SelectItem value="QUARTERLY">Quarterly</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="mt-4 flex justify-end space-x-4">
+            <Button onClick={onClose} variant="secondary">
+              Cancel
+            </Button>
+            <Button type="submit">Save Employer</Button>
+          </div>
         </form>
       </DialogContent>
     </Dialog>

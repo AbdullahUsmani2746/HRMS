@@ -1,6 +1,6 @@
 // pages/employers.js
 "use client";
-import EmployerTable from '@/app/components/EmployerTable';
+import EmployerTable from '@/components/EmployerTable';
 
 import {
     Breadcrumb,

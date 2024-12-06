@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { useRouter } from "next/navigation"; // Use router from the app directory
 import { Input } from "@/components/ui/input";
 import { Edit, Trash2, Eye, EyeOff } from "lucide-react";
 import PopupForm from "./popupForm";
@@ -28,6 +29,7 @@ import {
 } from "@/components/ui/table";
 
 const EmployerTable = () => {
+  const router = useRouter(); // Initialize the router
   const [employers, setEmployers] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
@@ -35,15 +37,23 @@ const EmployerTable = () => {
   const [columns, setColumns] = useState(defaultColumns);
   const [employerToEdit, setEmployerToEdit] = useState(null); // Track the employer being edited
 
-
+  // Fetch employers data
   useEffect(() => {
-    axios
-      .get("/api/employers")
-      .then((response) => setEmployers(response.data.data))
-      .catch((error) => console.error(error));
+    const fetchEmployers = async () => {
+      try {
+        const response = await axios.get("/api/employers");
+        setEmployers(response.data.data);
+      } catch (error) {
+        console.error("Error fetching employers:", error);
+        alert("Failed to load employers. Please try again later.");
+      }
+    };
+    fetchEmployers();
   }, []);
 
+  // Filter employers based on search query and status filter
   const filteredEmployers = employers.filter((employer) => {
+    if (!employer || !employer.businessName) return false; // Ensure valid data
     const matchesSearchQuery = employer.businessName
       .toLowerCase()
       .includes(searchQuery.toLowerCase());
@@ -52,6 +62,7 @@ const EmployerTable = () => {
     return matchesSearchQuery && matchesStatusFilter;
   });
 
+  // Toggle column visibility
   const toggleColumn = (columnId) => {
     setColumns((prevColumns) =>
       prevColumns.map((col) =>
@@ -60,22 +71,34 @@ const EmployerTable = () => {
     );
   };
 
+  // Open popup form
   const openPopup = (employer = null) => {
     setEmployerToEdit(employer);
     setIsPopupOpen(true);
   };
 
-  const closePopup = () => {
+  // Close popup form
+  const closePopup = async () => {
     setIsPopupOpen(false);
     setEmployerToEdit(null);
+    try {
+      const response = await axios.get("/api/employers");
+      setEmployers(response.data.data);
+    } catch (error) {
+      console.error("Error refreshing data:", error);
+    }
   };
 
+  // Delete an employer
   const handleDelete = async (id) => {
-    try {
-      await axios.delete(`/api/employers/${id}`);
-      setEmployers(employers.filter((employer) => employer._id !== id));
-    } catch (error) {
-      console.error("Error deleting employer:", error);
+    if (window.confirm("Are you sure you want to delete this employer?")) {
+      try {
+        await axios.delete(`/api/employers/${id}`);
+        setEmployers(employers.filter((employer) => employer._id !== id));
+      } catch (error) {
+        console.error("Error deleting employer:", error);
+        alert("Failed to delete employer. Please try again.");
+      }
     }
   };
 
@@ -84,7 +107,7 @@ const EmployerTable = () => {
       <div className="flex justify-between mb-4">
         <Input
           type="text"
-          placeholder="Search clients..."
+          placeholder="Search employers..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="px-4 py-2 w-[250px] border rounded-md"
@@ -92,12 +115,12 @@ const EmployerTable = () => {
         <div className="flex items-center space-x-4">
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="All Clients" />
+              <SelectValue placeholder="All Employers" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="All">All Clients</SelectItem>
-              <SelectItem value="ACTIVE">Active Clients</SelectItem>
-              <SelectItem value="INACTIVE">Inactive Clients</SelectItem>
+              <SelectItem value="All">All Employers</SelectItem>
+              <SelectItem value="ACTIVE">Active Employers</SelectItem>
+              <SelectItem value="INACTIVE">Inactive Employers</SelectItem>
             </SelectContent>
           </Select>
           <DropdownMenu>
@@ -115,7 +138,7 @@ const EmployerTable = () => {
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
-          <Button onClick={openPopup}>Add Client</Button>
+          <Button onClick={openPopup}>Add Employer</Button>
         </div>
       </div>
       <Table>
@@ -130,8 +153,8 @@ const EmployerTable = () => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {filteredEmployers.map((employer, idx) => (
-            <TableRow key={employer._id || idx}>
+          {filteredEmployers.map((employer) => (
+            <TableRow key={employer._id}>
               {columns
                 .filter((col) => col.isVisible)
                 .map((col) => (
@@ -140,10 +163,12 @@ const EmployerTable = () => {
               <TableCell>
                 <div className="flex space-x-2">
                   <Edit
+                    aria-label="Edit employer"
                     className="cursor-pointer"
                     onClick={() => openPopup(employer)}
                   />
                   <Trash2
+                    aria-label="Delete employer"
                     className="cursor-pointer"
                     onClick={() => handleDelete(employer._id)}
                   />
@@ -157,7 +182,7 @@ const EmployerTable = () => {
         <PopupForm
           onClose={closePopup}
           setEmployers={setEmployers}
-          employerToEdit={employerToEdit} // Pass the selected employer for editing
+          employerToEdit={employerToEdit}
         />
       )}
     </div>
