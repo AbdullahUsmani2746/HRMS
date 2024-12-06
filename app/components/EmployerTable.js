@@ -1,50 +1,81 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { Input } from '@/components/ui/input';
-import { Edit, Trash2, Eye, EyeOff } from 'lucide-react';
-import PopupForm from './popupForm';
-import { columns as defaultColumns } from '@/components/columns';
-import { Button } from '@/components/ui/button'; // Assuming the Shadcn UI button component
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Table, TableHead, TableRow, TableCell, TableBody, TableHeader } from '@/components/ui/table';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { Input } from "@/components/ui/input";
+import { Edit, Trash2, Eye, EyeOff } from "lucide-react";
+import PopupForm from "./popupForm";
+import { columns as defaultColumns } from "@/components/columns";
+import { Button } from "@/components/ui/button"; // Assuming the Shadcn UI button component
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Table,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableBody,
+  TableHeader,
+} from "@/components/ui/table";
 
 const EmployerTable = () => {
   const [employers, setEmployers] = useState([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState('All');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("All");
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [columns, setColumns] = useState(defaultColumns);
+  const [employerToEdit, setEmployerToEdit] = useState(null); // Track the employer being edited
+
 
   useEffect(() => {
-    axios.get('/api/employers')
-      .then(response => setEmployers(response.data.data))
-      .catch(error => console.error(error));
+    axios
+      .get("/api/employers")
+      .then((response) => setEmployers(response.data.data))
+      .catch((error) => console.error(error));
   }, []);
 
-  const filteredEmployers = employers.filter(employer => {
-    const matchesSearchQuery = employer.businessName.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatusFilter = statusFilter === 'All' || employer.status === statusFilter;
+  const filteredEmployers = employers.filter((employer) => {
+    const matchesSearchQuery = employer.businessName
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase());
+    const matchesStatusFilter =
+      statusFilter === "All" || employer.status === statusFilter;
     return matchesSearchQuery && matchesStatusFilter;
   });
 
-  const openPopup = () => setIsPopupOpen(true);
-  const closePopup = () => setIsPopupOpen(false);
-
   const toggleColumn = (columnId) => {
-    setColumns(prevColumns =>
-      prevColumns.map(col =>
+    setColumns((prevColumns) =>
+      prevColumns.map((col) =>
         col.id === columnId ? { ...col, isVisible: !col.isVisible } : col
       )
     );
   };
 
+  const openPopup = (employer = null) => {
+    setEmployerToEdit(employer);
+    setIsPopupOpen(true);
+  };
+
+  const closePopup = () => {
+    setIsPopupOpen(false);
+    setEmployerToEdit(null);
+  };
+
   const handleDelete = async (id) => {
     try {
       await axios.delete(`/api/employers/${id}`);
-      setEmployers(employers.filter(employer => employer._id !== id));
+      setEmployers(employers.filter((employer) => employer._id !== id));
     } catch (error) {
-      console.error('Error deleting employer:', error);
+      console.error("Error deleting employer:", error);
     }
   };
 
@@ -74,8 +105,11 @@ const EmployerTable = () => {
               <Button>Show/Hide Columns</Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-              {columns.map(column => (
-                <DropdownMenuItem key={column.id} onClick={() => toggleColumn(column.id)}>
+              {columns.map((column) => (
+                <DropdownMenuItem
+                  key={column.id}
+                  onClick={() => toggleColumn(column.id)}
+                >
                   {column.isVisible ? <Eye /> : <EyeOff />} {column.header}
                 </DropdownMenuItem>
               ))}
@@ -87,29 +121,45 @@ const EmployerTable = () => {
       <Table>
         <TableHeader>
           <TableRow>
-            {columns.filter(col => col.isVisible).map(col => (
-              <TableHead key={col.id}>{col.header}</TableHead>
-            ))}
+            {columns
+              .filter((col) => col.isVisible)
+              .map((col) => (
+                <TableHead key={col.id}>{col.header}</TableHead>
+              ))}
             <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {filteredEmployers.map((employer, idx) => (
             <TableRow key={employer._id || idx}>
-              {columns.filter(col => col.isVisible).map(col => (
-                <TableCell key={col.id}>{employer[col.id]}</TableCell>
-              ))}
+              {columns
+                .filter((col) => col.isVisible)
+                .map((col) => (
+                  <TableCell key={col.id}>{employer[col.id]}</TableCell>
+                ))}
               <TableCell>
                 <div className="flex space-x-2">
-                  <Edit className="cursor-pointer" onClick={() => openPopup(employer)} />
-                  <Trash2 className="cursor-pointer" onClick={() => handleDelete(employer._id)} />
+                  <Edit
+                    className="cursor-pointer"
+                    onClick={() => openPopup(employer)}
+                  />
+                  <Trash2
+                    className="cursor-pointer"
+                    onClick={() => handleDelete(employer._id)}
+                  />
                 </div>
               </TableCell>
             </TableRow>
           ))}
         </TableBody>
       </Table>
-      {isPopupOpen && <PopupForm onClose={closePopup} />}
+      {isPopupOpen && (
+        <PopupForm
+          onClose={closePopup}
+          setEmployers={setEmployers}
+          employerToEdit={employerToEdit} // Pass the selected employer for editing
+        />
+      )}
     </div>
   );
 };

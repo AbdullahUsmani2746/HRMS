@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import axios from 'axios';
-import { Country, City } from 'country-state-city';
+import axios from "axios";
+import { Country, City } from "country-state-city";
 import {
   Dialog,
   DialogContent,
@@ -8,12 +8,18 @@ import {
   DialogTitle,
   DialogFooter,
   DialogClose,
-} from '@/components/ui/dialog'; // Assuming these are Shadcn UI dialog components
-import { Button } from '@/components/ui/button'; // Assuming the Shadcn UI button component
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Input } from '@/components/ui/input'; // Assuming the Shadcn UI button component
+} from "@/components/ui/dialog"; // Assuming these are Shadcn UI dialog components
+import { Button } from "@/components/ui/button"; // Assuming the Shadcn UI button component
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Input } from "@/components/ui/input"; // Assuming the Shadcn UI button component
 
-const PopupForm = ({ onClose, setEmployers }) => {
+const PopupForm = ({ onClose, setEmployers, employerToEdit }) => {
   const [newEmployer, setNewEmployer] = useState({
     businessName: "",
     email: "",
@@ -36,6 +42,11 @@ const PopupForm = ({ onClose, setEmployers }) => {
   const [cities, setCities] = useState([]);
   const [subscriptionPlans, setSubscriptionPlans] = useState([]);
 
+  const uniqueCities = Array.from(new Set(cities.map((city) => city.name))).map(
+    (name) => cities.find((city) => city.name === name)
+  );
+
+  console.log(employerToEdit.city);
   useEffect(() => {
     setCountries(Country.getAllCountries());
   }, []);
@@ -44,11 +55,11 @@ const PopupForm = ({ onClose, setEmployers }) => {
     // Fetch subscription plans from the server
     const fetchSubscriptionPlans = async () => {
       try {
-        const response = await axios.get('/api/subscriptionPlanMaster');
-        console.log(response.data.data)
+        const response = await axios.get("/api/subscriptionPlanMaster");
+        console.log(response.data.data);
         setSubscriptionPlans(response.data.data);
       } catch (error) {
-        console.error('Error fetching subscription plans:', error);
+        console.error("Error fetching subscription plans:", error);
       }
     };
     fetchSubscriptionPlans();
@@ -56,12 +67,33 @@ const PopupForm = ({ onClose, setEmployers }) => {
 
   const handleCountryChange = (value) => {
     const selectedCountry = value;
-    setNewEmployer({ ...newEmployer, country: selectedCountry, city: '' });
     const countryISOCode = Country.getCountryByCode(selectedCountry)?.isoCode;
+
+    setNewEmployer((prevEmployer) => ({
+      ...prevEmployer,
+      country: selectedCountry,
+      city:
+        prevEmployer.city && countryISOCode === prevEmployer.country
+          ? prevEmployer.city
+          : "", // Retain city if valid, otherwise reset
+    }));
+
     if (countryISOCode) {
       setCities(City.getCitiesOfCountry(countryISOCode));
     }
   };
+
+  useEffect(() => {
+    if (employerToEdit) {
+      const countryISOCode = Country.getCountryByCode(
+        employerToEdit.country
+      )?.isoCode;
+      if (countryISOCode) {
+        setCities(City.getCitiesOfCountry(countryISOCode));
+      }
+      setNewEmployer(employerToEdit);
+    }
+  }, [employerToEdit]);
 
   const handleChange = (e) => {
     setNewEmployer({
@@ -70,14 +102,34 @@ const PopupForm = ({ onClose, setEmployers }) => {
     });
   };
 
+  useEffect(() => {
+    if (employerToEdit) {
+      setNewEmployer(employerToEdit);
+    }
+  }, [employerToEdit]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('/api/employers', newEmployer);
-      setEmployers(prevEmployers => [...prevEmployers, response.data.data]);
+      if (employerToEdit) {
+        // Update existing employer
+        const response = await axios.put(
+          `/api/employers/${employerToEdit._id}`,
+          newEmployer
+        );
+        setEmployers((prevEmployers) =>
+          prevEmployers.map((emp) =>
+            emp._id === employerToEdit._id ? response.data.data : emp
+          )
+        );
+      } else {
+        // Create new employer
+        const response = await axios.post("/api/employers", newEmployer);
+        setEmployers((prevEmployers) => [...prevEmployers, response.data.data]);
+      }
       onClose();
     } catch (error) {
-      console.error('AxiosError:', error);
+      console.error("Error saving employer:", error);
     }
   };
 
@@ -85,7 +137,7 @@ const PopupForm = ({ onClose, setEmployers }) => {
     <Dialog open={true} onOpenChange={onClose}>
       <DialogContent>
         <DialogHeader>
-            <DialogTitle>Add Employer</DialogTitle>
+          <DialogTitle>Add Employer</DialogTitle>
           <DialogClose onClick={onClose}>
             {/* <XCircleIcon className="w-6 h-6 text-gray-500 hover:text-gray-700" /> */}
           </DialogClose>
@@ -124,24 +176,36 @@ const PopupForm = ({ onClose, setEmployers }) => {
             required
           />
           <div className="flex flex-wrap gap-4">
-            <Select value={newEmployer.country} onValueChange={handleCountryChange}>
+            <Select
+              value={newEmployer.country}
+              onValueChange={handleCountryChange}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Select Country" />
               </SelectTrigger>
               <SelectContent>
                 {countries.map((country, index) => (
-                  <SelectItem key={`${country.isoCode}-${index}`} value={country.isoCode}>
+                  <SelectItem
+                    key={`${country.isoCode}-${index}`}
+                    value={country.isoCode}
+                  >
                     {country.name}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
-            <Select name="city" value={newEmployer.city} onValueChange={(value) => setNewEmployer({ ...newEmployer, city: value })}>
+            <Select
+              name="city"
+              value={newEmployer.city}
+              onValueChange={(value) =>
+                setNewEmployer({ ...newEmployer, city: value })
+              }
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Select City" />
               </SelectTrigger>
               <SelectContent>
-                {cities.map((city, index) => (
+                {uniqueCities.map((city, index) => (
                   <SelectItem key={`${city.name}-${index}`} value={city.name}>
                     {city.name}
                   </SelectItem>
@@ -149,7 +213,9 @@ const PopupForm = ({ onClose, setEmployers }) => {
               </SelectContent>
             </Select>
           </div>
-          <h3 className="text-xl font-semibold mt-4 mb-2">Contact Person Information</h3>
+          <h3 className="text-xl font-semibold mt-4 mb-2">
+            Contact Person Information
+          </h3>
           <div className="flex flex-wrap gap-4">
             <Input
               type="text"
@@ -212,7 +278,9 @@ const PopupForm = ({ onClose, setEmployers }) => {
             />
             <Select
               value={newEmployer.subscriptionPlan}
-              onValueChange={(value) => setNewEmployer({ ...newEmployer, subscriptionPlan: value })}
+              onValueChange={(value) =>
+                setNewEmployer({ ...newEmployer, subscriptionPlan: value })
+              }
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select Subscription Plan" />
@@ -230,7 +298,9 @@ const PopupForm = ({ onClose, setEmployers }) => {
             <Select
               name="status"
               value={newEmployer.status}
-              onValueChange={(value) => setNewEmployer({ ...newEmployer, status: value })}
+              onValueChange={(value) =>
+                setNewEmployer({ ...newEmployer, status: value })
+              }
             >
               <SelectTrigger>
                 <SelectValue placeholder="Status" />
@@ -248,7 +318,7 @@ const PopupForm = ({ onClose, setEmployers }) => {
                     type="radio"
                     name="paymentMethod"
                     value="DIRECT DEPOSIT"
-                    checked={newEmployer.paymentMethod === 'DIRECT DEPOSIT'}
+                    checked={newEmployer.paymentMethod === "DIRECT DEPOSIT"}
                     onChange={handleChange}
                     className="form-radio"
                   />
@@ -259,7 +329,7 @@ const PopupForm = ({ onClose, setEmployers }) => {
                     type="radio"
                     name="paymentMethod"
                     value="CHEQUE"
-                    checked={newEmployer.paymentMethod === 'CHEQUE'}
+                    checked={newEmployer.paymentMethod === "CHEQUE"}
                     onChange={handleChange}
                     className="form-radio"
                   />
@@ -271,7 +341,9 @@ const PopupForm = ({ onClose, setEmployers }) => {
           <Select
             name="terms"
             value={newEmployer.terms}
-            onValueChange={(value) => setNewEmployer({ ...newEmployer, terms: value })}
+            onValueChange={(value) =>
+              setNewEmployer({ ...newEmployer, terms: value })
+            }
           >
             <SelectTrigger>
               <SelectValue placeholder="Terms" />
