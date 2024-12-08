@@ -43,11 +43,13 @@ const EmployerTable = () => {
       try {
         const response = await axios.get("/api/employers");
         setEmployers(response.data.data);
+        
       } catch (error) {
         console.error("Error fetching employers:", error);
         alert("Failed to load employers. Please try again later.");
       }
     };
+    console.log(employers)
     fetchEmployers();
   }, []);
 
@@ -61,7 +63,6 @@ const EmployerTable = () => {
       statusFilter === "All" || employer.status === statusFilter;
     return matchesSearchQuery && matchesStatusFilter;
   });
-
   // Toggle column visibility
   const toggleColumn = (columnId) => {
     setColumns((prevColumns) =>
@@ -107,17 +108,17 @@ const EmployerTable = () => {
       <div className="flex justify-between mb-4">
         <Input
           type="text"
-          placeholder="Search employers..."
+          placeholder="Search employers by business name"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="px-4 py-2 w-[250px] border rounded-md"
+          className="px-4 py-2 w-[300px] border rounded-md bg-foreground text-white placeholder:text-white"
         />
         <div className="flex items-center space-x-4">
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <Select value={statusFilter} onValueChange={setStatusFilter} >
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="All Employers" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent >
               <SelectItem value="All">All Employers</SelectItem>
               <SelectItem value="ACTIVE">Active Employers</SelectItem>
               <SelectItem value="INACTIVE">Inactive Employers</SelectItem>
@@ -141,24 +142,27 @@ const EmployerTable = () => {
           <Button onClick={openPopup}>Add Employer</Button>
         </div>
       </div>
-      <Table>
+      <Table className="shadow-md rounded-lg border-separate">
         <TableHeader>
-          <TableRow>
+          <TableRow className="bg-foreground text-left ">
             {columns
               .filter((col) => col.isVisible)
               .map((col) => (
-                <TableHead key={col.id}>{col.header}</TableHead>
+                <TableHead className="px-4 py-2 font-semibold text-white text-[12px]" key={col.id}>{col.header}</TableHead>
               ))}
-            <TableHead>Actions</TableHead>
+            <TableHead className="px-4 py-2 font-semibold text-white text-[12px] ">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {filteredEmployers.map((employer) => (
-            <TableRow key={employer._id}>
-              {columns
+            <TableRow key={employer._id} className="bg-background shadow-lg rounded-lg border-separate ">
+              {
+              columns
                 .filter((col) => col.isVisible)
                 .map((col) => (
-                  <TableCell key={col.id}>{employer[col.id]}</TableCell>
+                  <TableCell className="px-4" key={col.id}>{col.id === 'contactPerson'?`${employer.cpFirstName} ${employer.cpSurname}` :employer[col.id]}</TableCell>
+
+
                 ))}
               <TableCell>
                 <div className="flex space-x-2">

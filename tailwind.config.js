@@ -21,7 +21,7 @@ module.exports = {
 		  },
 		  primary: {
 			DEFAULT: '#c41e3a', // Red primary color
-			foreground: '#dbd9db', // Grey primary foreground
+			foreground: '#fff', // Grey primary foreground
 		  },
 		  secondary: {
 			DEFAULT: '#dbd9db', // Grey secondary color
@@ -50,12 +50,12 @@ module.exports = {
 			'5': '#c41e3a', // Red chart color
 		  },
 		  sidebar: {
-			DEFAULT: '#dbd9db', // Grey sidebar background
-			foreground: '#c41e3a', // Red sidebar foreground
+			DEFAULT: '#c41e3a', // Grey sidebar background
+			foreground: '#fff', // Red sidebar foreground
 			primary: '#c41e3a', // Red sidebar primary
 			'primary-foreground': '#dbd9db', // Grey sidebar primary foreground
-			accent: '#c41e3a', // Red sidebar accent
-			'accent-foreground': '#dbd9db', // Grey sidebar accent foreground
+			accent: '#dbd9db', // Red sidebar accent
+			'accent-foreground': '#c41e3a', // Grey sidebar accent foreground
 			border: '#c41e3a', // Red sidebar border
 			ring: '#c41e3a', // Red sidebar ring
 		  },

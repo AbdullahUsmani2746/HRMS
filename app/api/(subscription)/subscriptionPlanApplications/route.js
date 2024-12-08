@@ -1,16 +1,37 @@
 import { NextResponse } from 'next/server';
 import SubscriptionPlanApplication from '@/models/Subscription/SubscriptionPlanApplications.models';
 import connectDB from '@/utils/dbConnect';
+import { ObjectId } from "bson";
 
-export async function GET() {
+
+export async function GET(request) {
   await connectDB();
   try {
-    const applications = await SubscriptionPlanApplication.find({});
+    // Extract query parameters from the request URL
+    const { searchParams } = new URL(request.url);
+    const planId = searchParams.get('planId');
+    console.log(planId);
+
+    // Query the database
+    let applications = [];
+
+    if (planId) {
+      // Fetch records where the planId field matches the provided planId
+      applications = await SubscriptionPlanApplication.find({ planId });
+    } else {
+      // If no planId is provided, fetch all records
+      applications = await SubscriptionPlanApplication.find({});
+    }
+
+    console.log(applications);
+
     return NextResponse.json({ success: true, data: applications });
   } catch (error) {
     return NextResponse.json({ success: false, error: error.message }, { status: 400 });
   }
 }
+
+
 
 export async function POST(request) {
   await connectDB();
@@ -34,3 +55,4 @@ export async function POST(request) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }
+

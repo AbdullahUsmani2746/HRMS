@@ -2,77 +2,115 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion'; // Assuming you have an Accordion component
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion';
 
-const AssignPlanDetails = ({ planId, applicationIds }) => {
-  const [employerDetails, setEmployerDetails] = useState(applicationIds.map(applicationId => ({
-    applicationId,
-    status: 'GRANTED', // Default value
-  })));
-
-  const [employeeDetails, setEmployeeDetails] = useState(applicationIds.map(applicationId => ({
-    applicationId,
-    status: 'GRANTED', // Default value
-  })));
-
+const AssignPlanDetails = ({ planId, onClose }) => {
+  const [employerDetails, setEmployerDetails] = useState([]);
+  const [employeeDetails, setEmployeeDetails] = useState([]);
   const [applications, setApplications] = useState([]);
 
   useEffect(() => {
-    const fetchApplications = async () => {
+    const fetchDetails = async () => {
       try {
-        const response = await axios.get('/api/applications');
-        setApplications(response.data.data);
+        const appResponse = await axios.get('/api/applications');
+        const allApplications = appResponse.data.data;
+
+        const subPlanAppResponse = await axios.get(
+          `/api/subscriptionPlanApplications?planId=${planId}`
+        );
+        const assignedApplications = subPlanAppResponse.data.data;
+
+        const relevantApplications = allApplications.filter((app) =>
+          assignedApplications.some(
+            (assignedApp) => assignedApp.applicationId === app._id
+          )
+        );
+
+        const planDetailsResponse = await axios.get(
+          `/api/subscriptionPlanDetail?planId=${planId}`
+        );
+        const existingDetails = planDetailsResponse.data.data;
+
+        const mergedEmployerDetails = relevantApplications.map((app) => {
+          const existingDetail = existingDetails.find(
+            (detail) =>
+              detail.applicationId === app._id && detail.grantee === 'EMPLOYER'
+          );
+          return (
+            existingDetail || {
+              applicationId: app._id,
+              status: 'GRANTED',
+              grantee: 'EMPLOYER',
+            }
+          );
+        });
+
+        const mergedEmployeeDetails = relevantApplications.map((app) => {
+          const existingDetail = existingDetails.find(
+            (detail) =>
+              detail.applicationId === app._id && detail.grantee === 'EMPLOYEE'
+          );
+          return (
+            existingDetail || {
+              applicationId: app._id,
+              status: 'REVOKED',
+              grantee: 'EMPLOYEE',
+            }
+          );
+        });
+
+        setApplications(relevantApplications);
+        setEmployerDetails(mergedEmployerDetails);
+        setEmployeeDetails(mergedEmployeeDetails);
       } catch (error) {
-        console.error('Error fetching applications:', error);
+        console.error('Error fetching plan details:', error);
       }
     };
-    fetchApplications();
-  }, []);
 
-  const handleEmployerDetailChange = (index, field, value) => {
-    const updatedDetails = [...employerDetails];
-    updatedDetails[index][field] = value;
-    setEmployerDetails(updatedDetails);
+    fetchDetails();
+  }, [planId]);
+
+  const getApplicationName = (applicationId) => {
+    const application = applications.find((app) => app._id === applicationId);
+    return application ? application.applicationName : 'Unknown Application';
   };
 
-  const handleEmployeeDetailChange = (index, field, value) => {
-    const updatedDetails = [...employeeDetails];
-    updatedDetails[index][field] = value;
-    setEmployeeDetails(updatedDetails);
+  const handleDetailChange = (setDetail, index, field, value) => {
+    setDetail((prevDetails) => {
+      const updatedDetails = [...prevDetails];
+      updatedDetails[index][field] = value;
+      return updatedDetails;
+    });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const planDetails = [
-        ...employerDetails.map(detail => ({
+      const payload = [
+        ...employerDetails.map((detail) => ({
           planId,
           applicationId: detail.applicationId,
           status: detail.status,
           grantee: 'EMPLOYER',
         })),
-        ...employeeDetails.map(detail => ({
+        ...employeeDetails.map((detail) => ({
           planId,
           applicationId: detail.applicationId,
           status: detail.status,
           grantee: 'EMPLOYEE',
         })),
       ];
-      await axios.post('/api/subscriptionPlanDetail', planDetails);
-      console.log('Plan details assigned successfully');
+
+      await axios.put(`/api/subscriptionPlanDetail/${planId}`, payload);
+      onClose(); // Navigate to the next step
     } catch (error) {
-      console.error('Error assigning plan details:', error);
+      console.error('Error updating plan details:', error);
     }
   };
 
-  const getApplicationName = (applicationId) => {
-    const application = applications.find(app => app._id === applicationId);
-    return application ? application.applicationName : 'Unknown Application';
-  };
-
   return (
-    <div className="">
-      <h2 className="text-lg mb-4">Assign Plan Details</h2>
+    <div>
+      <h2 className="text-lg mb-4">Edit Plan Details</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
         <Accordion type="single" collapsible>
           <AccordionItem value="employer">
@@ -81,18 +119,20 @@ const AssignPlanDetails = ({ planId, applicationIds }) => {
               <table className="min-w-full">
                 <thead>
                   <tr>
-                    <th className="py-2">Application Name</th>
-                    <th className="py-2">Status</th>
+                    <th>Application Name</th>
+                    <th>Status</th>
                   </tr>
                 </thead>
                 <tbody>
                   {employerDetails.map((detail, index) => (
                     <tr key={detail.applicationId}>
-                      <td className="py-2 text-center">{getApplicationName(detail.applicationId)}</td>
-                      <td className="py-2">
+                      <td>{getApplicationName(detail.applicationId)}</td>
+                      <td>
                         <Select
                           value={detail.status}
-                          onValueChange={(value) => handleEmployerDetailChange(index, 'status', value)}
+                          onValueChange={(value) =>
+                            handleDetailChange(setEmployerDetails, index, 'status', value)
+                          }
                         >
                           <SelectTrigger>
                             <SelectValue placeholder="Select Status" />
@@ -109,24 +149,27 @@ const AssignPlanDetails = ({ planId, applicationIds }) => {
               </table>
             </AccordionContent>
           </AccordionItem>
+
           <AccordionItem value="employee">
             <AccordionTrigger>Employee Access</AccordionTrigger>
             <AccordionContent>
-              <table className="min-w-full ">
+              <table className="min-w-full">
                 <thead>
                   <tr>
-                    <th className="py-2">Application Name</th>
-                    <th className="py-2">Status</th>
+                    <th>Application Name</th>
+                    <th>Status</th>
                   </tr>
                 </thead>
                 <tbody>
                   {employeeDetails.map((detail, index) => (
                     <tr key={detail.applicationId}>
-                      <td className="py-2 text-center">{getApplicationName(detail.applicationId)}</td>
-                      <td className="py-2">
+                      <td>{getApplicationName(detail.applicationId)}</td>
+                      <td>
                         <Select
                           value={detail.status}
-                          onValueChange={(value) => handleEmployeeDetailChange(index, 'status', value)}
+                          onValueChange={(value) =>
+                            handleDetailChange(setEmployeeDetails, index, 'status', value)
+                          }
                         >
                           <SelectTrigger>
                             <SelectValue placeholder="Select Status" />
@@ -144,10 +187,11 @@ const AssignPlanDetails = ({ planId, applicationIds }) => {
             </AccordionContent>
           </AccordionItem>
         </Accordion>
-        <Button type="submit">Submit</Button>
+        <Button type="submit">Update Details</Button>
       </form>
     </div>
   );
 };
+
 
 export default AssignPlanDetails;
