@@ -13,4 +13,7 @@ export const columns = [
   ),
   columnHelper.accessor('cpPhoneNumber', { header: 'Phone Number', id: 'cpPhoneNumber', isVisible: true }),
   columnHelper.accessor('status', { header: 'Status', id: 'status', isVisible: true }),
+  
+
 ];
+

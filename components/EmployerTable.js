@@ -31,6 +31,7 @@ import {
 const EmployerTable = () => {
   const router = useRouter(); // Initialize the router
   const [employers, setEmployers] = useState([]);
+  const [plan, setPlan] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [isPopupOpen, setIsPopupOpen] = useState(false);
@@ -43,13 +44,14 @@ const EmployerTable = () => {
       try {
         const response = await axios.get("/api/employers");
         setEmployers(response.data.data);
-        
+        const responsePlan = await axios.get("/api/subscriptionPlanMaster");
+        setPlan(responsePlan.data.data);
       } catch (error) {
         console.error("Error fetching employers:", error);
         alert("Failed to load employers. Please try again later.");
       }
     };
-    console.log(employers)
+    console.log(employers);
     fetchEmployers();
   }, []);
 
@@ -73,8 +75,13 @@ const EmployerTable = () => {
   };
 
   // Open popup form
-  const openPopup = (employer = null) => {
-    setEmployerToEdit(employer);
+  const openPopup = (employers = null) => {
+    if (employers !== null) {
+      console.log(employers);
+      setEmployerToEdit(employers);
+    } else {
+      setEmployerToEdit(null);
+    }
     setIsPopupOpen(true);
   };
 
@@ -108,20 +115,20 @@ const EmployerTable = () => {
       <div className="flex justify-between mb-4">
         <Input
           type="text"
-          placeholder="Search employers by business name"
+          placeholder="Search Clients by business name"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="px-4 py-2 w-[300px] border rounded-md bg-foreground text-white placeholder:text-white"
         />
         <div className="flex items-center space-x-4">
-          <Select value={statusFilter} onValueChange={setStatusFilter} >
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="All Employers" />
+              <SelectValue placeholder="All Client" />
             </SelectTrigger>
-            <SelectContent >
-              <SelectItem value="All">All Employers</SelectItem>
-              <SelectItem value="ACTIVE">Active Employers</SelectItem>
-              <SelectItem value="INACTIVE">Inactive Employers</SelectItem>
+            <SelectContent>
+              <SelectItem value="All">All Clients</SelectItem>
+              <SelectItem value="ACTIVE">Active Clients</SelectItem>
+              <SelectItem value="INACTIVE">Inactive Clients</SelectItem>
             </SelectContent>
           </Select>
           <DropdownMenu>
@@ -139,7 +146,7 @@ const EmployerTable = () => {
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
-          <Button onClick={openPopup}>Add Employer</Button>
+          <Button onClick={() => openPopup(null)}>Add Client</Button>
         </div>
       </div>
       <Table className="shadow-md rounded-lg border-separate">
@@ -148,22 +155,60 @@ const EmployerTable = () => {
             {columns
               .filter((col) => col.isVisible)
               .map((col) => (
-                <TableHead className="px-4 py-2 font-semibold text-white text-[12px]" key={col.id}>{col.header}</TableHead>
+                <TableHead
+                  className="px-4 py-2 font-semibold text-white text-[12px]"
+                  key={col.id}
+                >
+                  {col.header}
+                </TableHead>
               ))}
-            <TableHead className="px-4 py-2 font-semibold text-white text-[12px] ">Actions</TableHead>
+            <TableHead className="px-4 py-2 font-semibold text-white text-[12px] ">
+              Plan
+            </TableHead>
+            <TableHead className="px-4 py-2 font-semibold text-white text-[12px] ">
+              Subscription Fee
+            </TableHead>
+            <TableHead className="px-4 py-2 font-semibold text-white text-[12px] ">
+              Actions
+            </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {filteredEmployers.map((employer) => (
-            <TableRow key={employer._id} className="bg-background shadow-lg rounded-lg border-separate ">
-              {
-              columns
+            <TableRow
+              key={employer._id}
+              className="bg-background shadow-lg rounded-lg border-separate "
+            >
+              {columns
                 .filter((col) => col.isVisible)
                 .map((col) => (
-                  <TableCell className="px-4" key={col.id}>{col.id === 'contactPerson'?`${employer.cpFirstName} ${employer.cpSurname}` :employer[col.id]}</TableCell>
-
-
+                  <TableCell className="px-4" key={col.id}>
+                    {col.id === "contactPerson"
+                      ? `${employer.cpFirstName || ""} ${
+                          employer.cpSurname || ""
+                        }` // Safely access fields
+                      : employer[col.id]}
+                  </TableCell>
                 ))}
+              <TableCell className="px-4">
+                {plan
+                  .filter((plan) => plan._id === employer.subscriptionPlan)
+                  .map((matchedPlan) => (
+                    <span
+                      key={matchedPlan._id}
+                    >{`${matchedPlan.planName}`}</span>
+                  ))}
+              </TableCell>
+
+              <TableCell className="px-4">
+              {plan
+                  .filter((plan) => plan._id === employer.subscriptionPlan)
+                  .map((matchedPlan) => (
+                    <span
+                      key={matchedPlan._id}
+                    >{`$${matchedPlan.subscriptionFee}`}</span>
+                  ))}
+              </TableCell>
               <TableCell>
                 <div className="flex space-x-2">
                   <Edit

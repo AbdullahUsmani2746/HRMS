@@ -44,12 +44,11 @@ export async function PUT(request, { params }) {
   }
 }
 
-export async function DELETE(request) {
+export async function DELETE(request,value) {
   await connectDB();
   try {
   // Extract the ID from the URL path
-  const url = new URL(request.url);
-  const id = url.pathname.split("/").pop(); // Get the last part of the path, which is the ID
+  const id = value.params.id
   console.log(id)
     const deletedEmployer = await Employer.findByIdAndDelete(new ObjectId(id));
     if (!deletedEmployer) {

@@ -8,8 +8,8 @@ import {
   DialogTitle,
   DialogFooter,
   DialogClose,
-} from "@/components/ui/dialog"; // Assuming these are Shadcn UI dialog components
-import { Button } from "@/components/ui/button"; // Assuming the Shadcn UI button component
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -17,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Input } from "@/components/ui/input"; // Assuming the Shadcn UI input component
+import { Input } from "@/components/ui/input";
 
 const PopupForm = ({ onClose, setEmployers, employerToEdit }) => {
   const [newEmployer, setNewEmployer] = useState({
@@ -38,26 +38,25 @@ const PopupForm = ({ onClose, setEmployers, employerToEdit }) => {
     paymentMethod: "DIRECT DEPOSIT",
     terms: "MONTHLY",
   });
+
+  console.log(newEmployer);
   const [countries, setCountries] = useState([]);
   const [cities, setCities] = useState([]);
   const [subscriptionPlans, setSubscriptionPlans] = useState([]);
+  const [error, setError] = useState(null);
 
   const uniqueCities = Array.from(new Set(cities.map((city) => city.name))).map(
     (name) => cities.find((city) => city.name === name)
   );
-
-  console.log(employerToEdit.city);
 
   useEffect(() => {
     setCountries(Country.getAllCountries());
   }, []);
 
   useEffect(() => {
-    // Fetch subscription plans from the server
     const fetchSubscriptionPlans = async () => {
       try {
         const response = await axios.get("/api/subscriptionPlanMaster");
-        console.log(response.data.data);
         setSubscriptionPlans(response.data.data);
       } catch (error) {
         console.error("Error fetching subscription plans:", error);
@@ -66,25 +65,8 @@ const PopupForm = ({ onClose, setEmployers, employerToEdit }) => {
     fetchSubscriptionPlans();
   }, []);
 
-  const handleCountryChange = (value) => {
-    const selectedCountry = value;
-    const countryISOCode = Country.getCountryByCode(selectedCountry)?.isoCode;
-
-    setNewEmployer((prevEmployer) => ({
-      ...prevEmployer,
-      country: selectedCountry,
-      city:
-        prevEmployer.city && countryISOCode === prevEmployer.country
-          ? prevEmployer.city
-          : "", // Retain city if valid, otherwise reset
-    }));
-
-    if (countryISOCode) {
-      setCities(City.getCitiesOfCountry(countryISOCode));
-    }
-  };
-
   useEffect(() => {
+    console.log(employerToEdit)
     if (employerToEdit) {
       const countryISOCode = Country.getCountryByCode(
         employerToEdit.country
@@ -93,44 +75,77 @@ const PopupForm = ({ onClose, setEmployers, employerToEdit }) => {
         setCities(City.getCitiesOfCountry(countryISOCode));
       }
       setNewEmployer(employerToEdit);
+    } else {
+      generateEmployerId();
     }
   }, [employerToEdit]);
 
-  const handleChange = (e) => {
-    setNewEmployer({
-      ...newEmployer,
-      [e.target.name]: e.target.value,
-    });
+  const handleCountryChange = (value) => {
+    const countryISOCode = Country.getCountryByCode(value)?.isoCode;
+    setNewEmployer((prev) => ({
+      ...prev,
+      country: value,
+      city: countryISOCode === prev.country ? prev.city : "",
+    }));
+
+    if (countryISOCode) {
+      setCities(City.getCitiesOfCountry(countryISOCode));
+    }
   };
 
-  useEffect(() => {
-    if (employerToEdit) {
-      setNewEmployer(employerToEdit);
+  const handleChange = (e) => {
+    const { name, value } = e.target; // Extract only the name and value
+    console.log(name,value)
+    setNewEmployer({
+      ...newEmployer,
+      [name]: value,
+    });
+    console.log(newEmployer)
+  };
+
+  const generateEmployerId = async () => {
+    try {
+      const response = await axios.get("/api/employers");
+      const employers = response.data.data;
+      const maxId = employers
+        .filter((emp) => emp.employerId.startsWith("CLIENT-"))
+        .map((emp) => parseInt(emp.employerId.split("-")[1]))
+        .reduce((max, current) => (current > max ? current : max), 0);
+
+      const nextId = maxId + 1;
+      setNewEmployer((prev) => ({
+        ...prev,
+        employerId: `CLIENT-${String(nextId).padStart(3, "0")}`,
+      }));
+    } catch (error) {
+      console.error("Error generating employer ID:", error);
+      setError("Failed to generate employer ID. Please try again.");
     }
-  }, [employerToEdit]);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError(null);
+    console.log("New Employer Data:", newEmployer);
     try {
       if (employerToEdit) {
-        // Update existing employer
         const response = await axios.put(
           `/api/employers/${employerToEdit._id}`,
           newEmployer
         );
-        setEmployers((prevEmployers) =>
-          prevEmployers.map((emp) =>
+        setEmployers((prev) =>
+          prev.map((emp) =>
             emp._id === employerToEdit._id ? response.data.data : emp
           )
         );
       } else {
-        // Create new employer
         const response = await axios.post("/api/employers", newEmployer);
-        setEmployers((prevEmployers) => [...prevEmployers, response.data.data]);
+        setEmployers((prev) => [...prev, response.data.data]);
       }
       onClose();
     } catch (error) {
       console.error("Error saving employer:", error);
+      setError("Failed to save employer. Please check your input.");
     }
   };
 
@@ -138,36 +153,28 @@ const PopupForm = ({ onClose, setEmployers, employerToEdit }) => {
     <Dialog open={true} onOpenChange={onClose}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add Employer</DialogTitle>
-          <DialogClose onClick={onClose}>
-            {/* <XCircleIcon className="w-6 h-6 text-gray-500 hover:text-gray-700" /> */}
-          </DialogClose>
+          <DialogTitle>{employerToEdit ? "Edit Client" : "Add Client"}</DialogTitle>
+          <DialogClose onClick={onClose} /> 
         </DialogHeader>
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-4  max-h-[80vh] overflow-y-auto p-3"
-        >
-          <h3 className="text-xl font-semibold mt-4 mb-2">
-            Business Information
-          </h3>
-          <div className="flex flex-wrap gap-4 md:flex-nowrap">
-            <Input
-              type="text"
-              name="businessName"
-              value={newEmployer.businessName}
-              onChange={handleChange}
-              placeholder="Business Name"
-              required
-            />
-            <Input
-              type="email"
-              name="email"
-              value={newEmployer.email}
-              onChange={handleChange}
-              placeholder="Email"
-              required
-            />
-          </div>
+        <form onSubmit={handleSubmit} className="space-y-4 p-4 h-[65vh] overflow-y-auto">
+          {error && <p className="text-red-500">{error}</p>}
+          <h3 className="text-lg font-semibold">Business Information</h3>
+          <Input
+            type="text"
+            name="businessName"
+            value={newEmployer.businessName}
+            onChange={handleChange}
+            placeholder="Business Name"
+            required
+          />
+          <Input
+            type="email"
+            name="email"
+            value={newEmployer.email}
+            onChange={handleChange}
+            placeholder="Email"
+            required
+          />
           <Input
             type="text"
             name="address"
@@ -176,7 +183,7 @@ const PopupForm = ({ onClose, setEmployers, employerToEdit }) => {
             placeholder="Address"
             required
           />
-          <div className="flex flex-wrap gap-4">
+          <div className="flex gap-4">
             <Select
               value={newEmployer.country}
               onValueChange={handleCountryChange}
@@ -185,39 +192,33 @@ const PopupForm = ({ onClose, setEmployers, employerToEdit }) => {
                 <SelectValue placeholder="Select Country" />
               </SelectTrigger>
               <SelectContent>
-                {countries.map((country, index) => (
-                  <SelectItem
-                    key={`${country.isoCode}-${index}`}
-                    value={country.isoCode}
-                  >
+                {countries.map((country) => (
+                  <SelectItem key={country.isoCode} value={country.isoCode}>
                     {country.name}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
             <Select
-              name="city"
               value={newEmployer.city}
               onValueChange={(value) =>
-                setNewEmployer({ ...newEmployer, city: value })
+                setNewEmployer((prev) => ({ ...prev, city: value }))
               }
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select City" />
               </SelectTrigger>
               <SelectContent>
-                {uniqueCities.map((city, index) => (
-                  <SelectItem key={`${city.name}-${index}`} value={city.name}>
+                {uniqueCities.map((city) => (
+                  <SelectItem key={city.name} value={city.name}>
                     {city.name}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
-          <h3 className="text-xl font-semibold mt-4 mb-2">
-            Contact Person Information
-          </h3>
-          <div className="flex flex-wrap gap-4">
+          <h3 className="text-lg font-semibold">Contact Person Information</h3>
+          <div className="grid grid-cols-3 gap-4">
             <Input
               type="text"
               name="cpFirstName"
@@ -231,7 +232,7 @@ const PopupForm = ({ onClose, setEmployers, employerToEdit }) => {
               name="cpMiddleName"
               value={newEmployer.cpMiddleName}
               onChange={handleChange}
-              placeholder="Middle Name (Optional)"
+              placeholder="Middle Name"
             />
             <Input
               type="text"
@@ -242,24 +243,22 @@ const PopupForm = ({ onClose, setEmployers, employerToEdit }) => {
               required
             />
           </div>
-          <div className="flex flex-wrap gap-4">
-            <Input
-              type="email"
-              name="cpEmail"
-              value={newEmployer.cpEmail}
-              onChange={handleChange}
-              placeholder="Email"
-              required
-            />
-            <Input
-              type="text"
-              name="cpPhoneNumber"
-              value={newEmployer.cpPhoneNumber}
-              onChange={handleChange}
-              placeholder="Phone Number"
-              required
-            />
-          </div>
+          <Input
+            type="email"
+            name="cpEmail"
+            value={newEmployer.cpEmail}
+            onChange={handleChange}
+            placeholder="Email"
+            required
+          />
+          <Input
+            type="text"
+            name="cpPhoneNumber"
+            value={newEmployer.cpPhoneNumber}
+            onChange={handleChange}
+            placeholder="Phone Number"
+            required
+          />
           <Input
             type="text"
             name="cpAddress"
@@ -267,55 +266,51 @@ const PopupForm = ({ onClose, setEmployers, employerToEdit }) => {
             onChange={handleChange}
             placeholder="Address"
           />
-          <h3 className="text-xl font-semibold mt-4 mb-2">Employer Details</h3>
-          <div className="flex flex-wrap gap-4">
-            <Input
-              type="text"
-              name="employerId"
-              value={newEmployer.employerId}
-              onChange={handleChange}
-              placeholder="Employer ID"
-              required
-            />
+          <h3 className="text-lg font-semibold">Clients Details</h3>
+          <Input
+            type="text"
+            name="employerId"
+            value={newEmployer.employerId}
+            readOnly
+            placeholder={newEmployer.employerId}
+            required
+          />
+          <Select
+            value={newEmployer.subscriptionPlan}
+            onValueChange={(value) =>
+              setNewEmployer((prev) => ({ ...prev, subscriptionPlan: value }))
+            }
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select Subscription Plan" />
+            </SelectTrigger>
+            <SelectContent>
+              {subscriptionPlans.map((plan) => (
+                <SelectItem key={plan._id} value={plan._id}>
+                  {plan.planName}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <div className="flex gap-4">
             <Select
-              value={newEmployer.subscriptionPlan}
-              onValueChange={(value) =>
-                setNewEmployer({ ...newEmployer, subscriptionPlan: value })
-              }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select Subscription Plan" />
-              </SelectTrigger>
-              <SelectContent>
-                {subscriptionPlans.map((plan) => (
-                  <SelectItem key={plan._id} value={plan._id}>
-                    {plan.planName}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="flex flex-wrap gap-4">
-            <Select
-              name="status"
               value={newEmployer.status}
               onValueChange={(value) =>
-                setNewEmployer({ ...newEmployer, status: value })
+                setNewEmployer((prev) => ({ ...prev, status: value }))
               }
             >
               <SelectTrigger>
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="ACTIVE">ACTIVE</SelectItem>
-                <SelectItem value="INACTIVE">INACTIVE</SelectItem>
+                <SelectItem value="ACTIVE">Active</SelectItem>
+                <SelectItem value="INACTIVE">Inactive</SelectItem>
               </SelectContent>
             </Select>
             <Select
-              name="paymentMethod"
               value={newEmployer.paymentMethod}
               onValueChange={(value) =>
-                setNewEmployer({ ...newEmployer, paymentMethod: value })
+                setNewEmployer((prev) => ({ ...prev, paymentMethod: value }))
               }
             >
               <SelectTrigger>
@@ -323,16 +318,13 @@ const PopupForm = ({ onClose, setEmployers, employerToEdit }) => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="DIRECT DEPOSIT">Direct Deposit</SelectItem>
-                <SelectItem value="BANK TRANSFER">Bank Transfer</SelectItem>
+                <SelectItem value="CHEQUE">Cheque</SelectItem>
               </SelectContent>
             </Select>
-          </div>
-          <div className="flex flex-wrap gap-4">
             <Select
-              name="terms"
               value={newEmployer.terms}
               onValueChange={(value) =>
-                setNewEmployer({ ...newEmployer, terms: value })
+                setNewEmployer((prev) => ({ ...prev, terms: value }))
               }
             >
               <SelectTrigger>
@@ -340,7 +332,7 @@ const PopupForm = ({ onClose, setEmployers, employerToEdit }) => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="MONTHLY">Monthly</SelectItem>
-                <SelectItem value="QUARTERLY">Quarterly</SelectItem>
+                <SelectItem value="YEARLY">Yearly</SelectItem>
               </SelectContent>
             </Select>
           </div>

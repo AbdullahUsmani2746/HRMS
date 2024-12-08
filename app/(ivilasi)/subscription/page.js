@@ -82,7 +82,7 @@ const Subscription = () => {
         const app = applications.find(
           (application) => application._id === detail.applicationId
         );
-        return app ? app.applicationName : "Unknown Application";
+        return app ? app.applicationName : "";
       });
   };
 

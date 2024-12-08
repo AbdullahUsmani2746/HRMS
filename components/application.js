@@ -8,7 +8,7 @@ const Applications = ({ existingApplication = null, onClose }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editIndex, setEditIndex] = useState(null);
 
-  // If there's an existing application passed down, prepopulate the form
+  // Prepopulate form if editing
   useEffect(() => {
     if (existingApplication) {
       setApplications([existingApplication]);
@@ -27,12 +27,17 @@ const Applications = ({ existingApplication = null, onClose }) => {
     setApplications([...applications, { applicationName: '', details: '' }]);
   };
 
+  const removeApplication = (index) => {
+    const updatedApplications = [...applications];
+    updatedApplications.splice(index, 1);
+    setApplications(updatedApplications);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     try {
       if (isEditing && editIndex !== null) {
-        // Edit application
+        // Edit existing application
         const appResponse = await axios.put(`/api/applications/${applications[editIndex]._id}`, applications[editIndex]);
         console.log('Application updated:', appResponse.data);
       } else {
@@ -46,27 +51,12 @@ const Applications = ({ existingApplication = null, onClose }) => {
     }
   };
 
-  const handleEdit = (index) => {
-    setIsEditing(true);
-    setEditIndex(index);
-  };
-
-  const handleDelete = async (id) => {
-    try {
-      const response = await axios.delete(`/api/applications/${id}`);
-      console.log('Application deleted:', response.data);
-      setApplications(applications.filter((app) => app._id !== id)); // Remove deleted application from state
-    } catch (error) {
-      console.error('Error deleting application:', error);
-    }
-  };
-
   return (
     <div className="p-4">
       <h2 className="text-2xl mb-4">{isEditing ? 'Edit Application' : 'Create Applications'}</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
         {applications.map((app, index) => (
-          <div key={index} className="space-y-2">
+          <div key={index} className="space-y-2 border-b pb-4">
             <div>
               <label className="block text-sm font-medium mb-2">Application Name</label>
               <Input
@@ -87,27 +77,33 @@ const Applications = ({ existingApplication = null, onClose }) => {
                 required
               />
             </div>
-            {isEditing && editIndex === index && (
-              <div className="flex gap-2 mt-2">
-                <Button onClick={() => handleDelete(app._id)} className="bg-red-500">
-                  Delete
+            <div className="flex justify-between items-center mt-2">
+              {index > 0 && !isEditing && (
+                <Button onClick={() => removeApplication(index)} className="bg-red-500">
+                  Remove
                 </Button>
+              )}
+              {isEditing && editIndex === index && (
                 <Button type="submit" className="bg-blue-500">
                   Update Application
                 </Button>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         ))}
         {!isEditing && (
-          <Button onClick={addApplication} className="m-2">
-            Add Another Application
-          </Button>
+          <>
+            <Button onClick={addApplication} className="m-2">
+              Add Another Application
+            </Button>
+            <Button type="submit">Create Applications</Button>
+          </>
         )}
-        {!isEditing && <Button type="submit">Create Applications</Button>}
       </form>
     </div>
   );
 };
+
+
 
 export default Applications;
