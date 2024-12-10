@@ -18,6 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import LoadingSpinner from "./spinner";
 
 const PopupForm = ({ onClose, setEmployers, employerToEdit }) => {
   const [newEmployer, setNewEmployer] = useState({
@@ -159,6 +160,8 @@ const PopupForm = ({ onClose, setEmployers, employerToEdit }) => {
     const validationErrors = validateForm();
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
+      setIsSubmitting(false);
+
       return;
     }
 
@@ -197,9 +200,7 @@ const PopupForm = ({ onClose, setEmployers, employerToEdit }) => {
           <DialogClose onClick={onClose} />
         </DialogHeader>
         {isLoading ? (
-          <div className="flex justify-center items-center h-[65vh]">
-            Loading...
-          </div> // Loading screen
+          <LoadingSpinner/>// Loading screen
         ) : (
           <form
             onSubmit={handleSubmit}

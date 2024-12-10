@@ -58,7 +58,6 @@ const Applications = ({ existingApplication = null, onClose }) => {
         {applications.map((app, index) => (
           <div key={index} className="space-y-2 border-b pb-4">
             <div>
-              <label className="block text-sm font-medium mb-2">Application Name</label>
               <Input
                 type="text"
                 value={app.applicationName}
@@ -68,7 +67,6 @@ const Applications = ({ existingApplication = null, onClose }) => {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2">Details</label>
               <Input
                 type="text"
                 value={app.details}

@@ -40,25 +40,25 @@ const EmployerTable = () => {
   const [employerToEdit, setEmployerToEdit] = useState(null); // Track the employer being edited
   const [isLoading, setIsLoading] = useState(false); // Add isLoading state
 
+  const fetchEmployers = async () => {
+    setIsLoading(true);  // Set loading to true when fetching data
 
+    try {
+      const response = await axios.get("/api/employers");
+      setEmployers(response.data.data);
+      const responsePlan = await axios.get("/api/subscriptionPlanMaster");
+      setPlan(responsePlan.data.data);
+    } catch (error) {
+      console.error("Error fetching employers:", error);
+      alert("Failed to load employers. Please try again later.");
+    }
+    finally {
+      setIsLoading(false);  // Set loading to false once data is fetched
+    }
+  };
   // Fetch employers data
   useEffect(() => {
-    const fetchEmployers = async () => {
-      setIsLoading(true);  // Set loading to true when fetching data
-
-      try {
-        const response = await axios.get("/api/employers");
-        setEmployers(response.data.data);
-        const responsePlan = await axios.get("/api/subscriptionPlanMaster");
-        setPlan(responsePlan.data.data);
-      } catch (error) {
-        console.error("Error fetching employers:", error);
-        alert("Failed to load employers. Please try again later.");
-      }
-      finally {
-        setIsLoading(false);  // Set loading to false once data is fetched
-      }
-    };
+ 
     console.log(employers);
     fetchEmployers();
   }, []);
@@ -111,6 +111,8 @@ const EmployerTable = () => {
       try {
         await axios.delete(`/api/employers/${id}`);
         setEmployers(employers.filter((employer) => employer._id !== id));
+       await fetchEmployers();
+
       } catch (error) {
         console.error("Error deleting employer:", error);
         alert("Failed to delete employer. Please try again.");
