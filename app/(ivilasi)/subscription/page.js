@@ -20,12 +20,14 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import LoadingSpinner from "@/components/spinner";
 import { Separator } from "@/components/ui/separator";
 import SubscriptionProcess from "@/components/subProcess";
 import { Edit, Edit2, Trash2 } from "lucide-react";
 
 const Subscription = () => {
   const [subscriptions, setSubscriptions] = useState([]);
+  const [isLoading, setIsLoading] = useState(false); // Add isLoading state
   const [selectedSubscriptions, setSelectedSubscription] = useState([]);
   const [editMode, setEditMode] = useState(false);
   const [subscriptionDetails, setSubscriptionDetails] = useState([]);
@@ -40,6 +42,7 @@ const Subscription = () => {
     }
   }, [editMode, selectedSubscriptions]);
   const fetchData = async () => {
+    setIsLoading(true)
     try {
       const [subsResponse, detailsResponse, appsResponse] = await Promise.all(
         [
@@ -54,6 +57,8 @@ const Subscription = () => {
       setApplications(appsResponse.data.data);
     } catch (error) {
       console.error("Error fetching data:", error);
+    }finally{
+      setIsLoading(false)
     }
   };
   useEffect(() => {
@@ -123,6 +128,9 @@ const Subscription = () => {
           </Breadcrumb>
         </div>
       </header>
+      {isLoading ? (
+        <LoadingSpinner />
+      ) : (      
       <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
         <div className="transition-width duration-300 flex-1 p-6">
           <div className="p-4">
@@ -182,7 +190,7 @@ const Subscription = () => {
             )}
           </div>
         </div>
-      </div>
+      </div>)}
     </SidebarInset>
   );
 };

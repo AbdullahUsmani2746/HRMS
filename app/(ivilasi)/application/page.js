@@ -4,7 +4,7 @@
 import Applications from "@/components/application";
 import { Edit, Trash2 } from "lucide-react";
 import { useRouter } from 'next/navigation';
-
+import LoadingSpinner from "@/components/spinner";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -23,17 +23,21 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 
 const Application = () => {
   const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false); // Add isLoading state
   const [applications, setApplications] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedApplication, setSelectedApplication] = useState(null); // To store application data for editing
 
   useEffect(() => {
     const fetchApplications = async () => {
+      setIsLoading(true)
       try {
         const response = await axios.get('/api/applications');
         setApplications(response.data.data);
       } catch (error) {
         console.error('Error fetching applications:', error);
+      } finally {
+        setIsLoading(false);  // Set loading to false once data is fetched
       }
     };
     fetchApplications();
@@ -92,7 +96,9 @@ const Application = () => {
           </Breadcrumb>
         </div>
       </header>
-      <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+      {isLoading ? (
+        <LoadingSpinner />
+      ) : (      <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
         <div className="transition-width duration-300 flex-1 p-6">
           <div className="p-4">
             <div className="flex justify-between items-center mb-4">
@@ -140,7 +146,7 @@ const Application = () => {
             )}
           </div>
         </div>
-      </div>
+      </div>)}
     </SidebarInset>
   );
 };

@@ -23,6 +23,7 @@
     "@tanstack/react-table": "^8.20.5",
     "axios": "^1.7.8",
     "bson": "^6.10.1",
+    "chart.js": "^4.4.7",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "country-state-city": "^3.2.1",
@@ -30,6 +31,7 @@
     "mongoose": "^8.8.3",
     "next": "15.0.3",
     "react": "19.0.0-rc-66855b96-20241106",
+    "react-chartjs-2": "^5.2.0",
     "react-dom": "19.0.0-rc-66855b96-20241106",
     "tailwind-merge": "^2.5.5",
     "tailwindcss-animate": "^1.0.7"

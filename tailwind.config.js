@@ -54,8 +54,8 @@ module.exports = {
 			foreground: '#fff', // Red sidebar foreground
 			primary: '#c41e3a', // Red sidebar primary
 			'primary-foreground': '#dbd9db', // Grey sidebar primary foreground
-			accent: '#dbd9db', // Red sidebar accent
-			'accent-foreground': '#c41e3a', // Grey sidebar accent foreground
+			accent: '#c41e3a', // Red sidebar accent
+			'accent-foreground': '#fff', // Grey sidebar accent foreground
 			border: '#c41e3a', // Red sidebar border
 			ring: '#c41e3a', // Red sidebar ring
 		  },

@@ -2,6 +2,11 @@
 
 import * as React from "react"
 import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@/components/ui/avatar"
+import {
   BookOpen,
   Bot,
   Users,
@@ -34,12 +39,14 @@ import {
 } from "@/components/ui/sidebar"
 
 import ivilasiLogo from "@/public/ivilasi-logo.png"
+import EbizzLogo from "@/public/ebizz-logo.png"
+
 
 const data = {
   user: {
-    name: "Ivilasi Cunsultant",
+    name: "Ebizz Solutions",
     email: "m@example.com",
-    avatar: ivilasiLogo,
+    avatar: EbizzLogo,
   },
   navMain: [
     {
@@ -106,7 +113,11 @@ export function AppSidebar({
               <a href="#">
                 <div
                   className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                  <Command className="size-4" />
+                  {/* <Command className="size-4" /> */}
+                  <Avatar className="h-8 w-8 rounded-lg">
+                <AvatarImage src={ivilasiLogo.src} alt={data.user.name} />
+                <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+              </Avatar>
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold text-white">Ivilasi Consultant</span>

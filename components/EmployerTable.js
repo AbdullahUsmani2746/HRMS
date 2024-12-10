@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Edit, Trash2, Eye, EyeOff } from "lucide-react";
 import PopupForm from "./popupForm";
 import { columns as defaultColumns } from "@/components/columns";
+import LoadingSpinner from "./spinner";
 import { Button } from "@/components/ui/button"; // Assuming the Shadcn UI button component
 import {
   Select,
@@ -37,10 +38,14 @@ const EmployerTable = () => {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [columns, setColumns] = useState(defaultColumns);
   const [employerToEdit, setEmployerToEdit] = useState(null); // Track the employer being edited
+  const [isLoading, setIsLoading] = useState(false); // Add isLoading state
+
 
   // Fetch employers data
   useEffect(() => {
     const fetchEmployers = async () => {
+      setIsLoading(true);  // Set loading to true when fetching data
+
       try {
         const response = await axios.get("/api/employers");
         setEmployers(response.data.data);
@@ -49,6 +54,9 @@ const EmployerTable = () => {
       } catch (error) {
         console.error("Error fetching employers:", error);
         alert("Failed to load employers. Please try again later.");
+      }
+      finally {
+        setIsLoading(false);  // Set loading to false once data is fetched
       }
     };
     console.log(employers);
@@ -112,6 +120,11 @@ const EmployerTable = () => {
 
   return (
     <div>
+    {/* Add loading spinner if isLoading is true */}
+    {isLoading ? (
+      <LoadingSpinner/>
+    ) : (
+      <>
       <div className="flex justify-between mb-4">
         <Input
           type="text"
@@ -227,6 +240,8 @@ const EmployerTable = () => {
           ))}
         </TableBody>
       </Table>
+      </>
+      )}
       {isPopupOpen && (
         <PopupForm
           onClose={closePopup}
