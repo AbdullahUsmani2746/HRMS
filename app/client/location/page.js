@@ -1,7 +1,7 @@
 // pages/employers.js
 "use client";
 
-import WorkLocation from "@/components/employee/WorkLocation";
+import WorkLocation from "@/components/Employee/WorkLocation";
 import { Edit, Trash2 } from "lucide-react";
 import { useRouter } from 'next/navigation';
 import LoadingSpinner from "@/components/spinner";
