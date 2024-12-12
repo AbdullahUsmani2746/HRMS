@@ -146,6 +146,15 @@ const EmployeeSchema = new mongoose.Schema({
     required: true,
     maxlength: 25
   },
+
+  allownces:{
+    type:Array,
+    required: true,
+  },
+  deductions:{
+    type:Array,
+    required: true,
+  },
   createdOn: {
     type: Date,
     default: Date.now

@@ -2,10 +2,10 @@
 
 import { NextResponse } from "next/server";
 import connectDB from "@/utils/dbConnect";
-import Employer from "@/models/employer.models";
+import Employee from "@/models/Employee/employee.models";
 import { ObjectId } from "bson";
 
-// Update Employer
+// Update Employee
 export async function PUT(request, { params }) {
   await connectDB();
   try {
@@ -19,7 +19,7 @@ export async function PUT(request, { params }) {
     const data = await request.json();
 
     // Update the employer by ID
-    const updatedEmployer = await Employer.findByIdAndUpdate(new ObjectId(id), data, {
+    const updatedEmployer = await Employee.findByIdAndUpdate(new ObjectId(id), data, {
       new: true, // Return the updated document
       runValidators: true, // Run schema validators during update
     });
@@ -50,7 +50,7 @@ export async function DELETE(request,value) {
   // Extract the ID from the URL path
   const id = value.params.id
   console.log(id)
-    const deletedEmployer = await Employer.findByIdAndDelete(new ObjectId(id));
+    const deletedEmployer = await Employee.findByIdAndDelete(new ObjectId(id));
     if (!deletedEmployer) {
       return NextResponse.json(
         { message: `Employer not found ${id}` },

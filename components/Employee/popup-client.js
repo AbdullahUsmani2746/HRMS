@@ -18,6 +18,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox"; // Ensure correct import
+
 import LoadingSpinner from "@/components/spinner";
 
 const PopupForm = ({ onClose, setEmployees, employeeToEdit, clientId }) => {
@@ -48,20 +50,74 @@ const PopupForm = ({ onClose, setEmployees, employeeToEdit, clientId }) => {
     payFrequency: "WEEK",
     employeeType: "",
     costCenter: "",
+    allownces:[],
+    deductions:[]
   });
 
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [costCenter, setcostCenter] = useState([]);
+  const [department, setDepartment] = useState([]);
+  const [location, setlocation] = useState([]);
+  const [schedule, setSchedule] = useState([]);
+  const [allownce, setAllownce] = useState([]);
+  const [deduction, setDeduction] = useState([]);
+  const [jobTitle, setJobTitle] = useState([]);
+  const [employeeType, setEmployeeType] = useState([]);
   const [errors, setErrors] = useState({});
   const [countries, setCountries] = useState([]);
   const [cities, setCities] = useState([]);
   const [banks, setBanks] = useState([]);
+  const [selectedAllownces, setselectedAllownces] = useState([]);
+  const [selectedDeductions, setselectedDeductions] = useState([]);
 
   const uniqueCities = useMemo(() => {
     return Array.from(new Set(cities.map((city) => city.name))).map((name) =>
       cities.find((city) => city.name === name)
     );
   }, [cities]);
+
+  const fetchData = async () => {
+    setIsLoading(true);
+    try {
+      const [
+        costRepsonse,
+        depResponse,
+        scheduleResponse,
+        locationResponse,
+        deductionResponse,
+        allownceResponse,
+        jobTitleResponse,
+        employeeTypeResponse,
+      ] = await Promise.all([
+        axios.get("/api/employees/costCenter"),
+        axios.get("/api/employees/department"),
+        axios.get("/api/employees/schedule"),
+        axios.get("/api/employees/workLocation"),
+        axios.get("/api/employees/deduction"),
+        axios.get("/api/employees/allownce"),
+        axios.get("/api/employees/jobTitle"),
+        axios.get("/api/employees/employeeType"),
+      ]);
+
+      setcostCenter(costRepsonse.data.data);
+      setDepartment(depResponse.data.data);
+      setSchedule(scheduleResponse.data.data);
+      setlocation(locationResponse.data.data);
+      setAllownce(allownceResponse.data.data);
+      setDeduction(deductionResponse.data.data);
+      setJobTitle(jobTitleResponse.data.data);
+      setEmployeeType(employeeTypeResponse.data.data);
+      console.log(allownce);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   useEffect(() => {
     setCountries(Country.getAllCountries());
@@ -106,24 +162,37 @@ const PopupForm = ({ onClose, setEmployees, employeeToEdit, clientId }) => {
 
   const generateEmployeeId = async () => {
     try {
+      // Fetch all employees
       const response = await axios.get("/api/employees");
-      const employees = response.data.data.filter(
+      const employees = response?.data?.data || [];
+
+      // Ensure `clientId` exists
+      const clientNumber = employeeData?.clientId?.split("-")[1]; // Extract the client number (e.g., "001")
+      if (!clientNumber) {
+        throw new Error("Client ID is invalid or missing");
+      }
+
+      // Filter employees by the current client ID
+      const clientEmployees = employees.filter(
         (emp) => emp.clientId === employeeData.clientId
       );
 
-      const maxId = employees
-        .map((emp) => parseInt(emp.employeeId.split("-EMP-")[1], 10))
-        .reduce((max, current) => (current > max ? current : max), 0);
+      // Determine the next employee number
+      const maxId = clientEmployees.length
+        ? clientEmployees
+            .map((emp) => parseInt(emp.employeeId.split("-")[1], 10)) // Extract the number after the client part
+            .reduce((max, current) => (current > max ? current : max), 0) // Find the maximum number
+        : 0; // If no employees, start from 0
 
-      const nextId = String(maxId + 1).padStart(3, "0");
+      const nextEmployeeNumber = String(maxId + 1).padStart(4, "0"); // Increment and pad to 4 digits
+
+      // Set the new employee ID
       setEmployeeData((prev) => ({
         ...prev,
-        // employeeId: `${clientId}-EMP-${nextId}`,
-        employeeId: `CLIENT-001-EMP-${nextId}`,
-
+        employeeId: `${clientNumber}-${nextEmployeeNumber}`, // Combine client number and employee number
       }));
     } catch (error) {
-      console.error("Error generating employee ID:", error);
+      console.error("Error generating employee ID:", error.message || error);
     }
   };
 
@@ -133,6 +202,38 @@ const PopupForm = ({ onClose, setEmployees, employeeToEdit, clientId }) => {
     setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
+  const handleSelectChange = (id, type) => {
+    console.log(id);
+    console.log(selectedAllownces);
+    if (type === "allownce") {
+      setselectedAllownces((prevSelected) => {
+        const updatedSelected = prevSelected.includes(id)
+          ? prevSelected.filter((item) => item !== id)
+          : [...prevSelected, id];
+  
+        // Add allowances array to employee data
+        setEmployeeData((prevData) => ({
+          ...prevData,
+          allownces: updatedSelected, // Add updated array to employee data
+        }));
+  
+        return updatedSelected;
+      });
+    } else if (type === "deduction") {
+      setselectedDeductions((prevSelected) => {
+        const updatedSelected = prevSelected.includes(id)
+          ? prevSelected.filter((item) => item !== id)
+          : [...prevSelected, id];
+  
+        // Add deductions array to employee data
+        setEmployeeData((prevData) => ({
+          ...prevData,
+          deductions: updatedSelected, // Add updated array to employee data
+        }));
+  
+        return updatedSelected;
+    });
+  }};
   const validateForm = () => {
     const validationErrors = {};
     if (!employeeData.firstName.trim())
@@ -182,6 +283,13 @@ const PopupForm = ({ onClose, setEmployees, employeeToEdit, clientId }) => {
     }
   };
 
+  // const handleSelectedChange = (id) => {
+  //   console.log(selected);
+  //   setselected((prev) =>
+  //     prev.includes(id) ? prev.filter((id) => id !== id) : [...prev, id]
+  //   );
+  // };
+
   return (
     <Dialog open={true} onOpenChange={onClose}>
       <DialogContent>
@@ -195,7 +303,10 @@ const PopupForm = ({ onClose, setEmployees, employeeToEdit, clientId }) => {
         {isLoading ? (
           <LoadingSpinner />
         ) : (
-          <form onSubmit={handleSubmit} className="space-y-6 h-[65vh] overflow-y-auto">
+          <form
+            onSubmit={handleSubmit}
+            className="space-y-6 h-[65vh] overflow-y-auto"
+          >
             {/* Employee Details */}
             <h3 className="text-md font-bold">Employee Details</h3>
             <section className="grid grid-cols-2 gap-4">
@@ -268,7 +379,7 @@ const PopupForm = ({ onClose, setEmployees, employeeToEdit, clientId }) => {
 
             {/* Contact Details */}
             <h3 className="text-md font-bold">Contact Details</h3>
-            
+
             <section className="grid grid-cols-2 gap-4">
               <Input
                 name="phoneNumber"
@@ -295,42 +406,117 @@ const PopupForm = ({ onClose, setEmployees, employeeToEdit, clientId }) => {
                 onChange={handleChange}
                 placeholder="Hire Date"
               />
-              <Input
-                name="jobTitle"
+              <Select
                 value={employeeData.jobTitle}
-                onChange={handleChange}
-                placeholder="Job Title"
-              />
-              <Input
-                name="department"
+                onValueChange={(value) =>
+                  setEmployeeData((prev) => ({
+                    ...prev,
+                    jobTitle: value,
+                  }))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Job Title" />
+                </SelectTrigger>
+                <SelectContent>
+                  {jobTitle.map((single) => (
+                    <SelectItem key={single._id} value={single.job_title}>
+                      {single.job_title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select
                 value={employeeData.department}
-                onChange={handleChange}
-                placeholder="Department"
-              />
-              <Input
-                name="paySchedule"
+                onValueChange={(value) =>
+                  setEmployeeData((prev) => ({
+                    ...prev,
+                    department: value,
+                  }))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Department" />
+                </SelectTrigger>
+                <SelectContent>
+                  {department.map((single) => (
+                    <SelectItem key={single._id} value={single.department}>
+                      {single.department}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select
                 value={employeeData.paySchedule}
-                onChange={handleChange}
-                placeholder="Pay Schedule"
-              />
-              <Input
-                name="workLocation"
+                onValueChange={(value) =>
+                  setEmployeeData((prev) => ({
+                    ...prev,
+                    paySchedule: value,
+                  }))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Pay Schedule" />
+                </SelectTrigger>
+                <SelectContent>
+                  {schedule.map((single) => (
+                    <SelectItem key={single._id} value={single.pay_schedule}>
+                      {single.pay_schedule}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select
                 value={employeeData.workLocation}
-                onChange={handleChange}
-                placeholder="Work Location"
-              />
+                onValueChange={(value) =>
+                  setEmployeeData((prev) => ({
+                    ...prev,
+                    workLocation: value,
+                  }))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Work Location" />
+                </SelectTrigger>
+                <SelectContent>
+                  {location.map((single) => (
+                    <SelectItem key={single._id} value={single.work_location}>
+                      {single.work_location}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
               <Input
                 name="manager"
                 value={employeeData.manager}
                 onChange={handleChange}
                 placeholder="Manager"
               />
-              <Input
-                name="costCenter"
+
+              <Select
                 value={employeeData.costCenter}
-                onChange={handleChange}
-                placeholder="Cost Center"
-              />
+                onValueChange={(value) =>
+                  setEmployeeData((prev) => ({
+                    ...prev,
+                    costCenter: value,
+                  }))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Cost Center" />
+                </SelectTrigger>
+                <SelectContent>
+                  {costCenter.map((single) => (
+                    <SelectItem key={single._id} value={single.cost_center}>
+                      {single.cost_center}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </section>
 
             {/* Payment Details */}
@@ -351,8 +537,7 @@ const PopupForm = ({ onClose, setEmployees, employeeToEdit, clientId }) => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="CHEQUE">Cheque</SelectItem>
-                    <SelectItem value="BANK_TRANSFER">Bank Transfer</SelectItem>
-                    <SelectItem value="CASH">Cash</SelectItem>
+                    <SelectItem value="DIRECT DEPOSIT">Direct Deposit</SelectItem>
                   </SelectContent>
                 </Select>
                 <Input
@@ -426,18 +611,64 @@ const PopupForm = ({ onClose, setEmployees, employeeToEdit, clientId }) => {
               <Select
                 value={employeeData.employeeType}
                 onValueChange={(value) =>
-                  setEmployeeData((prev) => ({ ...prev, employeeType: value }))
+                  setEmployeeData((prev) => ({
+                    ...prev,
+                    employeeType: value,
+                  }))
                 }
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Employee Type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="FULL_TIME">Full Time</SelectItem>
-                  <SelectItem value="PART_TIME">Part Time</SelectItem>
-                  <SelectItem value="CONTRACT">Contract</SelectItem>
+                  {employeeType.map((single) => (
+                    <SelectItem key={single._id} value={single.employee_type}>
+                      {single.employee_type}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
+            </section>
+
+            {/* Allownce and Deduction */}
+            <h3 className="text-MD font-bold">
+              Allownces and Deduction Details{" "}
+            </h3>
+
+            <section className="flex justify-between  items-left ">
+              <div>
+                <h3 className="text-MD font-bold">Allownces </h3>
+
+                {allownce.map((single) => (
+                  <div key={single._id}>
+                    <label className="flex items-center space-x-3">
+                      <Checkbox
+                        checked={selectedAllownces.includes(single._id)}
+                        onCheckedChange={() =>
+                          handleSelectChange(single._id, "allownce")
+                        }
+                      />
+                      <span>{single.allownce}</span>
+                    </label>
+                  </div>
+                ))}
+              </div>
+              <div>
+                <h3 className="text-MD font-bold">Deductions </h3>
+                {deduction.map((single) => (
+                  <div key={single._id}>
+                    <label className="flex items-center space-x-3">
+                      <Checkbox
+                        checked={selectedDeductions.includes(single._id)}
+                        onCheckedChange={() =>
+                          handleSelectChange(single._id, "deduction")
+                        }
+                      />
+                      <span>{single.deduction}</span>
+                    </label>
+                  </div>
+                ))}
+              </div>
             </section>
 
             <DialogFooter>

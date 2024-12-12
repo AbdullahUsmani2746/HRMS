@@ -14,6 +14,14 @@ import {
   PieChart,
   CircleHelp,
   Settings2,
+  Locate,
+  CalendarCheckIcon,
+  Building,
+ 
+  DollarSignIcon,
+  MinusCircleIcon,
+  BriefcaseBusiness,
+  UserCheck2Icon
 } from "lucide-react";
 
 import { NavMain } from "@/components/nav-main";
@@ -94,6 +102,51 @@ const data = {
       title: "Employee",
       url: "/client/employee",
       icon: Users,
+      isActive: true,
+    },
+    {
+      title: "Work Location",
+      url: "/client/location",
+      icon: Locate,
+      isActive: true,
+    },
+    {
+      title: "Department",
+      url: "/client/department",
+      icon: Building,
+      isActive: true,
+    },
+    {
+      title: "Cost Center",
+      url: "/client/costCenter",
+      icon: PieChart,
+      isActive: true,
+    },
+    {
+      title: "Pay Schedule",
+      url: "/client/schedule",
+      icon: CalendarCheckIcon,
+      isActive: true,
+    },
+    {
+      title: "Job Title",
+      url: "/client/jobTitle",
+      icon: BriefcaseBusiness,
+      isActive: true,
+    }, {
+      title: "Employee Type",
+      url: "/client/employeeType",
+      icon: UserCheck2Icon,
+      isActive: true,
+    }, {
+      title: "Allownces",
+      url: "/client/allownce",
+      icon: DollarSignIcon,
+      isActive: true,
+    }, {
+      title: "Deductions",
+      url: "/client/deduction",
+      icon: MinusCircleIcon,
       isActive: true,
     },
   ],

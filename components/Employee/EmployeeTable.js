@@ -32,6 +32,8 @@ import {
 const EmployeeTable = () => {
   const router = useRouter();
   const [employees, setEmployees] = useState([]);
+  const [deduction, setdeduction] = useState([]);
+  const [allownce, setAllownce] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [isPopupOpen, setIsPopupOpen] = useState(false);
@@ -43,8 +45,13 @@ const EmployeeTable = () => {
     setIsLoading(true);
     try {
       const response = await axios.get("/api/employees");
+      const response2 = await axios.get("/api/employees/allownce");
+      const response3 = await axios.get("/api/employees/deduction");
+
+      setAllownce(response2.data.data);
+      setdeduction(response3.data.data);
       setEmployees(response.data.data);
-       console.log(response.data.data)
+      console.log(response.data.data);
     } catch (error) {
       console.error("Error fetching employees:", error);
       alert("Failed to load employees. Please try again later.");
@@ -175,12 +182,47 @@ const EmployeeTable = () => {
             </TableHeader>
             <TableBody>
               {filteredEmployees.map((employee) => (
-                <TableRow key={employee._id} className="bg-background shadow-lg rounded-lg border-separate">
+                <TableRow
+                  key={employee._id}
+                  className="bg-background shadow-lg rounded-lg border-separate"
+                >
                   {columns
                     .filter((col) => col.isVisible)
                     .map((col) => (
                       <TableCell className="px-4" key={col.id}>
-                        {employee[col.id]}
+                        {col.id === "allownces" ? (
+                          <ul className="list-disc px-4">
+                            {employee[col.id]?.map((allownceId) => {
+                              const matchedAllownce = allownce.find(
+                                (item) => item._id === allownceId
+                              );
+                              return (
+                                matchedAllownce && (
+                                  <li className="text-sm" key={allownceId}>
+                                    {matchedAllownce.allownce}
+                                  </li>
+                                )
+                              );
+                            })}
+                          </ul>
+                        ) : col.id === "deductions" ? (
+                          <ul className="list-disc px-4">
+                            {employee[col.id]?.map((id) => {
+                              const matchedDeduction = deduction.find(
+                                (item) => item._id === id
+                              );
+                              return (
+                                matchedDeduction && (
+                                  <li className="text-sm" key={id}>
+                                    {matchedDeduction.deduction}
+                                  </li>
+                                )
+                              );
+                            })}
+                          </ul>
+                        ) : (
+                          employee[col.id] // Default rendering logic for other columns
+                        )}
                       </TableCell>
                     ))}
                   <TableCell>

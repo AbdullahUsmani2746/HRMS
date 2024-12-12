@@ -9,4 +9,7 @@ export const columns_employee = [
   columnHelper.accessor("department", { header: "Department", id: "department", isVisible: false }),
   columnHelper.accessor("designation", { header: "Designation", id: "jobTitle", isVisible: true }),
   columnHelper.accessor("status", { header: "Status", id: "status", isVisible: true }),
+  columnHelper.accessor("allownces", { header: "Allownce", id: "allownces", isVisible: true }),
+  columnHelper.accessor("deductions", { header: "Deduction", id: "deductions", isVisible: true }),
+
 ];
