@@ -17,7 +17,7 @@ import {
   Locate,
   CalendarCheckIcon,
   Building,
- 
+ LucideUmbrella,
   DollarSignIcon,
   MinusCircleIcon,
   BriefcaseBusiness,
@@ -147,6 +147,13 @@ const data = {
       title: "Deductions",
       url: "/client/deduction",
       icon: MinusCircleIcon,
+      isActive: true,
+    },
+
+    {
+      title: "Leaves",
+      url: "/client/leave",
+      icon: LucideUmbrella,
       isActive: true,
     },
   ],
