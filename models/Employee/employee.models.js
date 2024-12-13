@@ -1,34 +1,34 @@
 import mongoose from "mongoose";
-import Employer from '@/models/employer.models'
+import Employer from "@/models/employer.models";
 const EmployeeSchema = new mongoose.Schema({
   firstName: {
     type: String,
     required: true,
-    maxlength: 25
+    maxlength: 25,
   },
   middleName: {
     type: String,
-    maxlength: 25
+    maxlength: 25,
   },
   surname: {
     type: String,
     required: true,
-    maxlength: 25
+    maxlength: 25,
   },
   dob: {
     type: Date,
-    required: true
+    required: true,
   },
   gender: {
     type: String,
     required: true,
-    enum: ['MALE', 'FEMALE', 'OTHER'],
-    maxlength: 25
+    enum: ["MALE", "FEMALE", "OTHER"],
+    maxlength: 25,
   },
   phoneNumber: {
     type: String,
     required: true,
-    maxlength: 25
+    maxlength: 25,
   },
   emailAddress: {
     type: String,
@@ -36,43 +36,43 @@ const EmployeeSchema = new mongoose.Schema({
     maxlength: 100,
     validate: {
       validator: (v) => /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(v),
-      message: props => `${props.value} is not a valid email address!`
-    }
+      message: (props) => `${props.value} is not a valid email address!`,
+    },
   },
   village: {
     type: String,
     required: true,
-    maxlength: 25
+    maxlength: 25,
   },
   status: {
     type: String,
     required: true,
-    enum: ['ACTIVE', 'INACTIVE'],
-    maxlength: 25
+    enum: ["ACTIVE", "INACTIVE"],
+    maxlength: 25,
   },
   hireDate: {
     type: Date,
-    required: true
+    required: true,
   },
   jobTitle: {
     type: String,
     required: true,
-    maxlength: 25
+    maxlength: 25,
   },
   department: {
     type: String,
     required: true,
-    maxlength: 25
+    maxlength: 25,
   },
   paySchedule: {
     type: String,
     required: true,
-    maxlength: 25
+    maxlength: 25,
   },
   workLocation: {
     type: String,
     required: true,
-    maxlength: 25
+    maxlength: 25,
   },
   manager: {
     // type: mongoose.Schema.Types.ObjectId,
@@ -81,7 +81,7 @@ const EmployeeSchema = new mongoose.Schema({
 
     type: String,
     required: true,
-    maxlength: 25
+    maxlength: 25,
   },
   clientId: {
     type: String, // Use String if it's not an ObjectId
@@ -97,73 +97,90 @@ const EmployeeSchema = new mongoose.Schema({
   employeeId: {
     type: String,
     required: true,
-    unique: true // Auto-generated composite key
+    unique: true, // Auto-generated composite key
   },
   paymentMethod: {
     type: String,
     required: true,
-    enum: ['DIRECT DEPOSIT', 'CHEQUE'],
-    maxlength: 25
+    enum: ["DIRECT DEPOSIT", "CHEQUE"],
+    maxlength: 25,
   },
   bankName: {
     type: String,
     required: true,
-    maxlength: 25
+    maxlength: 25,
   },
   accountName: {
     type: String,
     required: true,
-    maxlength: 25
+    maxlength: 25,
   },
   accountNumber: {
     type: String,
     required: true,
-    maxlength: 25
+    maxlength: 25,
   },
   payType: {
     type: String,
     required: true,
-    enum: ['HOUR', 'WEEK', 'MONTH'],
-    maxlength: 25
+    enum: ["HOUR", "WEEK", "MONTH"],
+    maxlength: 25,
   },
   ratePerHour: {
     type: Number,
-    required: true
+    required: true,
   },
   payFrequency: {
     type: String,
     required: true,
-    enum: ['YEAR', 'MONTH', 'WEEK'],
-    maxlength: 25
+    enum: ["YEAR", "MONTH", "WEEK"],
+    maxlength: 25,
   },
   employeeType: {
     type: String,
     required: true,
-    maxlength: 25
+    maxlength: 25,
   },
   costCenter: {
     type: String,
     required: true,
-    maxlength: 25
+    maxlength: 25,
   },
 
-  allownces:{
-    type:Array,
+  allownces: {
+    type: Array,
     required: true,
   },
-  deductions:{
-    type:Array,
+  deductions: {
+    type: Array,
+    required: true,
+  },
+  leaves: {
+    type: Array,
     required: true,
   },
   createdOn: {
     type: Date,
-    default: Date.now
+    default: Date.now,
   },
   updatedOn: {
     type: Date,
-    default: Date.now
-  }
+    default: Date.now,
+  },
+
+  profileImage:
+   { type: String, 
+    default: null }, // Optional
+  documents: [
+    {
+      url: { type: String },
+      name: { type: String },
+      description: { type: String  },
+
+    },
+  ],
 });
 
-const Employee = mongoose.models.Employee || mongoose.model('Employee', EmployeeSchema);
+const Employee =
+  mongoose.models.Employee || mongoose.model("Employee", EmployeeSchema);
 export default Employee;

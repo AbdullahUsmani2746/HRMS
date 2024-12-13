@@ -51,7 +51,11 @@ const PopupForm = ({ onClose, setEmployees, employeeToEdit, clientId }) => {
     employeeType: "",
     costCenter: "",
     allownces:[],
-    deductions:[]
+    deductions:[],
+    leaves:[],
+    profileImage: "", // For storing the uploaded image
+    documents: [] // For storing the uploaded documents
+    
   });
 
   const [isLoading, setIsLoading] = useState(false);
@@ -62,6 +66,7 @@ const PopupForm = ({ onClose, setEmployees, employeeToEdit, clientId }) => {
   const [schedule, setSchedule] = useState([]);
   const [allownce, setAllownce] = useState([]);
   const [deduction, setDeduction] = useState([]);
+  const [leave, setLeave] = useState([]);
   const [jobTitle, setJobTitle] = useState([]);
   const [employeeType, setEmployeeType] = useState([]);
   const [errors, setErrors] = useState({});
@@ -70,6 +75,11 @@ const PopupForm = ({ onClose, setEmployees, employeeToEdit, clientId }) => {
   const [banks, setBanks] = useState([]);
   const [selectedAllownces, setselectedAllownces] = useState([]);
   const [selectedDeductions, setselectedDeductions] = useState([]);
+  const [selectedLeaves, setselectedLeaves] = useState([]);
+
+  const [profileImage, setProfileImage] = useState();
+  const [uploadDocument , setUploadDocument ] = useState([]);
+
 
   const uniqueCities = useMemo(() => {
     return Array.from(new Set(cities.map((city) => city.name))).map((name) =>
@@ -89,6 +99,7 @@ const PopupForm = ({ onClose, setEmployees, employeeToEdit, clientId }) => {
         allownceResponse,
         jobTitleResponse,
         employeeTypeResponse,
+        leaveResponse
       ] = await Promise.all([
         axios.get("/api/employees/costCenter"),
         axios.get("/api/employees/department"),
@@ -98,6 +109,8 @@ const PopupForm = ({ onClose, setEmployees, employeeToEdit, clientId }) => {
         axios.get("/api/employees/allownce"),
         axios.get("/api/employees/jobTitle"),
         axios.get("/api/employees/employeeType"),
+        axios.get("/api/employees/leave"),
+
       ]);
 
       setcostCenter(costRepsonse.data.data);
@@ -108,6 +121,8 @@ const PopupForm = ({ onClose, setEmployees, employeeToEdit, clientId }) => {
       setDeduction(deductionResponse.data.data);
       setJobTitle(jobTitleResponse.data.data);
       setEmployeeType(employeeTypeResponse.data.data);
+      setLeave(leaveResponse.data.data);
+
       console.log(allownce);
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -233,7 +248,24 @@ const PopupForm = ({ onClose, setEmployees, employeeToEdit, clientId }) => {
   
         return updatedSelected;
     });
-  }};
+  }
+  else if (type === "leaves") {
+    setselectedLeaves((prevSelected) => {
+      const updatedSelected = prevSelected.includes(id)
+        ? prevSelected.filter((item) => item !== id)
+        : [...prevSelected, id];
+
+      // Add deductions array to employee data
+      setEmployeeData((prevData) => ({
+        ...prevData,
+        leaves: updatedSelected, // Add updated array to employee data
+      }));
+
+      return updatedSelected;
+  });
+}
+
+};
   const validateForm = () => {
     const validationErrors = {};
     if (!employeeData.firstName.trim())
@@ -272,7 +304,52 @@ const PopupForm = ({ onClose, setEmployees, employeeToEdit, clientId }) => {
           )
         );
       } else {
-        const response = await axios.post("/api/employees", employeeData);
+        // Handle file upload for new employee (if profile image is selected)
+        let profileImageUrl = employeeData.profileImage;
+        let docURL = employeeData.documents;
+
+
+          // Create FormData object for file upload
+          const formData = new FormData();
+          formData.append("file", profileImage); // 'file' is the field name expected by the backend
+
+          const formData2 = new FormData();
+          // Assuming employeeData.documents is an array of objects with file and description
+          uploadDocument.forEach((doc) => {
+    formData2.append("files", doc.file); // Append each document file
+  });
+
+          // Post the file to the server for upload
+          const Imageresponse = await axios.post("/api/upload/image", formData, {
+            headers: {
+              "Content-Type": "multipart/form-data", // Set the correct content type
+            },
+          });
+
+          const DocResponse = await axios.post("/api/upload/document", formData2, {
+            headers: {
+              "Content-Type": "multipart/form-data", // Set the correct content type
+            },
+          });
+
+
+          // Update the profileImage URL in the employee data
+          profileImageUrl = Imageresponse.data.url;
+          docURL = DocResponse.data.files.map((file, index) => ({
+            url: file.url,
+            name: file.name, // Assuming name is included in the backend response
+            description: uploadDocument[index].description, // Match with description from state
+          }));
+        
+
+          console.log(docURL)
+        // Now save the employee data (with or without a profile image)
+        const response = await axios.post("/api/employees", {
+          ...employeeData,
+          profileImage: profileImageUrl,
+          documents:docURL
+        });
+
         setEmployees((prev) => [...prev, response.data.data]);
       }
       onClose();
@@ -283,15 +360,51 @@ const PopupForm = ({ onClose, setEmployees, employeeToEdit, clientId }) => {
     }
   };
 
-  // const handleSelectedChange = (id) => {
-  //   console.log(selected);
-  //   setselected((prev) =>
-  //     prev.includes(id) ? prev.filter((id) => id !== id) : [...prev, id]
-  //   );
-  // };
+  const handleFileChange = (e, type) => {
+ 
+
+    if (type === "profileImage") {
+      const file = e.target.files[0];
+      console.log(file)
+      setProfileImage(
+        file
+      );
+    } else if (type === "documents") {
+      console.log(type)
+      const files = Array.from(e.target.files); // Get all selected files
+      console.log(files)
+      const newDocuments = files.map((file) => ({
+        file,
+        name: file.name,
+        description: "", // Initial empty description
+      }));
+     setUploadDocument(newDocuments)
+    }
+    console.log(employeeData)
+
+  };
+
+  const removeDocument = (index) => {
+    setEmployeeData((prev) => ({
+      ...prev,
+      documents: prev.documents.filter((_, i) => i !== index),
+    }));
+  };
+
+    // Handle document description change
+    const handleDescriptionChange = (index, description) => {
+      const updatedDocuments = [...uploadDocument];
+      updatedDocuments[index].description = description;
+  console.log(updatedDocuments)
+      setUploadDocument(
+        updatedDocuments
+      );
+  console.log(uploadDocument)
+
+    };
 
   return (
-    <Dialog open={true} onOpenChange={onClose}>
+    <Dialog open={true} onOpenChange={onClose} >
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
@@ -305,8 +418,61 @@ const PopupForm = ({ onClose, setEmployees, employeeToEdit, clientId }) => {
         ) : (
           <form
             onSubmit={handleSubmit}
-            className="space-y-6 h-[65vh] overflow-y-auto"
+            className="space-y-6 px-1 h-[75vh] overflow-y-auto"
           >
+
+            {/* Image Upload */}
+            <h3 className="text-md font-bold">Profile Image</h3>
+            <section>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => handleFileChange(e, "profileImage")}
+              />
+              {employeeData.profileImage && (
+                <img
+                  src={URL.createObjectURL(employeeData.profileImage)}
+                  alt="Profile Preview"
+                  className="mt-2 w-32 h-32 object-cover"
+                />
+              )}
+            </section>
+
+            {/* Document Upload */}
+            <h3 className="text-md font-bold">Documents</h3>
+            <section>
+        <input
+          type="file"
+          accept=".pdf,.doc,.docx"
+          multiple
+          onChange={(e) => handleFileChange(e, "documents")}
+        />
+        <ul className="mt-2">
+          {uploadDocument.map((doc, index) => (
+            <li key={index} className="flex justify-between items-center">
+              <div>
+                <span>{doc.name}</span>
+                <input
+                  type="text"
+                  placeholder="Enter description"
+                  value={doc.description}
+                  onChange={(e) =>
+                    handleDescriptionChange(index, e.target.value)
+                  }
+                  className="ml-2 p-1 border rounded"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={() => removeDocument(index)}
+                className="text-red-500 text-sm"
+              >
+                Remove
+              </button>
+            </li>
+          ))}
+        </ul>
+      </section>
             {/* Employee Details */}
             <h3 className="text-md font-bold">Employee Details</h3>
             <section className="grid grid-cols-2 gap-4">
@@ -635,7 +801,7 @@ const PopupForm = ({ onClose, setEmployees, employeeToEdit, clientId }) => {
               Allownces and Deduction Details{" "}
             </h3>
 
-            <section className="flex justify-between  items-left ">
+            <section className="flex justify-around   items-left ">
               <div>
                 <h3 className="text-MD font-bold">Allownces </h3>
 
@@ -665,6 +831,22 @@ const PopupForm = ({ onClose, setEmployees, employeeToEdit, clientId }) => {
                         }
                       />
                       <span>{single.deduction}</span>
+                    </label>
+                  </div>
+                ))}
+              </div>
+              <div>
+                <h3 className="text-MD font-bold">Leaves </h3>
+                {leave.map((single) => (
+                  <div key={single._id}>
+                    <label className="flex items-center space-x-3">
+                      <Checkbox
+                        checked={selectedLeaves.includes(single._id)}
+                        onCheckedChange={() =>
+                          handleSelectChange(single._id, "leaves")
+                        }
+                      />
+                      <span>{single.leave}</span>
                     </label>
                   </div>
                 ))}

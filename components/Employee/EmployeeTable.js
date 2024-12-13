@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import Image from 'next/image'
+
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Edit, Trash2, Eye, EyeOff } from "lucide-react";
@@ -165,6 +167,9 @@ const EmployeeTable = () => {
           <Table className="shadow-md rounded-lg border-separate">
             <TableHeader>
               <TableRow className="bg-foreground text-left">
+              <TableHead className="px-4 py-2 font-semibold text-white text-[12px]">
+                  Profile
+                </TableHead>
                 {columns
                   .filter((col) => col.isVisible)
                   .map((col) => (
@@ -186,6 +191,15 @@ const EmployeeTable = () => {
                   key={employee._id}
                   className="bg-background shadow-lg rounded-lg border-separate"
                 >
+                    <TableCell className="px-4" >
+                      <Image
+                    className="rounded-full"
+                    src={employee.profileImage}
+                    width={50}
+                    height={50}
+                    alt="Picture of the author"
+                    ></Image></TableCell>
+
                   {columns
                     .filter((col) => col.isVisible)
                     .map((col) => (
