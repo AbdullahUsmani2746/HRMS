@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { useSession } from "next-auth/react";
 import axios from "axios";
 import { Country, City } from "country-state-city";
 import {
@@ -22,7 +23,9 @@ import { Checkbox } from "@/components/ui/checkbox"; // Ensure correct import
 
 import LoadingSpinner from "@/components/spinner";
 
-const PopupForm = ({ onClose, setEmployees, employeeToEdit, clientId }) => {
+const PopupForm = ({ onClose, setEmployees, employeeToEdit }) => {
+  const {data: session} = useSession();
+  const clientId = session.user.username;
   const [employeeData, setEmployeeData] = useState({
     firstName: "",
     middleName: "",
@@ -39,7 +42,7 @@ const PopupForm = ({ onClose, setEmployees, employeeToEdit, clientId }) => {
     paySchedule: "",
     workLocation: "",
     manager: "",
-    clientId: clientId || "CLIENT-001", // Default client ID
+    clientId: clientId, // Default client ID
     employeeId: "",
     paymentMethod: "CHEQUE",
     bankName: "",

@@ -50,25 +50,25 @@ const data = {
   navMain: [
     {
       title: "Dashboard",
-      url: "/dashboard",
+      url: "/admin/dashboard",
       icon: LayoutDashboard,
       isActive: true,
     },
     {
       title: "Subscription",
-      url: "/subscription",
+      url: "/admin/subscription",
       icon: CircleDollarSign,
       isActive: true,
     },
     {
       title: "Applications",
-      url: "/application",
+      url: "/admin/application",
       icon: AppWindowMac,
       isActive: true,
     },
     {
       title: "Clients",
-      url: "/employers",
+      url: "/admin/employers",
       icon: Users,
       isActive: true,
     },
