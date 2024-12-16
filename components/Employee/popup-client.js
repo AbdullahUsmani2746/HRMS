@@ -80,6 +80,17 @@ const PopupForm = ({ onClose, setEmployees, employeeToEdit, clientId }) => {
   const [profileImage, setProfileImage] = useState();
   const [uploadDocument , setUploadDocument ] = useState([]);
 
+  const handleSelectLeaveChange = (leaveID, value) => 
+    { setEmployeeData((prev) => ({ ...prev, leaves: prev.leaves.map(
+      (leave) => leave.leaveId === leaveID ? { ...leave, available: value } : leave ), 
+    })); };
+
+    const handleLeaveCheckboxChange = (leaveID) => { setEmployeeData((prev) => {
+       const isSelected = prev.leaves.find((leave) => leave.leaveId === leaveID); 
+       return { ...prev, leaves: isSelected ? prev.leaves.filter(
+        (leave) => leave.leaveId !== leaveID) :
+       [...prev.leaves, { leaveId: leaveID, available: 0 }], }; }); };
+
 
   const uniqueCities = useMemo(() => {
     return Array.from(new Set(cities.map((city) => city.name))).map((name) =>
@@ -283,6 +294,8 @@ const PopupForm = ({ onClose, setEmployees, employeeToEdit, clientId }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    console.log(employeeData)
+
     setIsSubmitting(true);
 
     const validationErrors = validateForm();
@@ -422,7 +435,7 @@ const PopupForm = ({ onClose, setEmployees, employeeToEdit, clientId }) => {
           >
 
             {/* Image Upload */}
-            <h3 className="text-md font-bold">Profile Image</h3>
+            {/* <h3 className="text-md font-bold">Profile Image</h3>
             <section>
               <input
                 type="file"
@@ -436,10 +449,10 @@ const PopupForm = ({ onClose, setEmployees, employeeToEdit, clientId }) => {
                   className="mt-2 w-32 h-32 object-cover"
                 />
               )}
-            </section>
+            </section> */}
 
             {/* Document Upload */}
-            <h3 className="text-md font-bold">Documents</h3>
+            {/* <h3 className="text-md font-bold">Documents</h3>
             <section>
         <input
           type="file"
@@ -472,7 +485,7 @@ const PopupForm = ({ onClose, setEmployees, employeeToEdit, clientId }) => {
             </li>
           ))}
         </ul>
-      </section>
+      </section> */}
             {/* Employee Details */}
             <h3 className="text-md font-bold">Employee Details</h3>
             <section className="grid grid-cols-2 gap-4">
@@ -797,11 +810,11 @@ const PopupForm = ({ onClose, setEmployees, employeeToEdit, clientId }) => {
             </section>
 
             {/* Allownce and Deduction */}
-            <h3 className="text-MD font-bold">
+            <h3 className="text-MD font-bold text-center">
               Allownces and Deduction Details{" "}
             </h3>
 
-            <section className="flex justify-around   items-left ">
+            <section className="flex justify-around ">
               <div>
                 <h3 className="text-MD font-bold">Allownces </h3>
 
@@ -835,18 +848,36 @@ const PopupForm = ({ onClose, setEmployees, employeeToEdit, clientId }) => {
                   </div>
                 ))}
               </div>
-              <div>
-                <h3 className="text-MD font-bold">Leaves </h3>
+              
+            </section>
+
+
+            {/*Leaves */}
+
+            <section>
+            <h3 className="text-MD font-bold text-center">
+             Leaves Details{" "}
+            </h3>
+            <div>
+                <h3 className="text-MD font-bold">Leaves</h3>
                 {leave.map((single) => (
                   <div key={single._id}>
                     <label className="flex items-center space-x-3">
                       <Checkbox
-                        checked={selectedLeaves.includes(single._id)}
-                        onCheckedChange={() =>
-                          handleSelectChange(single._id, "leaves")
-                        }
+                       checked={employeeData.leaves.some((leave) => leave.leaveId === single._id)} 
+                       onCheckedChange={() => handleLeaveCheckboxChange(single._id)}
                       />
                       <span>{single.leave}</span>
+                      {employeeData.leaves.some((leave)=>leave.leaveId === single._id)&&(
+                        <Input 
+                        className="w-[160px]"
+                        type="number" min="0" 
+                        value={employeeData.leaves.find((leave) => leave.leaveId === single._id).count}
+                         onChange={(e) => handleSelectLeaveChange(single._id, e.target.value)} 
+                         placeholder="Number of Leaves"
+                        />
+                      )}
+                      
                     </label>
                   </div>
                 ))}

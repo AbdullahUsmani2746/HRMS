@@ -155,10 +155,13 @@ const EmployeeSchema = new mongoose.Schema({
     type: Array,
     required: true,
   },
-  leaves: {
-    type: Array,
-    required: true,
-  },
+  leaves:[
+    {
+      leaveId: { type: String }, 
+      available: { type: Number }
+    }
+  
+  ],
   createdOn: {
     type: Date,
     default: Date.now,

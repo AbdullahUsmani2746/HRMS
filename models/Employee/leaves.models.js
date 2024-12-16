@@ -22,5 +22,5 @@ const LeaveSchema = new mongoose.Schema({
       }
 })
 
-const Leaves = mongoose.model.Leaves || mongoose.model('Leave', LeaveSchema);
-export default Leaves;
+const Leave = mongoose.model.Leave || mongoose.model('Leave', LeaveSchema);
+export default Leave;
