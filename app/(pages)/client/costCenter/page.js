@@ -1,6 +1,5 @@
 // pages/employers.js
 "use client";
-import { useSession } from "next-auth/react";
 import Component from "@/components/Employee/costCenter";
 import { Edit, Trash2 } from "lucide-react";
 import { useRouter } from 'next/navigation';
