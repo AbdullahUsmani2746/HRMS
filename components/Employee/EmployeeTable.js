@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Image from 'next/image'
+import { useSession } from "next-auth/react";
+
 
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
@@ -32,6 +34,8 @@ import {
 } from "@/components/ui/table";
 
 const EmployeeTable = () => {
+  const {data: session} = useSession();
+  const clientId = session.user.username;
   const router = useRouter();
   const [employees, setEmployees] = useState([]);
   const [deduction, setdeduction] = useState([]);
@@ -46,9 +50,9 @@ const EmployeeTable = () => {
   const fetchEmployees = async () => {
     setIsLoading(true);
     try {
-      const response = await axios.get("/api/employees");
-      const response2 = await axios.get("/api/employees/allownce");
-      const response3 = await axios.get("/api/employees/deduction");
+      const response = await axios.get(`/api/employees?employerId=${clientId}`);
+      const response2 = await axios.get(`/api/employees/allownce?employerId=${clientId}`);
+      const response3 = await axios.get(`/api/employees/deduction?employerId=${clientId}`);
 
       setAllownce(response2.data.data);
       setdeduction(response3.data.data);

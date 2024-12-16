@@ -4,57 +4,64 @@ import User from '@/models/user.models';
 import connectDB from '@/utils/dbConnect';
 
 export const authOptions = {
-  session: {
-    strategy: 'jwt',
-  },
-  providers: [
-    CredentialsProvider({
-      name: 'Credentials',
-      credentials: {
-        username: { label: 'Username', type: 'text' },
-        password: { label: 'Password', type: 'password' },
+    session: {
+      strategy: 'jwt',
+    },
+    providers: [
+      CredentialsProvider({
+        name: 'Credentials',
+        credentials: {
+          username: { label: 'Username', type: 'text' },
+          password: { label: 'Password', type: 'password' },
+        },
+        async authorize(credentials) {
+          await connectDB();
+          const user = await User.findOne({ username: credentials.username });
+          if (!user) {
+            throw new Error('No user found with the provided credentials.');
+          }
+  
+          const isValidPassword = credentials.password === user.password;
+  
+          if (!isValidPassword) {
+            throw new Error('Invalid password.');
+          }
+  
+          return {
+            id: user._id,
+            username: user.username,
+            email: user.email,
+            role: user.role,
+          };
+        },
+      }),
+    ],
+    callbacks: {
+      async jwt({ token, user }) {
+        // Only add the user to the token if it's the initial sign-in
+        if (user) {
+          token.id = user.id;
+          token.username = user.username;
+          token.email = user.email;
+          token.role = user.role;
+        }
+        return token;
       },
-      async authorize(credentials) {
-        await connectDB();
-        const user = await User.findOne({ username: credentials.username });
-        if (!user) {
-          throw new Error('No user found with the provided credentials.');
-        }
-        // const isValidPassword = await bcrypt.compare(credentials.password, user.password);
-        const isValidPassword = credentials.password===user.password;
-        console.log(isValidPassword)
-        console.log(credentials.password)
-        console.log(user)
-
-
-        if (!isValidPassword) {
-          throw new Error('Invalid password.');
-        }
-        return {
-          id: user._id.toString(),
-          username: user.username,
-          email: user.email,
-          role: user.role, // SuperAdmin, Admin, User
+      async session({ session, token }) {
+        // Attach token properties directly to the session user object
+        session.user = {
+          id: token.id,
+          username: token.username,
+          email: token.email,
+          role: token.role,
         };
+        return session;
       },
-    }),
-  ],
-  callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
-        token.username = user.username
-        token.role = user.role;
-      }
-      return token;
     },
-    async session({ session, token }) {
-      session.user = token;
-      console.log(session.user.username)
-      return session;
+    pages: {
+      signIn: '/login', // Redirect to login page
+      error: '/error', // Redirect to error page
     },
-  },
-  pages: {
-    signIn: '/login', // Redirect to login page
-    error: '/error', // Redirect to error page
-  },
-};
+    secret: process.env.NEXTAUTH_SECRET,
+  };
+  

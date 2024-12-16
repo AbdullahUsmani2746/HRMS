@@ -2,10 +2,12 @@ import { NextResponse } from 'next/server';
 import connectDB from '@/utils/dbConnect';
 import CostCenter from '@/models/Employee/cost-center.models';
 
-export async function GET() {
+export async function GET(request) {
+  const searchParams = request.nextUrl.searchParams
+  const employerId = searchParams.get('employerId')  
   await connectDB();
   try {
-    const costCenters = await CostCenter.find({});
+    const costCenters = await CostCenter.find({employerId:employerId});
     return NextResponse.json({ success: true, data: costCenters });
   } catch (error) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });

@@ -11,6 +11,7 @@ const rolePermissions = {
 export async function middleware(req) {
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
   const { pathname } = req.nextUrl;
+  console.log(token)
 
   if (!token) {
     // Redirect unauthenticated users to login

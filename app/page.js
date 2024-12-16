@@ -6,15 +6,18 @@ import { useSession } from 'next-auth/react';
 
 export default function Home() {
 
-  const { data: session } = useSession();
+  const { data: session, status } =  useSession()
 
   const router = useRouter();
 
   useEffect(() => {
     // Navigate to '/dashboard' after the component has rendered
 
+    console.log(session)
+
     if(!session)
       router.push('/login');
+    
     else if( session.user.role === "SuperAdmin"){
       router.push('/admin/dashboard'); 
   }

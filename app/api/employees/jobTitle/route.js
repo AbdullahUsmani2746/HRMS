@@ -1,10 +1,12 @@
 import { NextResponse } from 'next/server';
 import connectDB from '@/utils/dbConnect';
 import JobTitle from '@/models/Employee/job_title.models';
-export async function GET() {
+export async function GET(request) {
   await connectDB();
+  const searchParams = request.nextUrl.searchParams
+  const employerId = searchParams.get('employerId') 
   try {
-    const data = await JobTitle.find({}).populate('departmentId');
+    const data = await JobTitle.find({employerId:employerId}).populate('departmentId');
     return NextResponse.json({ success: true, data: data });
   } catch (error) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });

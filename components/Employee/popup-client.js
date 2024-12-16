@@ -26,6 +26,7 @@ import LoadingSpinner from "@/components/spinner";
 const PopupForm = ({ onClose, setEmployees, employeeToEdit }) => {
   const {data: session} = useSession();
   const clientId = session.user.username;
+  console.log(clientId)
   const [employeeData, setEmployeeData] = useState({
     firstName: "",
     middleName: "",
@@ -115,15 +116,15 @@ const PopupForm = ({ onClose, setEmployees, employeeToEdit }) => {
         employeeTypeResponse,
         leaveResponse
       ] = await Promise.all([
-        axios.get("/api/employees/costCenter"),
-        axios.get("/api/employees/department"),
-        axios.get("/api/employees/schedule"),
-        axios.get("/api/employees/workLocation"),
-        axios.get("/api/employees/deduction"),
-        axios.get("/api/employees/allownce"),
-        axios.get("/api/employees/jobTitle"),
-        axios.get("/api/employees/employeeType"),
-        axios.get("/api/employees/leave"),
+        axios.get(`/api/employees/costCenter?employerId=${clientId}`),
+        axios.get(`/api/employees/department?employerId=${clientId}`),
+        axios.get(`/api/employees/schedule?employerId=${clientId}`),
+        axios.get(`/api/employees/workLocation?employerId=${clientId}`),
+        axios.get(`/api/employees/deduction?employerId=${clientId}`),
+        axios.get(`/api/employees/allownce?employerId=${clientId}`),
+        axios.get(`/api/employees/jobTitle?employerId=${clientId}`),
+        axios.get(`/api/employees/employeeType?employerId=${clientId}`),
+        axios.get(`/api/employees/leave?employerId=${clientId}`),
 
       ]);
 

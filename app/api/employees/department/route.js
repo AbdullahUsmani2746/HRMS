@@ -2,10 +2,12 @@ import { NextResponse } from 'next/server';
 import connectDB from '@/utils/dbConnect';
 import Department from '@/models/Employee/department.models';
 
-export async function GET() {
+export async function GET(request) {
+  const searchParams = request.nextUrl.searchParams
+  const employerId = searchParams.get('employerId') 
   await connectDB();
   try {
-    const departments = await Department.find({});
+    const departments = await Department.find({employerId: employerId});
     return NextResponse.json({ success: true, data: departments });
   } catch (error) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });

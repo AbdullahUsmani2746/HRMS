@@ -2,10 +2,12 @@ import { NextResponse } from 'next/server';
 import connectDB from '@/utils/dbConnect';
 import WorkLocation from '@/models/Employee/work-location.models';
 
-export async function GET() {
+export async function GET(request) {
+  const searchParams = request.nextUrl.searchParams
+  const employerId = searchParams.get('employerId') 
   await connectDB();
   try {
-    const locations = await WorkLocation.find({});
+    const locations = await WorkLocation.find({employerId:employerId});
     return NextResponse.json({ success: true, data: locations });
   } catch (error) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });

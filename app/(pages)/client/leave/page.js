@@ -1,6 +1,6 @@
 // pages/employers.js
 "use client";
-
+import { useSession } from "next-auth/react";
 import Component from "@/components/Employee/Leave";
 import { Edit, Trash2 } from "lucide-react";
 import { useRouter } from 'next/navigation';
@@ -23,6 +23,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 
 const Leave = () => {
   const router = useRouter();
+  const{data: session}= useSession();
+  const employerId = session.user.username;
   const [isLoading, setIsLoading] = useState(false); // Add isLoading state
   const [data, setData] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -51,7 +53,7 @@ const Leave = () => {
   const closeModal = async() => {
     setIsModalOpen(false);
     setSelectedData(null); // Clear selected data
-    const response = await axios.get('/api/employees/leave');
+    const response = await axios.get(`/api/employees/leave?employerId=${employerId}`);
     setData(response.data.data); // Update the state with the fresh data  
     };
 

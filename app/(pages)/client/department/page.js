@@ -1,6 +1,6 @@
 // pages/employers.js
 "use client";
-
+import { useSession } from "next-auth/react";
 import Component from "@/components/Employee/Department";
 import { Edit, Trash2 } from "lucide-react";
 import { useRouter } from 'next/navigation';
@@ -22,6 +22,8 @@ import Modal from '@/components/Modal';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 const Department = () => {
+  const{data: session}= useSession();
+  const employerId = session.user.username;
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false); // Add isLoading state
   const [data, setData] = useState([]);
@@ -32,7 +34,7 @@ const Department = () => {
     const fetchData= async () => {
       setIsLoading(true)
       try {
-        const response = await axios.get('/api/employees/department');
+        const response = await axios.get(`/api/employees/department?employerId=${employerId}`);
         setData(response.data.data);
       } catch (error) {
         console.error('Error fetching datas:', error);

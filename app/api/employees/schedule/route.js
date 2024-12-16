@@ -2,10 +2,12 @@ import { NextResponse } from 'next/server';
 import connectDB from '@/utils/dbConnect';
 import PaySchedule from '@/models/Employee/pay-schedule.models';
 
-export async function GET() {
+export async function GET(request) {
+  const searchParams = request.nextUrl.searchParams
+  const employerId = searchParams.get('employerId') 
   await connectDB();
   try {
-    const PaySchedules = await PaySchedule.find({});
+    const PaySchedules = await PaySchedule.find({employerId: employerId});
     return NextResponse.json({ success: true, data: PaySchedules });
   } catch (error) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });

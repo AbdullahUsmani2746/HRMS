@@ -1,6 +1,6 @@
 // pages/employers.js
 "use client";
-
+import { useSession } from "next-auth/react";
 import WorkLocation from "@/components/Employee/WorkLocation";
 import { Edit, Trash2 } from "lucide-react";
 import { useRouter } from 'next/navigation';
@@ -22,6 +22,8 @@ import Modal from '@/components/Modal';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 const Location = () => {
+  const{data: session}= useSession();
+  const employerId = session.user.username;
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false); // Add isLoading state
   const [workLocations, setWorkLocations] = useState([]);
@@ -32,7 +34,7 @@ const Location = () => {
     const fetchWorkLocations= async () => {
       setIsLoading(true)
       try {
-        const response = await axios.get('/api/employees/workLocation');
+        const response = await axios.get(`/api/employees/workLocation?employerId=${employerId}`);
         setWorkLocations(response.data.data);
       } catch (error) {
         console.error('Error fetching locations:', error);
