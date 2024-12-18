@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import connectDB from '@/utils/dbConnect';
 import JobTitle from '@/models/Employee/job_title.models';
+import './Employee/department.models';
+
 export async function GET(request) {
   await connectDB();
   const searchParams = request.nextUrl.searchParams
