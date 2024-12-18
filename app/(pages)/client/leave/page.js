@@ -22,7 +22,6 @@ import Modal from '@/components/Modal';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 const Leave = () => {
-  const router = useRouter();
   const{data: session}= useSession();
   const employerId = session.user.username;
   const [isLoading, setIsLoading] = useState(false); // Add isLoading state
@@ -34,7 +33,7 @@ const Leave = () => {
     const fetchData= async () => {
       setIsLoading(true)
       try {
-        const response = await axios.get('/api/employees/leave');
+        const response = await axios.get(`/api/employees/leave?employerId=${employerId}`);
         setData(response.data.data);
       } catch (error) {
         console.error('Error fetching datas:', error);

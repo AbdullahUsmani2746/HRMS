@@ -84,7 +84,7 @@ const CostCenterComponent = ({ existingData = null, onClose }) => {
               )}
               {isEditing && editIndex === index && (
                 <Button type="submit" className="bg-blue-500">
-                  Update Location
+                  Update
                 </Button>
               )}
             </div>

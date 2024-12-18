@@ -53,7 +53,7 @@ const Department = () => {
   const closeModal = async() => {
     setIsModalOpen(false);
     setSelectedData(null); // Clear selected data
-    const response = await axios.get('/api/employees/department');
+    const response = await axios.get(`/api/employees/department?employerId=${employerId}`);
     setData(response.data.data); // Update the state with the fresh data  
     };
 

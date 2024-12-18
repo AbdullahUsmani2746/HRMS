@@ -53,8 +53,10 @@ const JobTitle = () => {
   const closeModal = async() => {
     setIsModalOpen(false);
     setSelectedData(null); // Clear selected data
-    const response = await axios.get('/api/employees/jobTitle');
+    const response = await axios.get(`/api/employees/jobTitle?employerId=${employerId}`);
     setData(response.data.data); // Update the state with the fresh data  
+
+    console.log(data)
     };
 
   const handleDelete = async (id) => {
@@ -104,7 +106,7 @@ const JobTitle = () => {
         <div className="transition-width duration-300 flex-1 p-6">
           <div className="p-4">
             <div className="flex justify-between items-center mb-4">
-              <h1 className="text-2xl">Department</h1>
+              <h1 className="text-2xl">Job Title</h1>
               <Button onClick={() => openModal()}>Add Job Title</Button>
             </div>
             <Table className="shadow-md rounded-lg border-separate">

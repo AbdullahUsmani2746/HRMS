@@ -24,9 +24,9 @@ import { Checkbox } from "@/components/ui/checkbox"; // Ensure correct import
 import LoadingSpinner from "@/components/spinner";
 
 const PopupForm = ({ onClose, setEmployees, employeeToEdit }) => {
-  const {data: session} = useSession();
+  const { data: session } = useSession();
   const clientId = session.user.username;
-  console.log(clientId)
+  console.log(clientId);
   const [employeeData, setEmployeeData] = useState({
     firstName: "",
     middleName: "",
@@ -54,12 +54,11 @@ const PopupForm = ({ onClose, setEmployees, employeeToEdit }) => {
     payFrequency: "WEEK",
     employeeType: "",
     costCenter: "",
-    allownces:[],
-    deductions:[],
-    leaves:[],
+    allownces: [],
+    deductions: [],
+    leaves: [],
     profileImage: "", // For storing the uploaded image
-    documents: [] // For storing the uploaded documents
-    
+    documents: [], // For storing the uploaded documents
   });
 
   const [isLoading, setIsLoading] = useState(false);
@@ -82,19 +81,28 @@ const PopupForm = ({ onClose, setEmployees, employeeToEdit }) => {
   const [selectedLeaves, setselectedLeaves] = useState([]);
 
   const [profileImage, setProfileImage] = useState();
-  const [uploadDocument , setUploadDocument ] = useState([]);
+  const [uploadDocument, setUploadDocument] = useState([]);
 
-  const handleSelectLeaveChange = (leaveID, value) => 
-    { setEmployeeData((prev) => ({ ...prev, leaves: prev.leaves.map(
-      (leave) => leave.leaveId === leaveID ? { ...leave, available: value } : leave ), 
-    })); };
+  const handleSelectLeaveChange = (leaveID, value) => {
+    setEmployeeData((prev) => ({
+      ...prev,
+      leaves: prev.leaves.map((leave) =>
+        leave.leaveId === leaveID ? { ...leave, available: value } : leave
+      ),
+    }));
+  };
 
-    const handleLeaveCheckboxChange = (leaveID) => { setEmployeeData((prev) => {
-       const isSelected = prev.leaves.find((leave) => leave.leaveId === leaveID); 
-       return { ...prev, leaves: isSelected ? prev.leaves.filter(
-        (leave) => leave.leaveId !== leaveID) :
-       [...prev.leaves, { leaveId: leaveID, available: 0 }], }; }); };
-
+  const handleLeaveCheckboxChange = (leaveID) => {
+    setEmployeeData((prev) => {
+      const isSelected = prev.leaves.find((leave) => leave.leaveId === leaveID);
+      return {
+        ...prev,
+        leaves: isSelected
+          ? prev.leaves.filter((leave) => leave.leaveId !== leaveID)
+          : [...prev.leaves, { leaveId: leaveID, available: 0 }],
+      };
+    });
+  };
 
   const uniqueCities = useMemo(() => {
     return Array.from(new Set(cities.map((city) => city.name))).map((name) =>
@@ -114,7 +122,7 @@ const PopupForm = ({ onClose, setEmployees, employeeToEdit }) => {
         allownceResponse,
         jobTitleResponse,
         employeeTypeResponse,
-        leaveResponse
+        leaveResponse,
       ] = await Promise.all([
         axios.get(`/api/employees/costCenter?employerId=${clientId}`),
         axios.get(`/api/employees/department?employerId=${clientId}`),
@@ -125,7 +133,6 @@ const PopupForm = ({ onClose, setEmployees, employeeToEdit }) => {
         axios.get(`/api/employees/jobTitle?employerId=${clientId}`),
         axios.get(`/api/employees/employeeType?employerId=${clientId}`),
         axios.get(`/api/employees/leave?employerId=${clientId}`),
-
       ]);
 
       setcostCenter(costRepsonse.data.data);
@@ -149,19 +156,15 @@ const PopupForm = ({ onClose, setEmployees, employeeToEdit }) => {
     fetchData();
   }, []);
 
- 
-
   useEffect(() => {
     if (employeeToEdit) {
       setEmployeeData(employeeToEdit);
-      setselectedDeductions(employeeToEdit.deductions)
-      setselectedAllownces(employeeToEdit.allownces)
+      setselectedDeductions(employeeToEdit.deductions);
+      setselectedAllownces(employeeToEdit.allownces);
     } else {
       generateEmployeeId();
     }
   }, [employeeToEdit]);
-
-
 
   const handleCountryChange = (value) => {
     const countryISOCode = Country.getCountryByCode(value)?.isoCode;
@@ -226,13 +229,13 @@ const PopupForm = ({ onClose, setEmployees, employeeToEdit }) => {
         const updatedSelected = prevSelected.includes(id)
           ? prevSelected.filter((item) => item !== id)
           : [...prevSelected, id];
-  
+
         // Add allowances array to employee data
         setEmployeeData((prevData) => ({
           ...prevData,
           allownces: updatedSelected, // Add updated array to employee data
         }));
-  
+
         return updatedSelected;
       });
     } else if (type === "deduction") {
@@ -240,33 +243,31 @@ const PopupForm = ({ onClose, setEmployees, employeeToEdit }) => {
         const updatedSelected = prevSelected.includes(id)
           ? prevSelected.filter((item) => item !== id)
           : [...prevSelected, id];
-  
+
         // Add deductions array to employee data
         setEmployeeData((prevData) => ({
           ...prevData,
           deductions: updatedSelected, // Add updated array to employee data
         }));
-  
+
         return updatedSelected;
-    });
-  }
-  else if (type === "leaves") {
-    setselectedLeaves((prevSelected) => {
-      const updatedSelected = prevSelected.includes(id)
-        ? prevSelected.filter((item) => item !== id)
-        : [...prevSelected, id];
+      });
+    } else if (type === "leaves") {
+      setselectedLeaves((prevSelected) => {
+        const updatedSelected = prevSelected.includes(id)
+          ? prevSelected.filter((item) => item !== id)
+          : [...prevSelected, id];
 
-      // Add deductions array to employee data
-      setEmployeeData((prevData) => ({
-        ...prevData,
-        leaves: updatedSelected, // Add updated array to employee data
-      }));
+        // Add deductions array to employee data
+        setEmployeeData((prevData) => ({
+          ...prevData,
+          leaves: updatedSelected, // Add updated array to employee data
+        }));
 
-      return updatedSelected;
-  });
-}
-
-};
+        return updatedSelected;
+      });
+    }
+  };
   const validateForm = () => {
     const validationErrors = {};
     if (!employeeData.firstName.trim())
@@ -285,56 +286,66 @@ const PopupForm = ({ onClose, setEmployees, employeeToEdit }) => {
     e.preventDefault();
     console.log(employeeData);
     setIsSubmitting(true);
-  
+
     const validationErrors = validateForm();
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       setIsSubmitting(false);
       return;
     }
-  
+
     try {
-      let profileImageUrl = employeeData.profileImage || `/uploads/profileImage/No_image_placeholder.gif`;
+      let profileImageUrl =
+        employeeData.profileImage ||
+        `/uploads/profileImage/No_image_placeholder.gif`;
       let docURL = [...(employeeData.documents || [])]; // Clone existing documents to avoid direct state mutation
-  
+
       if (employeeToEdit) {
         // Handle profile image upload if a new image is selected
         if (profileImage && profileImage instanceof Blob) {
           const formData = new FormData();
           formData.append("file", profileImage);
-  
-          const Imageresponse = await axios.post("/api/upload/image", formData, {
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
-          });
-  
+
+          const Imageresponse = await axios.post(
+            "/api/upload/image",
+            formData,
+            {
+              headers: {
+                "Content-Type": "multipart/form-data",
+              },
+            }
+          );
+
           profileImageUrl = Imageresponse.data.url;
         }
-  
+
         // Handle new document uploads
         if (uploadDocument.length > 0) {
           const formData2 = new FormData();
           uploadDocument.forEach((doc) => {
             formData2.append("files", doc.file);
           });
-  
-          const DocResponse = await axios.post("/api/upload/document", formData2, {
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
-          });
-  
+
+          const DocResponse = await axios.post(
+            "/api/upload/document",
+            formData2,
+            {
+              headers: {
+                "Content-Type": "multipart/form-data",
+              },
+            }
+          );
+
           // Combine existing documents with newly uploaded ones
           const newDocuments = DocResponse.data.files.map((file, index) => ({
             url: file.url,
             name: file.name,
             description: uploadDocument[index].description,
           }));
-  
+
           docURL = [...docURL, ...newDocuments];
         }
-  
+
         // Update employee data
         const response = await axios.put(
           `/api/employees/${employeeToEdit._id}`,
@@ -344,7 +355,7 @@ const PopupForm = ({ onClose, setEmployees, employeeToEdit }) => {
             documents: docURL,
           }
         );
-  
+
         setEmployees((prev) =>
           prev.map((emp) =>
             emp._id === employeeToEdit._id ? response.data.data : emp
@@ -355,45 +366,53 @@ const PopupForm = ({ onClose, setEmployees, employeeToEdit }) => {
         if (profileImage && profileImage instanceof Blob) {
           const formData = new FormData();
           formData.append("file", profileImage);
-  
-          const Imageresponse = await axios.post("/api/upload/image", formData, {
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
-          });
-  
+
+          const Imageresponse = await axios.post(
+            "/api/upload/image",
+            formData,
+            {
+              headers: {
+                "Content-Type": "multipart/form-data",
+              },
+            }
+          );
+
           profileImageUrl = Imageresponse.data.url;
         }
-  
+
         if (uploadDocument.length > 0) {
           const formData2 = new FormData();
           uploadDocument.forEach((doc) => {
             formData2.append("files", doc.file);
           });
-  
-          const DocResponse = await axios.post("/api/upload/document", formData2, {
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
-          });
-  
+
+          const DocResponse = await axios.post(
+            "/api/upload/document",
+            formData2,
+            {
+              headers: {
+                "Content-Type": "multipart/form-data",
+              },
+            }
+          );
+
           docURL = DocResponse.data.files.map((file, index) => ({
             url: file.url,
             name: file.name,
             description: uploadDocument[index].description,
           }));
         }
-  
+
         // Create new employee
         const response = await axios.post("/api/employees", {
           ...employeeData,
           profileImage: profileImageUrl,
           documents: docURL,
         });
-  
+
         setEmployees((prev) => [...prev, response.data.data]);
       }
-  
+
       onClose();
     } catch (error) {
       console.error("Error saving employee:", error);
@@ -401,30 +420,24 @@ const PopupForm = ({ onClose, setEmployees, employeeToEdit }) => {
       setIsSubmitting(false);
     }
   };
-  
 
   const handleFileChange = (e, type) => {
- 
-
     if (type === "profileImage") {
       const file = e.target.files[0];
-      console.log(file)
-      setProfileImage(
-        file
-      );
+      console.log(file);
+      setProfileImage(file);
     } else if (type === "documents") {
-      console.log(type)
+      console.log(type);
       const files = Array.from(e.target.files); // Get all selected files
-      console.log(files)
+      console.log(files);
       const newDocuments = files.map((file) => ({
         file,
         name: file.name,
         description: "", // Initial empty description
       }));
-     setUploadDocument(newDocuments)
+      setUploadDocument(newDocuments);
     }
-    console.log(employeeData)
-
+    console.log(employeeData);
   };
 
   const removeDocument = (index) => {
@@ -433,27 +446,25 @@ const PopupForm = ({ onClose, setEmployees, employeeToEdit }) => {
       documents: prev.documents.filter((_, i) => i !== index),
     }));
 
-    setUploadDocument(prev => prev.filter((_, i) => i !== index));
+    setUploadDocument((prev) => prev.filter((_, i) => i !== index));
   };
 
-    // Handle document description change
-    const handleDescriptionChange = (index, description) => {
-      const updatedDocuments = uploadDocument.length > 0 
-  ? [...uploadDocument] 
-  : [...employeeData.documents];
-      console.log(index)
-      console.log(description)
+  // Handle document description change
+  const handleDescriptionChange = (index, description) => {
+    const updatedDocuments =
+      uploadDocument.length > 0
+        ? [...uploadDocument]
+        : [...employeeData.documents];
+    console.log(index);
+    console.log(description);
 
-      updatedDocuments[index].description = description;
-      setUploadDocument(
-        updatedDocuments
-      );
-  console.log(uploadDocument)
-
-    };
+    updatedDocuments[index].description = description;
+    setUploadDocument(updatedDocuments);
+    console.log(uploadDocument);
+  };
 
   return (
-    <Dialog open={true} onOpenChange={onClose} >
+    <Dialog open={true} onOpenChange={onClose}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
@@ -469,68 +480,78 @@ const PopupForm = ({ onClose, setEmployees, employeeToEdit }) => {
             onSubmit={handleSubmit}
             className="space-y-6 px-1 h-[75vh] overflow-y-auto"
           >
-
             {/* Image Upload */}
 
-            <div className="max-w-sm mx-auto"> 
-              <div className="border border-background-300 p-4 rounded-lg shadow-sm"> 
-                <div className="relative w-32 h-32 mx-auto mb-4"> 
+            <div className="max-w-sm mx-auto">
+              <div className="border border-background-300 p-4 rounded-lg shadow-sm">
+                <div className="relative w-32 h-32 mx-auto mb-4">
                   {console.log(profileImage)}
-                  {profileImage || employeeData.profileImage ? ( 
-                    <img 
-                    src= {profileImage ? URL.createObjectURL(profileImage): employeeData.profileImage}
-                    alt="Profile Preview" 
-                  className="w-full h-full rounded-full object-cover" /> ) 
-                  : ( <div className="flex items-center justify-center w-full h-full rounded-full bg-gray-100 text-gray-500"> 
-                  <span>No Image</span> </div> )} 
-                  </div> 
-                  <label className="block text-center border-2 bg-foreground text-white py-2 px-4 rounded cursor-pointer hover:bg-background hover:border-2 hover:text-foreground transition duration-150">
-                     <input type="file" 
-                     accept="image/*" 
-                     onChange={(e) => handleFileChange(e, "profileImage")}
-                     className="hidden" /> 
-                     {employeeData.profileImage?"Change Image":"Upload Image "}
-                     </label>
-                     </div>
-                     </div>
-
-         
+                  {profileImage || employeeData.profileImage ? (
+                    <img
+                      src={
+                        profileImage
+                          ? URL.createObjectURL(profileImage)
+                          : employeeData.profileImage
+                      }
+                      alt="Profile Preview"
+                      className="w-full h-full rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex items-center justify-center w-full h-full rounded-full bg-gray-100 text-gray-500">
+                      <span>No Image</span>{" "}
+                    </div>
+                  )}
+                </div>
+                <label className="block text-center border-2 bg-foreground text-white py-2 px-4 rounded cursor-pointer hover:bg-background hover:border-2 hover:text-foreground transition duration-150">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleFileChange(e, "profileImage")}
+                    className="hidden"
+                  />
+                  {employeeData.profileImage ? "Change Image" : "Upload Image "}
+                </label>
+              </div>
+            </div>
 
             {/* Document Upload */}
             <h3 className="text-md font-bold">Documents</h3>
             <section>
-        <input
-          type="file"
-          accept=".pdf,.doc,.docx"
-          multiple
-          onChange={(e) => handleFileChange(e, "documents")}
-        />
-        <ul className="mt-2">
-          {(uploadDocument.length > 0 ? uploadDocument : employeeData.documents ).map((doc, index) => (
-            <li key={index} className="flex justify-between items-center">
-              <div>
-                <span>{doc.name}</span>
-                <input
-                  type="text"
-                  placeholder="Enter description"
-                  value={doc.description}
-                  onChange={(e) =>
-                    handleDescriptionChange(index, e.target.value)
-                  }
-                  className="ml-2 p-1 border rounded"
-                />
-              </div>
-              <button
-                type="button"
-                onClick={() => removeDocument(index)}
-                className="text-red-500 text-sm"
-              >
-                Remove
-              </button>
-            </li>
-          ))}
-        </ul>
-      </section>
+              <input
+                type="file"
+                accept=".pdf,.doc,.docx"
+                multiple
+                onChange={(e) => handleFileChange(e, "documents")}
+              />
+              <ul className="mt-2">
+                {(uploadDocument.length > 0
+                  ? uploadDocument
+                  : employeeData.documents
+                ).map((doc, index) => (
+                  <li key={index} className="flex justify-between items-center">
+                    <div>
+                      <span>{doc.name}</span>
+                      <input
+                        type="text"
+                        placeholder="Enter description"
+                        value={doc.description}
+                        onChange={(e) =>
+                          handleDescriptionChange(index, e.target.value)
+                        }
+                        className="ml-2 p-1 border rounded"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removeDocument(index)}
+                      className="text-red-500 text-sm"
+                    >
+                      Remove
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </section>
 
             {/* Employee Details */}
             <h3 className="text-md font-bold">Employee Details</h3>
@@ -641,11 +662,16 @@ const PopupForm = ({ onClose, setEmployees, employeeToEdit }) => {
                 }
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Job Title" />
+                  <SelectValue
+                    placeholder={
+                      jobTitle.find((jt) => jt._id === employeeData.jobTitle)
+                        ?.job_title || "Job Tilte"
+                    }
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   {jobTitle.map((single) => (
-                    <SelectItem key={single._id} value={single.job_title}>
+                    <SelectItem key={single._id} value={single._id}>
                       {single.job_title}
                     </SelectItem>
                   ))}
@@ -653,20 +679,28 @@ const PopupForm = ({ onClose, setEmployees, employeeToEdit }) => {
               </Select>
 
               <Select
-                value={employeeData.department}
+                value={
+                  employeeData.department  // Bind the selected department ID to the select value
+                }
                 onValueChange={(value) =>
                   setEmployeeData((prev) => ({
                     ...prev,
-                    department: value,
+                    department: value, // Update the department in state when a new value is selected
                   }))
                 }
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Department" />
+                  <SelectValue
+                    placeholder={
+                      department.find(
+                        (dept) => dept._id === employeeData.department
+                      )?.department || "Department"
+                    }
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   {department.map((single) => (
-                    <SelectItem key={single._id} value={single.department}>
+                    <SelectItem key={single._id} value={single._id}>
                       {single.department}
                     </SelectItem>
                   ))}
@@ -683,11 +717,17 @@ const PopupForm = ({ onClose, setEmployees, employeeToEdit }) => {
                 }
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Pay Schedule" />
+                  <SelectValue
+                    placeholder={
+                      schedule.find(
+                        (sch) => sch._id === employeeData.paySchedule
+                      )?.pay_schedule || "Pay Schedule"
+                    }
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   {schedule.map((single) => (
-                    <SelectItem key={single._id} value={single.pay_schedule}>
+                    <SelectItem key={single._id} value={single._id}>
                       {single.pay_schedule}
                     </SelectItem>
                   ))}
@@ -704,11 +744,17 @@ const PopupForm = ({ onClose, setEmployees, employeeToEdit }) => {
                 }
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Work Location" />
+                  <SelectValue
+                    placeholder={
+                      location.find(
+                        (wl) => wl._id === employeeData.workLocation
+                      )?.work_location || "Work Location"
+                    }
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   {location.map((single) => (
-                    <SelectItem key={single._id} value={single.work_location}>
+                    <SelectItem key={single._id} value={single._id}>
                       {single.work_location}
                     </SelectItem>
                   ))}
@@ -732,11 +778,17 @@ const PopupForm = ({ onClose, setEmployees, employeeToEdit }) => {
                 }
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Cost Center" />
+                  <SelectValue
+                    placeholder={
+                      costCenter.find(
+                        (cc) => cc._id === employeeData.costCenter
+                      )?.cost_center || "Cost Center"
+                    }
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   {costCenter.map((single) => (
-                    <SelectItem key={single._id} value={single.cost_center}>
+                    <SelectItem key={single._id} value={single._id}>
                       {single.cost_center}
                     </SelectItem>
                   ))}
@@ -762,7 +814,9 @@ const PopupForm = ({ onClose, setEmployees, employeeToEdit }) => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="CHEQUE">Cheque</SelectItem>
-                    <SelectItem value="DIRECT DEPOSIT">Direct Deposit</SelectItem>
+                    <SelectItem value="DIRECT DEPOSIT">
+                      Direct Deposit
+                    </SelectItem>
                   </SelectContent>
                 </Select>
                 <Input
@@ -843,11 +897,17 @@ const PopupForm = ({ onClose, setEmployees, employeeToEdit }) => {
                 }
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Employee Type" />
+                  <SelectValue
+                    placeholder={
+                      employeeType.find(
+                        (et) => et._id === employeeData.employeeType
+                      )?.employee_type || "Employee Type"
+                    }
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   {employeeType.map((single) => (
-                    <SelectItem key={single._id} value={single.employee_type}>
+                    <SelectItem key={single._id} value={single._id}>
                       {single.employee_type}
                     </SelectItem>
                   ))}
@@ -894,36 +954,44 @@ const PopupForm = ({ onClose, setEmployees, employeeToEdit }) => {
                   </div>
                 ))}
               </div>
-              
             </section>
-
 
             {/*Leaves */}
 
             <section>
-            <h3 className="text-MD font-bold text-center">
-             Leaves Details{" "}
-            </h3>
-            <div>
+              <h3 className="text-MD font-bold text-center">Leaves Details </h3>
+              <div>
                 <h3 className="text-MD font-bold">Leaves</h3>
                 {leave.map((single) => (
                   <div key={single._id}>
                     <label className="flex items-center space-x-3">
                       <Checkbox
-                       checked={employeeData.leaves.some((leave) => leave.leaveId === single._id)} 
-                       onCheckedChange={() => handleLeaveCheckboxChange(single._id)}
+                        checked={employeeData.leaves.some(
+                          (leave) => leave.leaveId === single._id
+                        )}
+                        onCheckedChange={() =>
+                          handleLeaveCheckboxChange(single._id)
+                        }
                       />
                       <span>{single.leave}</span>
-                      {employeeData.leaves.some((leave)=>leave.leaveId === single._id)&&(
-                        <Input 
-                        className="w-[160px]"
-                        type="number" min="0" 
-                        value={employeeData.leaves.find((leave) => leave.leaveId === single._id).available}
-                         onChange={(e) => handleSelectLeaveChange(single._id, e.target.value)} 
-                         placeholder="Number of Leaves"
+                      {employeeData.leaves.some(
+                        (leave) => leave.leaveId === single._id
+                      ) && (
+                        <Input
+                          className="w-[160px]"
+                          type="number"
+                          min="0"
+                          value={
+                            employeeData.leaves.find(
+                              (leave) => leave.leaveId === single._id
+                            ).available
+                          }
+                          onChange={(e) =>
+                            handleSelectLeaveChange(single._id, e.target.value)
+                          }
+                          placeholder="Number of Leaves"
                         />
                       )}
-                      
                     </label>
                   </div>
                 ))}

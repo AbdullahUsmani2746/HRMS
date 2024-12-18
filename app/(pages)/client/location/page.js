@@ -53,7 +53,7 @@ const Location = () => {
   const closeModal = async() => {
     setIsModalOpen(false);
     setSelectedWorkLocation(null); // Clear selected location
-    const response = await axios.get('/api/employees/workLocation');
+    const response = await axios.get(`/api/employees/workLocation?employerId=${employerId}`);
     setWorkLocations(response.data.data); // Update the state with the fresh data  
     };
 
