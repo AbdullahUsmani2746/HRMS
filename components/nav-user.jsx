@@ -1,4 +1,5 @@
 "use client"
+import { signOut } from "next-auth/react";
 
 import {
   BadgeCheck,
@@ -29,6 +30,8 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
+import { redirect } from "next/dist/server/api-utils";
+import { useRouter } from "next/navigation";
 
 export function NavUser({
   user
@@ -94,8 +97,13 @@ console.log(user.avatar)
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <LogOut />
+            <DropdownMenuItem onClick={() => 
+                  signOut({
+                    callbackUrl: "/login", // Redirect to a custom URL
+                  })
+                
+              }>
+              <LogOut  />
               Log out
             </DropdownMenuItem>
           </DropdownMenuContent>

@@ -6,6 +6,8 @@ import connectDB from '@/utils/dbConnect';
 export const authOptions = {
     session: {
       strategy: 'jwt',
+      maxAge: 60*60*24, // 1 day in seconds
+      updateAge: 60*60, // 1 hour in seconds (how often the session is updated)
     },
     providers: [
       CredentialsProvider({

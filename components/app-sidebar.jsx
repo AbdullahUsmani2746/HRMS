@@ -157,11 +157,25 @@ const data = {
       isActive: true,
     },
   ],
+  navUserEmployee: [
+    {
+      title: "Dashboard",
+      url: "/employee/dashboard",
+      icon: LayoutDashboard,
+      isActive: true,
+    },
+    
+  ],
 };
 
 export function AppSidebar({ userType = "client", ...props }) {
   // Determine the navigation data based on the user type
-  const navData = userType === "client" ? data.navMain : data.navEmployee;
+  const navData =
+  userType === "client" ? data.navMain :
+  userType === "employee" ? data.navEmployee :
+  userType === "userEmployee" ? data.navUserEmployee :
+  null; // Fallback to `null`
+  
 
   return (
     <Sidebar variant="inset" {...props}>

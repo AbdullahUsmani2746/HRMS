@@ -26,21 +26,14 @@ import {
 } from "chart.js";
 import { Bar } from "react-chartjs-2";
 import LoadingSpinner from "@/components/spinner";
+import AttendanceSummary from "@/components/User/attendance-summary";
 
 // Register Chart.js components
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 const Dashboard = () => {
-  const [activeClients, setActiveClients] = useState(0);
   const [isLoading, setIsLoading] = useState(false); // Add isLoading state
-  const [inactiveClients, setInactiveClients] = useState(0);
-  const [totalClients, setTotalClients] = useState(0);
-  const [activeSubscriptions, setActiveSubscriptions] = useState(0);
-  const [subscriptionBreakdown, setSubscriptionBreakdown] = useState({});
-  const [totalRevenue, setTotalRevenue] = useState(0);
-  const [activeUsers, setActiveUsers] = useState(0);
-  const [turnoverRate, setTurnoverRate] = useState(0);
-  const [userGrowth, setUserGrowth] = useState(0);
+
  
 
 
@@ -53,7 +46,7 @@ const Dashboard = () => {
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem className="hidden md:block">
-                <BreadcrumbLink href="#">Hr Management Software</BreadcrumbLink>
+                <BreadcrumbLink href="#">HR Management Software</BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator className="hidden md:block" />
               <BreadcrumbItem>
@@ -65,7 +58,7 @@ const Dashboard = () => {
       </header>
       {isLoading ? (<LoadingSpinner/>):
       (
-        <div className="text-center">Dashboard</div>
+        <div className="text-center"><AttendanceSummary/></div>
       )
 }
     </SidebarInset>
