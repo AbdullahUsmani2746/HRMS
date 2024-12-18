@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import connectDB from '@/utils/dbConnect';
 import JobTitle from '@/models/Employee/job_title.models';
-import Department from './Employee/department.models';
+import Department from '@/models/Employee/department.models';
 
 export async function GET(request) {
   await connectDB();
