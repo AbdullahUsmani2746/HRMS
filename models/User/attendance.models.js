@@ -33,6 +33,10 @@ const AttendanceSchema = new mongoose.Schema(
       type: String,
       default: "0h 0m",
     },
+    status:{
+      type:String,
+      required:true
+    }
   },
   {
     timestamps: true,

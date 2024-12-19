@@ -5,6 +5,32 @@ import connectDB from "@/utils/dbConnect";
 import Employee from "@/models/Employee/employee.models";
 import { ObjectId } from "bson";
 
+
+export async function GET(req, { params }) {
+  const { id } = params;
+  console.log(id)
+  await connectDB();
+
+  try {
+    const employee = await Employee.find({employeeId: id});
+
+    if (!employee) {
+      return NextResponse.json(
+        { message: "No Employee data found for today." },
+        { status: 200 }
+      );
+    }
+
+    return NextResponse.json({ message: "Employers fetched From the Database", data:`${employee[0].firstName} ${employee[0].surname} ` });
+
+  } catch (error) {
+    return NextResponse.json(
+      { message: "Error fetching data.", error },
+      { status: 500 }
+    );
+  }
+}
+
 // Update Employee
 export async function PUT(request, { params }) {
   await connectDB();

@@ -21,7 +21,8 @@ import {
   DollarSignIcon,
   MinusCircleIcon,
   BriefcaseBusiness,
-  UserCheck2Icon
+  UserCheck2Icon,
+  Clipboard
 } from "lucide-react";
 
 import { NavMain } from "@/components/nav-main";
@@ -162,6 +163,12 @@ const data = {
       title: "Dashboard",
       url: "/employee/dashboard",
       icon: LayoutDashboard,
+      isActive: true,
+    },
+    {
+      title: "Attendances",
+      url: "/employee/attendances",
+      icon: Clipboard,
       isActive: true,
     },
     
