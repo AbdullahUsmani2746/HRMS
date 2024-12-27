@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { Mongoose } from "mongoose";
 import Employer from "@/models/employer.models";
 const EmployeeSchema = new mongoose.Schema({
   firstName: {
@@ -79,8 +79,8 @@ const EmployeeSchema = new mongoose.Schema({
     // ref: "Employee", // Refers to the Employee collection for hierarchical relations
     // default: null
 
-    type: String,
-    required: true,
+    type: mongoose.Schema.Types.ObjectId,
+    ref:"Manager",
     maxlength: 25,
   },
   clientId: {

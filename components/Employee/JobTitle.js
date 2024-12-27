@@ -76,6 +76,9 @@ const JobTitleForm = React.memo(({ app, index, department, handleDataChange, rem
   );
 });
 
+JobTitleForm.displayName = "JobTitleForm";
+
+
 const JobTitleComponent = ({ existingData = null, onClose }) => {
   const { data: session } = useSession();
   const employerId = session?.user?.username || "";

@@ -15,14 +15,15 @@ import {
   CircleHelp,
   Settings2,
   Locate,
+  BriefcaseConveyorBelt,
   CalendarCheckIcon,
   Building,
- LucideUmbrella,
+  LucideUmbrella,
   DollarSignIcon,
   MinusCircleIcon,
   BriefcaseBusiness,
   UserCheck2Icon,
-  Clipboard
+  Clipboard,
 } from "lucide-react";
 
 import { NavMain } from "@/components/nav-main";
@@ -130,27 +131,35 @@ const data = {
       isActive: true,
     },
     {
+      title: "Manager",
+      url: "/client/manager",
+      icon: BriefcaseConveyorBelt,
+      isActive: true,
+    },
+    {
       title: "Job Title",
       url: "/client/jobTitle",
       icon: BriefcaseBusiness,
       isActive: true,
-    }, {
+    },
+    {
       title: "Employee Type",
       url: "/client/employeeType",
       icon: UserCheck2Icon,
       isActive: true,
-    }, {
+    },
+    {
       title: "Allownces",
       url: "/client/allownce",
       icon: DollarSignIcon,
       isActive: true,
-    }, {
+    },
+    {
       title: "Deductions",
       url: "/client/deduction",
       icon: MinusCircleIcon,
       isActive: true,
     },
-
     {
       title: "Leaves",
       url: "/client/leave",
@@ -171,18 +180,32 @@ const data = {
       icon: Clipboard,
       isActive: true,
     },
-    
   ],
 };
 
-export function AppSidebar({ userType = "client", ...props }) {
+export function AppSidebar({ userType = "client", isManager = true, ...props }) {
   // Determine the navigation data based on the user type
-  const navData =
-  userType === "client" ? data.navMain :
-  userType === "employee" ? data.navEmployee :
-  userType === "userEmployee" ? data.navUserEmployee :
-  null; // Fallback to `null`
-  
+  let navData = null;
+  if (userType === "client") {
+    navData = data.navMain;
+  } else if (userType === "employee") {
+    navData = data.navEmployee;
+  } else if (userType === "userEmployee") {
+    navData = data.navUserEmployee;
+  }
+
+  // Conditionally add "Approvals" menu for managers in the "userEmployee" menu
+  if (isManager && userType === "userEmployee") {
+    navData = [
+      ...data.navUserEmployee, // Existing items
+      {
+        title: "Approvals",
+        url: "/employee/approvals",  // Link to the approval page
+        icon: BriefcaseBusiness,     // Example icon, can be customized
+        isActive: true,
+      },
+    ];
+  }
 
   return (
     <Sidebar variant="inset" {...props}>
@@ -191,16 +214,16 @@ export function AppSidebar({ userType = "client", ...props }) {
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild className="bg-foreground">
               <a href="#">
-                <div
-                  className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground"
-                >
+                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
                   <Avatar className="h-8 w-8 rounded-lg">
                     <AvatarImage src={ivilasiLogo.src} alt={data.user.name} />
                     <AvatarFallback className="rounded-lg">CN</AvatarFallback>
                   </Avatar>
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold text-white">Ivilasi Consultant</span>
+                  <span className="truncate font-semibold text-white">
+                    Ivilasi Consultant
+                  </span>
                   <span className="truncate text-xs text-white">Payroll Software</span>
                 </div>
               </a>

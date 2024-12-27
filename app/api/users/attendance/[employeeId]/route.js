@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import connectDB from "@/utils/dbConnect";
 import Attendance from "@/models/User/attendance.models";
+import { ObjectId } from "bson";
 
 export async function GET(req, { params }) {
   const { employeeId } = params;
@@ -65,6 +66,43 @@ export async function POST(req, { params }) {
   } catch (error) {
     return NextResponse.json(
       { message: "Error updating attendance data.", error },
+      { status: 500 }
+    );
+  }
+}
+
+
+
+export async function PUT(req, { params }) {
+  const attendanceId  = params.employeeId;
+
+  console.log(params.employeeId)
+  await connectDB();
+
+  try {
+    const  {newStatus}  = await req.json();
+
+    console.log(newStatus)
+
+
+    // Find and update the attendance record by ID
+    const updatedAttendance = await Attendance.findByIdAndUpdate(
+      new ObjectId(attendanceId),
+      { status: newStatus},
+      { new: true } // Return the updated document
+    );
+
+    if (!updatedAttendance) {
+      return NextResponse.json(
+        { message: "Attendance record not found." },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json(updatedAttendance);
+  } catch (error) {
+    return NextResponse.json(
+      { message: "Error updating attendance record.", error },
       { status: 500 }
     );
   }

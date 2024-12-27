@@ -42,7 +42,7 @@ const AttendanceSummary = () => {
     date: new Date().toLocaleDateString(),
   });
 
-  const [employeeId, setEmployeeId] = useState("001-0001");
+  const [employeeId, setEmployeeId] = useState("001-0002");
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [isOnBreak, setIsOnBreak] = useState(false);
   const timerRef = useRef(null);

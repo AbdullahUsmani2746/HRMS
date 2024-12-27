@@ -7,12 +7,16 @@ import { ObjectId } from "bson";
 
 
 export async function GET(req, { params }) {
-  const { id } = params;
+  const { id } =await params;
   console.log(id)
+  console.log("ID A")
+
   await connectDB();
 
   try {
     const employee = await Employee.find({employeeId: id});
+  console.log(employee )
+
 
     if (!employee) {
       return NextResponse.json(

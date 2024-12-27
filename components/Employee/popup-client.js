@@ -64,6 +64,7 @@ const PopupForm = ({ onClose, setEmployees, employeeToEdit }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [costCenter, setcostCenter] = useState([]);
+  const [manager, setManager] = useState([]);
   const [department, setDepartment] = useState([]);
   const [location, setlocation] = useState([]);
   const [schedule, setSchedule] = useState([]);
@@ -123,6 +124,7 @@ const PopupForm = ({ onClose, setEmployees, employeeToEdit }) => {
         jobTitleResponse,
         employeeTypeResponse,
         leaveResponse,
+        manResponse
       ] = await Promise.all([
         axios.get(`/api/employees/costCenter?employerId=${clientId}`),
         axios.get(`/api/employees/department?employerId=${clientId}`),
@@ -133,6 +135,8 @@ const PopupForm = ({ onClose, setEmployees, employeeToEdit }) => {
         axios.get(`/api/employees/jobTitle?employerId=${clientId}`),
         axios.get(`/api/employees/employeeType?employerId=${clientId}`),
         axios.get(`/api/employees/leave?employerId=${clientId}`),
+        axios.get(`/api/employees/manager?employerId=${clientId}`),
+
       ]);
 
       setcostCenter(costRepsonse.data.data);
@@ -144,6 +148,7 @@ const PopupForm = ({ onClose, setEmployees, employeeToEdit }) => {
       setJobTitle(jobTitleResponse.data.data);
       setEmployeeType(employeeTypeResponse.data.data);
       setLeave(leaveResponse.data.data);
+      setManager(manResponse.data.data)
 
       console.log(allownce);
     } catch (error) {
@@ -761,12 +766,34 @@ const PopupForm = ({ onClose, setEmployees, employeeToEdit }) => {
                 </SelectContent>
               </Select>
 
-              <Input
-                name="manager"
+         
+
+<Select
                 value={employeeData.manager}
-                onChange={handleChange}
-                placeholder="Manager"
-              />
+                onValueChange={(value) =>
+                  setEmployeeData((prev) => ({
+                    ...prev,
+                    manager: value,
+                  }))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue
+                    placeholder={
+                      costCenter.find(
+                        (man) => man._id === employeeData.manager
+                      )?.manager || "Manager"
+                    }
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {manager.map((single) => (
+                    <SelectItem key={single._id} value={single._id}>
+                      {single.manager}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
 
               <Select
                 value={employeeData.costCenter}
@@ -1022,4 +1049,4 @@ const PopupForm = ({ onClose, setEmployees, employeeToEdit }) => {
   );
 };
 
-export default PopupForm;
+export default PopupForm; 
