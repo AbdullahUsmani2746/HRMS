@@ -9,55 +9,57 @@ module.exports = {
 	theme: {
 	  extend: {
 		colors: {
-		  background: '#dbd9db', // Grey background
-		  foreground: '#c41e3a', // Red foreground
+		  background: '#F7F9F2', // Grey background
+		//   foreground: '#181C14', // Red foreground
+		  foreground: '#181C14', // Black foreground
+
 		  card: {
-			DEFAULT: '#dbd9db', // Grey card background
-			foreground: '#c41e3a', // Red card foreground
+			DEFAULT: '#F7F9F2', // Grey card background
+			foreground: '#181C14', // Black card foreground
 		  },
 		  popover: {
-			DEFAULT: '#dbd9db', // Grey popover background
-			foreground: '#c41e3a', // Red popover foreground
+			DEFAULT: '#F7F9F2', // Grey popover background
+			foreground: '#181C14', // Black popover foreground
 		  },
 		  primary: {
-			DEFAULT: '#c41e3a', // Red primary color
+			DEFAULT: '#181C14', // Black primary color
 			foreground: '#fff', // Grey primary foreground
 		  },
 		  secondary: {
-			DEFAULT: '#dbd9db', // Grey secondary color
-			foreground: '#c41e3a', // Red secondary foreground
+			DEFAULT: '#F7F9F2', // Grey secondary color
+			foreground: '#181C14', // Red secondary foreground
 		  },
 		  muted: {
-			DEFAULT: '#dbd9db', // Grey muted color
-			foreground: '#c41e3a', // Red muted foreground
+			DEFAULT: '#F7F9F2', // Grey muted color
+			foreground: '#181C14', // Red muted foreground
 		  },
 		  accent: {
-			DEFAULT: '#c41e3a', // Red accent color
-			foreground: '#dbd9db', // Grey accent foreground
+			DEFAULT: '#181C14', // Red accent color
+			foreground: '#F7F9F2', // Grey accent foreground
 		  },
 		  destructive: {
-			DEFAULT: '#c41e3a', // Red destructive color
-			foreground: '#dbd9db', // Grey destructive foreground
+			DEFAULT: '#181C14', // Red destructive color
+			foreground: '#F7F9F2', // Grey destructive foreground
 		  },
-		  border: '#c41e3a', // Red border
-		  input: '#dbd9db', // Grey input
-		  ring: '#c41e3a', // Red ring
+		  border: '#181C14', // Red border
+		  input: '#F7F9F2', // Grey input
+		  ring: '#181C14', // Red ring
 		  chart: {
-			'1': '#c41e3a', // Red chart color
-			'2': '#dbd9db', // Grey chart color
-			'3': '#c41e3a', // Red chart color
-			'4': '#dbd9db', // Grey chart color
-			'5': '#c41e3a', // Red chart color
+			'1': '#181C14', // Red chart color
+			'2': '#F7F9F2', // Grey chart color
+			'3': '#181C14', // Red chart color
+			'4': '#F7F9F2', // Grey chart color
+			'5': '#181C14', // Red chart color
 		  },
 		  sidebar: {
-			DEFAULT: '#c41e3a', // Grey sidebar background
+			DEFAULT: '#181C14', // Grey sidebar background
 			foreground: '#fff', // Red sidebar foreground
-			primary: '#c41e3a', // Red sidebar primary
-			'primary-foreground': '#dbd9db', // Grey sidebar primary foreground
-			accent: '#c41e3a', // Red sidebar accent
+			primary: '#181C14', // Red sidebar primary
+			'primary-foreground': '#F7F9F2', // Grey sidebar primary foreground
+			accent: '#181C14', // Red sidebar accent
 			'accent-foreground': '#fff', // Grey sidebar accent foreground
-			border: '#c41e3a', // Red sidebar border
-			ring: '#c41e3a', // Red sidebar ring
+			border: '#181C14', // Red sidebar border
+			ring: '#181C14', // Red sidebar ring
 		  },
 		},
 		borderRadius: {

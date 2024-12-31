@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Header from "@/components/breadcumb";
 import Card from "@/components/ui/Card-manual";
 import {
   Breadcrumb,
@@ -121,24 +122,8 @@ const Dashboard = () => {
   };
 
   return (
-    <SidebarInset>
-      <header className="flex h-16 shrink-0 items-center gap-2">
-        <div className="flex items-center gap-2 px-4">
-          <SidebarTrigger className="-ml-1" />
-          <Separator orientation="vertical" className="mr-2 h-4" />
-          <Breadcrumb>
-            <BreadcrumbList>
-              <BreadcrumbItem className="hidden md:block">
-                <BreadcrumbLink href="#">Hr Management Software</BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator className="hidden md:block" />
-              <BreadcrumbItem>
-                <BreadcrumbPage>Dashboard</BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
-        </div>
-      </header>
+    <>
+      <Header heading="Dashboard"/>
       {isLoading ? (<LoadingSpinner/>):
       (<div className="flex flex-1 flex-col gap-4 p-4 pt-0">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -157,7 +142,7 @@ const Dashboard = () => {
         </div>
       </div>)
 }
-    </SidebarInset>
+    </>
   );
 };
 

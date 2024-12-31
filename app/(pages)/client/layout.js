@@ -1,6 +1,7 @@
 
 import { AppSidebar } from "@/components/app-sidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
+import { SidebarInset } from "@/components/ui/sidebar";
 
 
 export const metadata = {
@@ -14,7 +15,9 @@ export const metadata = {
           <SidebarProvider>
             <AppSidebar userType="employee"/>
   
-            {children}
+            <SidebarInset>
+                        {children}
+                        </SidebarInset>
           </SidebarProvider>
       
     );

@@ -24,6 +24,7 @@ import LoadingSpinner from "@/components/spinner";
 import { Separator } from "@/components/ui/separator";
 import SubscriptionProcess from "@/components/subProcess";
 import { Edit, Edit2, Trash2 } from "lucide-react";
+import Header from "@/components/breadcumb";
 
 const Subscription = () => {
   const [subscriptions, setSubscriptions] = useState([]);
@@ -110,24 +111,9 @@ const Subscription = () => {
   };
 
   return (
-    <SidebarInset>
-      <header className="flex h-16 shrink-0 items-center gap-2">
-        <div className="flex items-center gap-2 px-4">
-          <SidebarTrigger className="-ml-1" />
-          <Separator orientation="vertical" className="mr-2 h-4" />
-          <Breadcrumb>
-            <BreadcrumbList>
-              <BreadcrumbItem className="hidden md:block">
-                <BreadcrumbLink href="#">Hr Management Software</BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator className="hidden md:block" />
-              <BreadcrumbItem>
-                <BreadcrumbPage>Subscription</BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
-        </div>
-      </header>
+    <>
+              <Header heading="Clients" />
+
       {isLoading ? (
         <LoadingSpinner />
       ) : (      
@@ -191,7 +177,7 @@ const Subscription = () => {
           </div>
         </div>
       </div>)}
-    </SidebarInset>
+    </>
   );
 };
 

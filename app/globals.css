@@ -16,7 +16,7 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: #c41e3a; /* Thumb color */
+  background-color: #181C14; /* Thumb color */
   border-radius: 20px; /* Optional for rounded corners */
   border: 3px solid #dbd9db; /* Border to match track */
 }
@@ -24,7 +24,7 @@ body {
 /* Firefox */
 * {
   scrollbar-width: thin;
-  scrollbar-color: #c41e3a #dbd9db;
+  scrollbar-color: #181C14 #dbd9db;
 }
 @layer base {
   :root {

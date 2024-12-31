@@ -19,6 +19,7 @@ import axios from 'axios';
 import { Button } from '@/components/ui/button'; 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationPrevious, PaginationNext } from '@/components/ui/pagination';  // Assuming Pagination components are imported
+import Header from "@/components/breadcumb";
 
 const AttendanceHistory = () => {
   const { data: session } = useSession();
@@ -64,24 +65,8 @@ const AttendanceHistory = () => {
    };
 
   return (
-    <SidebarInset>
-      <header className="flex h-16 shrink-0 items-center gap-2">
-        <div className="flex items-center gap-2 px-4">
-          <SidebarTrigger className="-ml-1" />
-          <Separator orientation="vertical" className="mr-2 h-4" />
-          <Breadcrumb>
-            <BreadcrumbList>
-              <BreadcrumbItem className="hidden md:block">
-                <BreadcrumbLink href="#">HR Management Software</BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator className="hidden md:block" />
-              <BreadcrumbItem>
-                <BreadcrumbPage>Attendance</BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
-        </div>
-      </header>
+    <>
+      <Header heading="Attendance History" />
       {isLoading ? (
         <LoadingSpinner />
       ) : (
@@ -150,7 +135,7 @@ const AttendanceHistory = () => {
           </Pagination>
         </div>
       )}
-    </SidebarInset>
+    </>
   );
 };
 

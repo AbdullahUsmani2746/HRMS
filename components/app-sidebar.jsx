@@ -222,11 +222,11 @@ export function AppSidebar({ userType = "client", isManager = true, ...props }) 
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold text-white">
-                    Ivilasi Consultant
+                    DASH
                   </span>
                   <span className="truncate text-xs text-white">Payroll Software</span>
                 </div>
-              </a>
+              </a>  
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
