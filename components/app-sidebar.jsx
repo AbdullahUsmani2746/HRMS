@@ -143,6 +143,12 @@ const data = {
       isActive: true,
     },
     {
+      title: "Attedance",
+      url: "/client/attendance",
+      icon: Clipboard,
+      isActive: true,
+    },
+    {
       title: "Employee Type",
       url: "/client/employeeType",
       icon: UserCheck2Icon,
