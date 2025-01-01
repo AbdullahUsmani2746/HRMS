@@ -89,20 +89,23 @@ const Approvals = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
-  const handleStatusChange = async (attendanceId, newStatus) => {
+  const handleStatusChange = async (recordId, newStatus, type) => {
     try {
-      // Update the status on the server (demo API call for now)
-      const response = await axios.put(`/api/users/attendance/${attendanceId}`, {
-        newStatus,
-      });     
-       console.log(`Status updated for ${attendanceId} to ${newStatus}`);
-       return response.data;
+      // Determine the correct API endpoint
+      const apiEndpoint =
+        type === "attendance"
+          ? `/api/users/attendance/${recordId}`
+          : `/api/employees/periodicAttendance/${recordId}`;
 
+      const response = await axios.put(apiEndpoint, {
+        newStatus,
+      });
+      console.log(`Status updated for ${recordId} in ${type} to ${newStatus}`);
+      return response.data;
     } catch (error) {
       console.error("Error updating status:", error);
     }
   };
-
 
   useEffect(() => {
     const fetchData = async () => {
@@ -120,22 +123,43 @@ const Approvals = () => {
         );
         const employees = employeeResponse.data.data;
 
-        // Fetch attendance and flatten data
+        // Fetch attendance and periodic attendance
         const attendanceRecords = [];
+        const periodicAttendanceRecords = [];
+
         for (const employee of employees) {
           const attendanceResponse = await axios.get(
             `/api/users/attendance/${employee.employeeId}`
           );
-          const records = attendanceResponse.data.map((record) => ({
+          const periodicAttendanceResponse = await axios.get(
+            `/api/employees/periodicAttendance/`
+          );
+
+          // Map and tag each record with its type
+          const attendance = attendanceResponse.data.map((record) => ({
             ...record,
+            type: "attendance",
             employeeId: employee.employeeId,
             firstName: employee.firstName,
             surname: employee.surname,
           }));
-          attendanceRecords.push(...records);
+
+          const periodicAttendance = periodicAttendanceResponse.data.map(
+            (record) => ({
+              ...record,
+              type: "periodicAttendance",
+              employeeId: employee.employeeId,
+              firstName: employee.firstName,
+              surname: employee.surname,
+            })
+          );
+
+          attendanceRecords.push(...attendance);
+          periodicAttendanceRecords.push(...periodicAttendance);
         }
 
-        setAttendanceData(attendanceRecords);
+        // Combine all records
+        setAttendanceData([...attendanceRecords, ...periodicAttendanceRecords]);
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
@@ -164,9 +188,17 @@ const Approvals = () => {
     const matchesEmployeeId = searchEmployeeId
       ? record.employeeId.toLowerCase().includes(searchEmployeeId.toLowerCase())
       : true;
-      const matchesDate = searchDate
-      ? new Date(record.date)
-          .toLocaleDateString("en-CA", { year: "numeric", month: "2-digit", day: "2-digit" }) === searchDate
+
+    const matchesDate = searchDate
+      ? record.type === "attendance"
+        ? new Date(record.date).toLocaleDateString("en-CA", {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+          }) === searchDate
+        : record.type === "periodicAttendance"
+        ? record.dateRange.includes(searchDate) // Match searchDate with dateRange
+        : true
       : true;
 
     return matchesEmployeeId && matchesDate;
@@ -176,14 +208,12 @@ const Approvals = () => {
     <>
       <Header heading="Approvals" />
       <div className="p-4">
-        {/* <h1 className="text-2xl mb-4">Attendance History</h1> */}
-
         {isLoading ? (
           <LoadingSpinner />
         ) : (
           <>
             {/* Search Inputs */}
-            <div className="mb-4 flex  gap-4">
+            <div className="mb-4 flex gap-4">
               <Input
                 className="w-[250px]"
                 type="text"
@@ -200,55 +230,35 @@ const Approvals = () => {
             <Table className="shadow-md rounded-lg border-separate">
               <TableHeader>
                 <TableRow className="bg-foreground text-left">
-                  <TableHead className="px-4 py-2 font-semibold text-white">
-                    ID
-                  </TableHead>
-                  <TableHead className="px-4 py-2 font-semibold text-white">
-                    Name
-                  </TableHead>
-                  <TableHead className="px-4 py-2 font-semibold text-white">
-                    Date
-                  </TableHead>
-                  <TableHead className="px-4 py-2 font-semibold text-white">
-                    Time In
-                  </TableHead>
-                  <TableHead className="px-4 py-2 font-semibold text-white">
-                    Time Out
-                  </TableHead>
-                  <TableHead className="px-4 py-2 font-semibold text-white">
-                    Working Hours
-                  </TableHead>
-                  <TableHead className="px-4 py-2 font-semibold text-white">
-                    Status
-                  </TableHead>
+                  <TableHead className="text-white">ID</TableHead>
+                  <TableHead className="text-white">Name</TableHead>
+                  <TableHead className="text-white">Date</TableHead>
+                  <TableHead className="text-white">Type</TableHead>
+                  <TableHead className="text-white">Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredData.map((record) => (
-                  <TableRow
-                    key={record._id}
-                    className="bg-background shadow-lg rounded-lg border-separate"
-                  >
-                    <TableCell className="px-4">{record.employeeId}</TableCell>
-                    <TableCell className="px-4">
+                  <TableRow key={record._id}>
+                    <TableCell>{record.employeeId}</TableCell>
+                    <TableCell>
                       {record.firstName} {record.surname}
                     </TableCell>
-                    <TableCell className="px-4">
-                      {new Date(record.date).toLocaleDateString()}
+                    <TableCell>
+                      {record.type === "attendance"
+                        ? new Date(record.date).toLocaleDateString()
+                        : record.type === "periodicAttendance"
+                        ? record.dateRange // Show dateRange for periodicAttendance
+                        : ""}
                     </TableCell>
-                    <TableCell className="px-4">
-                      {new Date(record.checkInTime).toLocaleTimeString()}
-                    </TableCell>
-                    <TableCell className="px-4">
-                      {new Date(record.checkOutTime).toLocaleTimeString()}
-                    </TableCell>
-                    <TableCell className="px-4">
-                      {record.totalWorkingHours}
-                    </TableCell>
-                    <TableCell className="px-4">
+
+                    <TableCell>{record.type}</TableCell>
+                    <TableCell>
                       <Select
                         defaultValue={record.status}
-                        onValueChange={(value) => handleStatusChange(record._id, value)}
+                        onValueChange={(value) =>
+                          handleStatusChange(record._id, value, record.type)
+                        }
                       >
                         <SelectTrigger>
                           <SelectValue placeholder={record.status} />

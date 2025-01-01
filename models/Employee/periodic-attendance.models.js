@@ -25,11 +25,11 @@ const PeriodicAttendanceSchema = new mongoose.Schema(
     leaves:{
         type: String,
 
-    }
-    // status: {
-    //   type: String,
-    //   required: true,
-    // },
+    },
+    status: {
+      type: String,
+      required: true,
+    },
   },
   {
     timestamps: true,

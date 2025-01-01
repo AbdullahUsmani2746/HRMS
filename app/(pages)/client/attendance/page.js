@@ -124,6 +124,7 @@ const PeriodicAttendanceComponent = () => {
         totalWorkingHours: newAttendance.hoursWorked,
         totalBreakHours: newAttendance.breakHours,
         leaves: newAttendance.leaves,
+        status: newAttendance.status,
 
       };
   
@@ -170,7 +171,7 @@ const PeriodicAttendanceComponent = () => {
 
   return (
     <>
-     <Header title="Periodic Attendance" />
+     <Header heading="Periodic Attendance" />
       {isLoading ? (
         <LoadingSpinner />
       ) : (
