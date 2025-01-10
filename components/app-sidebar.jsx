@@ -112,7 +112,8 @@ const data = {
       url: "/client/employee",
       icon: Users,
       isActive: true,
-    },
+      items:[
+    
     {
       title: "Work Location",
       url: "/client/location",
@@ -180,11 +181,32 @@ const data = {
       icon: LucideUmbrella,
       isActive: true,
     },
+  ]
+},
+    // {
+    //   title: "Payroll",
+    //   url: "/client/payroll",
+    //   icon: LucideUmbrella,
+    //   isActive: true,
+    // },
+
     {
       title: "Payroll",
-      url: "/client/payroll",
+      url: "#",
       icon: LucideUmbrella,
       isActive: true,
+      items: [
+        {
+          title: "Payroll Process",
+          url: "/client/payrollProcess",
+        },
+        {
+          title: "Genearate Payroll",
+          url: "/cleint/payroll/employeePayroll"
+        },
+        
+       
+      ],
     },
   ],
   navUserEmployee: [
