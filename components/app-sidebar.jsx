@@ -111,7 +111,7 @@ const data = {
       title: "Employee",
       url: "/client/employee",
       icon: Users,
-      isActive: true,
+      isActive: false,
       items:[
     
     {
