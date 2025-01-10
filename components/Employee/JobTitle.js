@@ -163,10 +163,11 @@ console.log("EMployerID", employerId)
   };
 
   return (
-    <div className="p-4">
+    <div className="p-4 max-w-lg mx-auto">
       <h2 className="text-2xl mb-4">{isEditing ? "Edit Job Title" : "Create Job Title"}</h2>
+      {console.log("Data", data)}
       <form onSubmit={handleSubmit} className="space-y-4">
-        {  data[0].departmentId?  (data?.map((app, index) => (
+        {  data[0] ?  (data?.map((app, index) => (
           <JobTitleForm
             key={index}
             app={app}

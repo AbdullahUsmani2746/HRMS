@@ -5,20 +5,15 @@ import { ObjectId } from "bson";
 
 // GET Attendance Records
 export async function GET(req) {
-  // const { searchParams } = new URL(req.url);
-  // const employeeId = searchParams.get("employeeId");
-  // const startDate = new Date(searchParams.get("startDate"));
-  // const endDate = new Date(searchParams.get("endDate"));
-
+  const searchParams = req.nextUrl.searchParams
+  const employerId = searchParams.get('employerId')  
+  console.log(employerId)
   await connectDB();
 
   try {
-    // const query = {
-    //   employeeId,
-    //   date: { $gte: startDate, $lte: endDate },
-    // };
 
-    const attendance = await PeriodicAttendance.find();
+
+    const attendance = await PeriodicAttendance.find({clientId:employerId});
 
     if (!attendance.length) {
       return NextResponse.json(
@@ -27,7 +22,7 @@ export async function GET(req) {
       );
     }
 
-    return NextResponse.json(attendance);
+    return NextResponse.json({ message: "Attendance data fetched successfully.", data: attendance });
   } catch (error) {
     return NextResponse.json(
       { message: "Error fetching attendance data.", error },

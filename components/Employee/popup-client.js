@@ -22,6 +22,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox"; // Ensure correct import
 
 import LoadingSpinner from "@/components/spinner";
+import Image from "next/image";
 
 const PopupForm = ({ onClose, setEmployees, employeeToEdit }) => {
   const { data: session } = useSession();
@@ -42,7 +43,7 @@ const PopupForm = ({ onClose, setEmployees, employeeToEdit }) => {
     department: "",
     paySchedule: "",
     workLocation: "",
-    manager: "",
+    manager: null,
     clientId: clientId, // Default client ID
     employeeId: "",
     paymentMethod: "CHEQUE",
@@ -124,7 +125,7 @@ const PopupForm = ({ onClose, setEmployees, employeeToEdit }) => {
         jobTitleResponse,
         employeeTypeResponse,
         leaveResponse,
-        manResponse
+        manResponse,
       ] = await Promise.all([
         axios.get(`/api/employees/costCenter?employerId=${clientId}`),
         axios.get(`/api/employees/department?employerId=${clientId}`),
@@ -136,7 +137,6 @@ const PopupForm = ({ onClose, setEmployees, employeeToEdit }) => {
         axios.get(`/api/employees/employeeType?employerId=${clientId}`),
         axios.get(`/api/employees/leave?employerId=${clientId}`),
         axios.get(`/api/employees/manager?employerId=${clientId}`),
-
       ]);
 
       setcostCenter(costRepsonse.data.data);
@@ -148,7 +148,7 @@ const PopupForm = ({ onClose, setEmployees, employeeToEdit }) => {
       setJobTitle(jobTitleResponse.data.data);
       setEmployeeType(employeeTypeResponse.data.data);
       setLeave(leaveResponse.data.data);
-      setManager(manResponse.data.data)
+      setManager(manResponse.data.data);
 
       console.log(allownce);
     } catch (error) {
@@ -470,7 +470,7 @@ const PopupForm = ({ onClose, setEmployees, employeeToEdit }) => {
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent>
+      <DialogContent className="max-w-3xl">
         <DialogHeader>
           <DialogTitle>
             {employeeToEdit ? "Edit Employee" : "Add Employee"}
@@ -492,12 +492,14 @@ const PopupForm = ({ onClose, setEmployees, employeeToEdit }) => {
                 <div className="relative w-32 h-32 mx-auto mb-4">
                   {console.log(profileImage)}
                   {profileImage || employeeData.profileImage ? (
-                    <img
+                    <Image
                       src={
                         profileImage
                           ? URL.createObjectURL(profileImage)
                           : employeeData.profileImage
                       }
+                      width={50}
+                      height={50}
                       alt="Profile Preview"
                       className="w-full h-full rounded-full object-cover"
                     />
@@ -561,309 +563,377 @@ const PopupForm = ({ onClose, setEmployees, employeeToEdit }) => {
             {/* Employee Details */}
             <h3 className="text-md font-bold">Employee Details</h3>
             <section className="grid grid-cols-2 gap-4">
-              <Input
-                name="employeeId"
-                value={employeeData.employeeId}
-                onChange={handleChange}
-                placeholder="Employee ID"
-                readOnly
-              />
-              <Input
-                name="clientId"
-                value={employeeData.clientId}
-                onChange={handleChange}
-                placeholder="Client ID"
-                readOnly
-              />
+              <div>
+                <label className="block pb-1"> Employee ID</label>
+                <Input
+                  name="employeeId"
+                  value={employeeData.employeeId}
+                  onChange={handleChange}
+                  placeholder="Employee ID"
+                  readOnly
+                />
+              </div>
+              <div>
+                <label className="block pb-1"> Client ID</label>
+                <Input
+                  name="clientId"
+                  value={employeeData.clientId}
+                  onChange={handleChange}
+                  placeholder="Client ID"
+                  readOnly
+                />
+              </div>
             </section>
 
             {/* Personal Details */}
             <h3 className="text-md font-bold">Personal Details</h3>
             <section className="grid grid-cols-3 gap-4">
-              <Input
-                name="firstName"
-                value={employeeData.firstName}
-                onChange={handleChange}
-                placeholder="First Name"
-              />
-              <Input
-                name="middleName"
-                value={employeeData.middleName}
-                onChange={handleChange}
-                placeholder="Middle Name"
-              />
-              <Input
-                name="surname"
-                value={employeeData.surname}
-                onChange={handleChange}
-                placeholder="Surname"
-              />
-              <Input
-                type="date"
-                name="dob"
-                value={employeeData.dob}
-                onChange={handleChange}
-                placeholder="Date of Birth"
-              />
-              <Select
-                value={employeeData.gender}
-                onValueChange={(value) =>
-                  setEmployeeData((prev) => ({ ...prev, gender: value }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Gender" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="MALE">Male</SelectItem>
-                  <SelectItem value="FEMALE">Female</SelectItem>
-                  <SelectItem value="OTHER">Other</SelectItem>
-                </SelectContent>
-              </Select>
-              <Input
-                name="village"
-                value={employeeData.village}
-                onChange={handleChange}
-                placeholder="Village"
-              />
+              <div>
+                <label className="block pb-1">First Name</label>
+                <Input
+                  name="firstName"
+                  value={employeeData.firstName}
+                  onChange={handleChange}
+                  placeholder="First Name"
+                />
+              </div>
+
+              <div>
+                <label className="block pb-1">Middle Name</label>
+                <Input
+                  name="middleName"
+                  value={employeeData.middleName}
+                  onChange={handleChange}
+                  placeholder="Middle Name"
+                />
+              </div>
+
+              <div>
+                <label className="block pb-1">Surname</label>
+                <Input
+                  name="surname"
+                  value={employeeData.surname}
+                  onChange={handleChange}
+                  placeholder="Surname"
+                />
+              </div>
+
+              <div>
+                <label className="block pb-1">Date of Birth</label>
+                <Input
+                  type="date"
+                  name="dob"
+                  value={employeeData.dob}
+                  onChange={handleChange}
+                  placeholder="Date of Birth"
+                />
+              </div>
+
+              <div>
+                <label className="block pb-1">Gender</label>
+                <Select
+                  value={employeeData.gender}
+                  onValueChange={(value) =>
+                    setEmployeeData((prev) => ({ ...prev, gender: value }))
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Gender" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="MALE">Male</SelectItem>
+                    <SelectItem value="FEMALE">Female</SelectItem>
+                    <SelectItem value="OTHER">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="block pb-1">Village</label>
+                <Input
+                  name="village"
+                  value={employeeData.village}
+                  onChange={handleChange}
+                  placeholder="Village"
+                />
+              </div>
             </section>
 
             {/* Contact Details */}
             <h3 className="text-md font-bold">Contact Details</h3>
 
             <section className="grid grid-cols-2 gap-4">
-              <Input
-                name="phoneNumber"
-                value={employeeData.phoneNumber}
-                onChange={handleChange}
-                placeholder="Phone Number"
-              />
-              <Input
-                name="emailAddress"
-                value={employeeData.emailAddress}
-                onChange={handleChange}
-                placeholder="Email Address"
-              />
+              <div>
+                <label className="block pb-1">Phone Number</label>
+                <Input
+                  name="phoneNumber"
+                  value={employeeData.phoneNumber}
+                  onChange={handleChange}
+                  placeholder="Phone Number"
+                />
+              </div>
+
+              <div>
+                <label className="block pb-1">Email Address</label>
+                <Input
+                  name="emailAddress"
+                  value={employeeData.emailAddress}
+                  onChange={handleChange}
+                  placeholder="Email Address"
+                />
+              </div>
             </section>
 
             {/* Job Details */}
             <h3 className="text-md font-bold">Job Details</h3>
 
             <section className="grid grid-cols-3 gap-4">
-              <Input
-                name="hireDate"
-                type="date"
-                value={employeeData.hireDate}
-                onChange={handleChange}
-                placeholder="Hire Date"
-              />
-              <Select
-                value={employeeData.jobTitle}
-                onValueChange={(value) =>
-                  setEmployeeData((prev) => ({
-                    ...prev,
-                    jobTitle: value,
-                  }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue
-                    placeholder={
-                      jobTitle.find((jt) => jt._id === employeeData.jobTitle)
-                        ?.job_title || "Job Tilte"
-                    }
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  {jobTitle.map((single) => (
-                    <SelectItem key={single._id} value={single._id}>
-                      {single.job_title}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div>
+                <label className="block pb-1">Hire Date</label>
+                <Input
+                  name="hireDate"
+                  type="date"
+                  value={employeeData.hireDate}
+                  onChange={handleChange}
+                  placeholder="Hire Date"
+                />
+              </div>
 
-              <Select
-                value={
-                  employeeData.department  // Bind the selected department ID to the select value
-                }
-                onValueChange={(value) =>
-                  setEmployeeData((prev) => ({
-                    ...prev,
-                    department: value, // Update the department in state when a new value is selected
-                  }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue
-                    placeholder={
-                      department.find(
-                        (dept) => dept._id === employeeData.department
-                      )?.department || "Department"
-                    }
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  {department.map((single) => (
-                    <SelectItem key={single._id} value={single._id}>
-                      {single.department}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div>
+                <label className="block pb-1">Job Title</label>
+                <Select
+                  value={employeeData.jobTitle}
+                  onValueChange={(value) =>
+                    setEmployeeData((prev) => ({
+                      ...prev,
+                      jobTitle: value,
+                    }))
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue
+                      placeholder={
+                        jobTitle.find((jt) => jt._id === employeeData.jobTitle)
+                          ?.job_title || "Job Title"
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {jobTitle.map((single) => (
+                      <SelectItem key={single._id} value={single._id}>
+                        {single.job_title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-              <Select
-                value={employeeData.paySchedule}
-                onValueChange={(value) =>
-                  setEmployeeData((prev) => ({
-                    ...prev,
-                    paySchedule: value,
-                  }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue
-                    placeholder={
-                      schedule.find(
-                        (sch) => sch._id === employeeData.paySchedule
-                      )?.pay_schedule || "Pay Schedule"
-                    }
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  {schedule.map((single) => (
-                    <SelectItem key={single._id} value={single._id}>
-                      {single.pay_schedule}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div>
+                <label className="block pb-1">Department</label>
+                <Select
+                  value={employeeData.department}
+                  onValueChange={(value) =>
+                    setEmployeeData((prev) => ({
+                      ...prev,
+                      department: value,
+                    }))
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue
+                      placeholder={
+                        department.find(
+                          (dept) => dept._id === employeeData.department
+                        )?.department || "Department"
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {department.map((single) => (
+                      <SelectItem key={single._id} value={single._id}>
+                        {single.department}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-              <Select
-                value={employeeData.workLocation}
-                onValueChange={(value) =>
-                  setEmployeeData((prev) => ({
-                    ...prev,
-                    workLocation: value,
-                  }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue
-                    placeholder={
-                      location.find(
-                        (wl) => wl._id === employeeData.workLocation
-                      )?.work_location || "Work Location"
-                    }
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  {location.map((single) => (
-                    <SelectItem key={single._id} value={single._id}>
-                      {single.work_location}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div>
+                <label className="block pb-1">Pay Schedule</label>
+                <Select
+                  value={employeeData.paySchedule}
+                  onValueChange={(value) =>
+                    setEmployeeData((prev) => ({
+                      ...prev,
+                      paySchedule: value,
+                    }))
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue
+                      placeholder={
+                        schedule.find(
+                          (sch) => sch._id === employeeData.paySchedule
+                        )?.pay_schedule || "Pay Schedule"
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {schedule.map((single) => (
+                      <SelectItem key={single._id} value={single._id}>
+                        {single.pay_schedule}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-         
+              <div>
+                <label className="block pb-1">Work Location</label>
+                <Select
+                  value={employeeData.workLocation}
+                  onValueChange={(value) =>
+                    setEmployeeData((prev) => ({
+                      ...prev,
+                      workLocation: value,
+                    }))
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue
+                      placeholder={
+                        location.find(
+                          (wl) => wl._id === employeeData.workLocation
+                        )?.work_location || "Work Location"
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {location.map((single) => (
+                      <SelectItem key={single._id} value={single._id}>
+                        {single.work_location}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-<Select
-                value={employeeData.manager}
-                onValueChange={(value) =>
-                  setEmployeeData((prev) => ({
-                    ...prev,
-                    manager: value,
-                  }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue
-                    placeholder={
-                      costCenter.find(
-                        (man) => man._id === employeeData.manager
-                      )?.manager || "Manager"
-                    }
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  {manager.map((single) => (
-                    <SelectItem key={single._id} value={single._id}>
-                      {single.manager}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div>
+                <label className="block pb-1">Manager</label>
+                <Select
+                  value={employeeData.manager}
+                  onValueChange={(value) =>
+                    setEmployeeData((prev) => ({
+                      ...prev,
+                      manager: value,
+                    }))
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue
+                      placeholder={
+                        manager.find((man) => man._id === employeeData.manager)
+                          ?.manager || "Manager"
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {manager.map((single) => (
+                      <SelectItem key={single._id} value={single._id}>
+                        {single.manager}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-              <Select
-                value={employeeData.costCenter}
-                onValueChange={(value) =>
-                  setEmployeeData((prev) => ({
-                    ...prev,
-                    costCenter: value,
-                  }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue
-                    placeholder={
-                      costCenter.find(
-                        (cc) => cc._id === employeeData.costCenter
-                      )?.cost_center || "Cost Center"
-                    }
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  {costCenter.map((single) => (
-                    <SelectItem key={single._id} value={single._id}>
-                      {single.cost_center}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div>
+                <label className="block pb-1">Cost Center</label>
+                <Select
+                  value={employeeData.costCenter}
+                  onValueChange={(value) =>
+                    setEmployeeData((prev) => ({
+                      ...prev,
+                      costCenter: value,
+                    }))
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue
+                      placeholder={
+                        costCenter.find(
+                          (cc) => cc._id === employeeData.costCenter
+                        )?.cost_center || "Cost Center"
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {costCenter.map((single) => (
+                      <SelectItem key={single._id} value={single._id}>
+                        {single.cost_center}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </section>
 
             {/* Payment Details */}
             <h3 className="text-MD font-bold">Payment Details</h3>
             <section>
               <div className="grid grid-cols-3 gap-4">
-                <Select
-                  value={employeeData.paymentMethod}
-                  onValueChange={(value) =>
-                    setEmployeeData((prev) => ({
-                      ...prev,
-                      paymentMethod: value,
-                    }))
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Payment Method" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="CHEQUE">Cheque</SelectItem>
-                    <SelectItem value="DIRECT DEPOSIT">
-                      Direct Deposit
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-                <Input
-                  name="bankName"
-                  value={employeeData.bankName}
-                  onChange={handleChange}
-                  placeholder="Bank Name"
-                />
-                <Input
-                  name="accountName"
-                  value={employeeData.accountName}
-                  onChange={handleChange}
-                  placeholder="Account Name"
-                />
-                <Input
-                  name="accountNumber"
-                  value={employeeData.accountNumber}
-                  onChange={handleChange}
-                  placeholder="Account Number"
-                />
+                <div>
+                  <label className="block pb-1">Payment Method</label>
+                  <Select
+                    value={employeeData.paymentMethod}
+                    onValueChange={(value) =>
+                      setEmployeeData((prev) => ({
+                        ...prev,
+                        paymentMethod: value,
+                      }))
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Payment Method" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="CHEQUE">Cheque</SelectItem>
+                      <SelectItem value="DIRECT DEPOSIT">
+                        Direct Deposit
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <label className="block pb-1">Bank Name</label>
+                  <Input
+                    name="bankName"
+                    value={employeeData.bankName}
+                    onChange={handleChange}
+                    placeholder="Bank Name"
+                  />
+                </div>
+
+                <div>
+                  <label className="block pb-1">Account Name</label>
+                  <Input
+                    name="accountName"
+                    value={employeeData.accountName}
+                    onChange={handleChange}
+                    placeholder="Account Name"
+                  />
+                </div>
+
+                <div>
+                  <label className="block pb-1">Account Number</label>
+                  <Input
+                    name="accountNumber"
+                    value={employeeData.accountNumber}
+                    onChange={handleChange}
+                    placeholder="Account Number"
+                  />
+                </div>
               </div>
             </section>
 
@@ -872,78 +942,95 @@ const PopupForm = ({ onClose, setEmployees, employeeToEdit }) => {
 
             <section>
               <div className="grid grid-cols-3 gap-4">
-                <Select
-                  value={employeeData.payType}
-                  onValueChange={(value) =>
-                    setEmployeeData((prev) => ({ ...prev, payType: value }))
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Pay Type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="HOUR">Per Hour</SelectItem>
-                    <SelectItem value="SALARY">Salary</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Input
-                  name="ratePerHour"
-                  value={employeeData.ratePerHour}
-                  onChange={handleChange}
-                  placeholder="Rate Per Hour"
-                />
-                <Select
-                  value={employeeData.payFrequency}
-                  onValueChange={(value) =>
-                    setEmployeeData((prev) => ({
-                      ...prev,
-                      payFrequency: value,
-                    }))
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Pay Frequency" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="WEEK">Weekly</SelectItem>
-                    <SelectItem value="MONTH">Monthly</SelectItem>
-                  </SelectContent>
-                </Select>
+                <div>
+                  <label className="block pb-1">Pay Type</label>
+                  <Select
+                    value={employeeData.payType}
+                    onValueChange={(value) =>
+                      setEmployeeData((prev) => ({ ...prev, payType: value }))
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Pay Type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="HOUR">Per Hour</SelectItem>
+                      <SelectItem value="SALARY">Salary</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                 
+                  <label className="block pb-1">Rate Per Hour</label>
+
+                  <Input
+                    name="ratePerHour"
+                    value={employeeData.ratePerHour}
+                    onChange={handleChange}
+                    placeholder="Rate Per Hour"
+                  />
+                </div>
+
+                <div>
+                  <label className="block pb-1">Pay Frequency</label>
+                  <Select
+                    value={employeeData.payFrequency}
+                    onValueChange={(value) =>
+                      setEmployeeData((prev) => ({
+                        ...prev,
+                        payFrequency: value,
+                      }))
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Pay Frequency" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="WEEK">Weekly</SelectItem>
+                      <SelectItem value="MONTH">Monthly</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </section>
 
             {/* Employee Type */}
             <section>
-              <Select
-                value={employeeData.employeeType}
-                onValueChange={(value) =>
-                  setEmployeeData((prev) => ({
-                    ...prev,
-                    employeeType: value,
-                  }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue
-                    placeholder={
-                      employeeType.find(
-                        (et) => et._id === employeeData.employeeType
-                      )?.employee_type || "Employee Type"
-                    }
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  {employeeType.map((single) => (
-                    <SelectItem key={single._id} value={single._id}>
-                      {single.employee_type}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div>
+                <label className="block pb-1">Employee Type</label>
+
+                <Select
+                  value={employeeData.employeeType}
+                  onValueChange={(value) =>
+                    setEmployeeData((prev) => ({
+                      ...prev,
+                      employeeType: value,
+                    }))
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue
+                      placeholder={
+                        employeeType.find(
+                          (et) => et._id === employeeData.employeeType
+                        )?.employee_type || "Employee Type"
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {employeeType.map((single) => (
+                      <SelectItem key={single._id} value={single._id}>
+                        {single.employee_type}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </section>
 
             {/* Allownce and Deduction */}
-            <h3 className="text-MD font-bold text-center">
+            <h3 className="text-sm font-bold text-center bg-foreground text-white p-2">
               Allownces and Deduction Details{" "}
             </h3>
 
@@ -986,9 +1073,8 @@ const PopupForm = ({ onClose, setEmployees, employeeToEdit }) => {
             {/*Leaves */}
 
             <section>
-              <h3 className="text-MD font-bold text-center">Leaves Details </h3>
-              <div>
-                <h3 className="text-MD font-bold">Leaves</h3>
+              <h3 className="text-sm font-bold text-center bg-foreground text-white p-2">Leaves Details </h3>
+              <div className="mt-3">
                 {leave.map((single) => (
                   <div key={single._id}>
                     <label className="flex items-center space-x-3">
@@ -1049,4 +1135,4 @@ const PopupForm = ({ onClose, setEmployees, employeeToEdit }) => {
   );
 };
 
-export default PopupForm; 
+export default PopupForm;

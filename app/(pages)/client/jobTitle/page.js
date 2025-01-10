@@ -108,7 +108,7 @@ const JobTitle = () => {
                   <TableRow key={single._id} className="bg-background shadow-lg rounded-lg border-separate" > 
                     <TableCell className="px-4">{single.job_title}</TableCell>
                     <TableCell className="px-4">{single.job_title_description}</TableCell>
-                    <TableCell className="px-4">{single.departmentId.department}</TableCell>
+                    <TableCell className="px-4">{single.departmentId?.department}</TableCell>
                     <TableCell>
                     <div className="flex space-x-2">
                   <Edit

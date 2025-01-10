@@ -30,6 +30,11 @@ const EmployerSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+
+  state: {
+    type: String,
+    required: true
+  },
   cpFirstName: {
     type: String,
     required: true,

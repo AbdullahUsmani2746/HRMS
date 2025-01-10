@@ -24,6 +24,7 @@ import {
   BriefcaseBusiness,
   UserCheck2Icon,
   Clipboard,
+  Target
 } from "lucide-react";
 
 import { NavMain } from "@/components/nav-main";
@@ -95,6 +96,12 @@ const data = {
   ],
   navEmployee: [
     {
+      title: "Overview",
+      url: "/client/overview",
+      icon: Target,
+      isActive: true,
+    },
+    {
       title: "Dashboard",
       url: "/client/dashboard",
       icon: LayoutDashboard,
@@ -154,7 +161,7 @@ const data = {
       icon: UserCheck2Icon,
       isActive: true,
     },
-    {
+    { 
       title: "Allownces",
       url: "/client/allownce",
       icon: DollarSignIcon,
@@ -166,9 +173,16 @@ const data = {
       icon: MinusCircleIcon,
       isActive: true,
     },
+    
     {
       title: "Leaves",
       url: "/client/leave",
+      icon: LucideUmbrella,
+      isActive: true,
+    },
+    {
+      title: "Payroll",
+      url: "/client/payroll",
       icon: LucideUmbrella,
       isActive: true,
     },

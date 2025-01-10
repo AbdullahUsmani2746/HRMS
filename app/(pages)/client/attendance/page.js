@@ -1,7 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
-import { DateRange } from "react-day-picker";
 import { Button } from "@/components/ui/button";
 import Modal from "@/components/Modal";
 import { Input } from "@/components/ui/input";
@@ -23,6 +22,9 @@ import {
   TableCell,
 } from "@/components/ui/table";
 import Header from "@/components/breadcumb";
+import { useRouter } from 'next/navigation';
+import { useSession } from "next-auth/react";
+
 
 // DatePickerWithRange Component
 const DateRangePicker = ({ selectedRange, onRangeChange }) => {
@@ -58,6 +60,11 @@ const DateRangePicker = ({ selectedRange, onRangeChange }) => {
 
 // Approvals Component
 const PeriodicAttendanceComponent = () => {
+
+  const router = useRouter();
+  const{data: session}= useSession();
+  const employerId = session.user.username;
+
   const [newAttendance, setNewAttendance] = useState({
     employeeId: "001-0002",
     dateRange: undefined,
@@ -68,6 +75,7 @@ const PeriodicAttendanceComponent = () => {
   });
   const [isLoading, setIsLoading] = useState(false); // Add isLoading state
   const [ModalOpen, setModalOpen] = useState(false);
+  const[employeeName, setEmployeeName] = useState([]);
   const [attendanceData, setAttendanceData] = useState([]);
 
   const closeModal = async () => {
@@ -82,14 +90,18 @@ const PeriodicAttendanceComponent = () => {
 
     try {
       setIsLoading(true);
-      const response = await axios.get(`/api/employees/periodicAttendance`, {
+      const employee_name = await axios.get(`/api/employees/001-0002`);
+      const response = await axios.get(`/api/employees/periodicAttendance?employerId=${employerId}`, {
         // params: {
         //   employeeId: newAttendance.employeeId,
         //   startDate: from,
         //   endDate: to,
         // },
       });
-      setAttendanceData(response.data);
+      console.log(employee_name.data.data);
+      setEmployeeName(employee_name.data.data);
+      console.log("Attendance data fetched successfully:", response.data);
+      setAttendanceData(response.data.data);
     } catch (error) {
       console.error("Error fetching attendance:", error);
     } finally {
@@ -119,7 +131,7 @@ const PeriodicAttendanceComponent = () => {
       // Prepare the payload
       const attendancePayload = {
         employeeId: newAttendance.employeeId,
-        clientId:"001-0001",
+        clientId:employerId,
         dateRange: formattedDateRange,
         totalWorkingHours: newAttendance.hoursWorked,
         totalBreakHours: newAttendance.breakHours,
@@ -144,6 +156,7 @@ const PeriodicAttendanceComponent = () => {
         totalWorkingHours: "",
         totalBreakHours: "",
         leaves: 0,
+        status: "Pending",
       });
     } catch (error) {
       console.error("Error adding attendance:", error);
@@ -207,6 +220,10 @@ const PeriodicAttendanceComponent = () => {
                     <TableHead className="px-4 py-2 font-semibold text-white">
                         Leaves
                     </TableHead>
+
+                    <TableHead className="px-4 py-2 font-semibold text-white">
+                        Status
+                    </TableHead>
                    
                   </TableRow>
                 </TableHeader>
@@ -214,11 +231,13 @@ const PeriodicAttendanceComponent = () => {
                   {attendanceData!=[] && attendanceData.map((record) => (
                     <TableRow key={record._id} className="bg-background shadow-lg rounded-lg border-separate">
                       <TableCell  className="px-4">{record.employeeId}</TableCell>
-                      <TableCell  className="px-4">{record.name}</TableCell>
+                      <TableCell  className="px-4">{employeeName}</TableCell>
                       <TableCell  className="px-4">{record.dateRange}</TableCell>
                       <TableCell  className="px-4">{record.totalWorkingHours}</TableCell>
                       <TableCell  className="px-4">{record.totalBreakHours}</TableCell>
                       <TableCell  className="px-4">{record.leaves}</TableCell>
+                      <TableCell  className="px-4">{record.status}</TableCell>
+
 
                     </TableRow>
                   ))}

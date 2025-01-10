@@ -1,8 +1,15 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import Image from 'next/image'
+import Image from "next/image";
 import { useSession } from "next-auth/react";
-
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogClose,
+} from "@/components/ui/dialog";
+// import Profile from "@/components/Employee/profile";
 
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
@@ -34,11 +41,14 @@ import {
 } from "@/components/ui/table";
 
 const EmployeeTable = () => {
-  const {data: session} = useSession();
+  const { data: session } = useSession();
   const clientId = session.user.username;
   const router = useRouter();
   const [employees, setEmployees] = useState([]);
   const [deduction, setdeduction] = useState([]);
+  const [Department, setDepartment] = useState([]);
+  const [Designation, setDesignation] = useState([]);
+
   const [allownce, setAllownce] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
@@ -47,16 +57,39 @@ const EmployeeTable = () => {
   const [employeeToEdit, setEmployeeToEdit] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  const handleOpenDialog = () => {
+    setIsDialogOpen(true);
+  };
+
+  const handleCloseDialog = () => {
+    setIsDialogOpen(false);
+  };
+
   const fetchEmployees = async () => {
     setIsLoading(true);
     try {
       const response = await axios.get(`/api/employees?employerId=${clientId}`);
-      const response2 = await axios.get(`/api/employees/allownce?employerId=${clientId}`);
-      const response3 = await axios.get(`/api/employees/deduction?employerId=${clientId}`);
+      const response2 = await axios.get(
+        `/api/employees/allownce?employerId=${clientId}`
+      );
+      const response3 = await axios.get(
+        `/api/employees/deduction?employerId=${clientId}`
+      );
+      const department = await axios.get(
+        `/api/employees/department?employerId=${clientId}`
+      );
+      const designation = await axios.get(
+        `/api/employees/jobTitle?employerId=${clientId}`
+      );
 
       setAllownce(response2.data.data);
       setdeduction(response3.data.data);
       setEmployees(response.data.data);
+      setDepartment(department.data.data);
+      setDesignation(designation.data.data);
+
       console.log(response.data.data);
     } catch (error) {
       console.error("Error fetching employees:", error);
@@ -171,7 +204,7 @@ const EmployeeTable = () => {
           <Table className="shadow-md rounded-lg border-separate">
             <TableHeader>
               <TableRow className="bg-foreground text-left">
-              <TableHead className="px-4 py-2 font-semibold text-white text-[12px]">
+                <TableHead className="px-4 py-2 font-semibold text-white text-[12px]">
                   Profile
                 </TableHead>
                 {columns
@@ -195,14 +228,15 @@ const EmployeeTable = () => {
                   key={employee._id}
                   className="bg-background shadow-lg rounded-lg border-separate"
                 >
-                    <TableCell className="px-4" >
-                      <Image
-                    className="rounded-full"
-                    src={employee.profileImage}
-                    width={50}
-                    height={50}
-                    alt="Picture of the author"
-                    ></Image></TableCell>
+                  <TableCell className="px-4">
+                    <Image
+                      className="rounded-full"
+                      src={employee.profileImage}
+                      width={50}
+                      height={50}
+                      alt="Employee Profile"
+                    />
+                  </TableCell>
 
                   {columns
                     .filter((col) => col.isVisible)
@@ -238,6 +272,22 @@ const EmployeeTable = () => {
                               );
                             })}
                           </ul>
+                        ) : col.id === "department" ? (
+                          <span className="text-sm">
+                            {
+                              Department.find(
+                                (dept) => dept._id === employee.department
+                              )?.department
+                            }
+                          </span>
+                        ) : col.id === "jobTitle" ? (
+                          <span className="text-sm">
+                            {
+                              Designation.find(
+                                (des) => des._id === employee.jobTitle
+                              )?.job_title
+                            }
+                          </span>
                         ) : (
                           employee[col.id] // Default rendering logic for other columns
                         )}
@@ -255,6 +305,12 @@ const EmployeeTable = () => {
                         className="cursor-pointer"
                         onClick={() => handleDelete(employee._id)}
                       />
+
+                      {/* <Eye
+                        aria-label="Show employee"
+                        className="cursor-pointer"
+                        onClick={handleOpenDialog}
+                      /> */}
                     </div>
                   </TableCell>
                 </TableRow>
@@ -270,6 +326,21 @@ const EmployeeTable = () => {
           employeeToEdit={employeeToEdit}
         />
       )}
+
+      {/* {isDialogOpen && (
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogContent className="max-w-3xl">
+            <DialogHeader>
+              <DialogTitle>
+                Employee Profile
+               
+              </DialogTitle>
+              <DialogClose onClick={handleCloseDialog} />
+            </DialogHeader>
+            <Profile />
+          </DialogContent>
+        </Dialog>
+      )} */}
     </div>
   );
 };

@@ -1,12 +1,11 @@
 import { useState, useEffect, useMemo } from "react";
 import axios from "axios";
-import { Country, City } from "country-state-city";
+import { Country, State, City } from "country-state-city";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
   DialogClose,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -26,6 +25,7 @@ const PopupForm = ({ onClose, setEmployers, employerToEdit }) => {
     email: "",
     address: "",
     city: "",
+    state:"",
     country: "",
     cpFirstName: "",
     cpMiddleName: "",
@@ -39,18 +39,19 @@ const PopupForm = ({ onClose, setEmployers, employerToEdit }) => {
     paymentMethod: "DIRECT DEPOSIT",
     terms: "MONTHLY",
   });
-  const [isLoading, setIsLoading] = useState(false); // Loading state
-  const [isSubmitting, setIsSubmitting] = useState(false);  // State to track form submission
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
   const [countries, setCountries] = useState([]);
   const [cities, setCities] = useState([]);
+  const [states, setStates] = useState([]);
   const [subscriptionPlans, setSubscriptionPlans] = useState([]);
 
   const uniqueCities = useMemo(() => {
     return Array.from(new Set(cities.map((city) => city.name))).map((name) =>
       cities.find((city) => city.name === name)
     );
-  }, [cities]); // Only recomputes when cities change
+  }, [cities]);
 
   useEffect(() => {
     setCountries(Country.getAllCountries());
@@ -59,43 +60,72 @@ const PopupForm = ({ onClose, setEmployers, employerToEdit }) => {
   useEffect(() => {
     const fetchSubscriptionPlans = async () => {
       try {
-        setIsLoading(true); // Start loading
+        setIsLoading(true);
         const response = await axios.get("/api/subscriptionPlanMaster");
         setSubscriptionPlans(response.data.data);
       } catch (error) {
         console.error("Error fetching subscription plans:", error);
       } finally {
-        setIsLoading(false); // Stop loading
+        setIsLoading(false);
       }
     };
     fetchSubscriptionPlans();
   }, []);
 
+  // And replace the useEffect for employerToEdit with this:
   useEffect(() => {
     if (employerToEdit) {
-      const countryISOCode = Country.getCountryByCode(
-        employerToEdit.country
-      )?.isoCode;
-      if (countryISOCode) {
-        setCities(City.getCitiesOfCountry(countryISOCode));
+      // Use the country code directly
+      if (employerToEdit.country) {
+        const statesList = State.getStatesOfCountry(employerToEdit.country) || [];
+        setStates(statesList);
+  
+        // Fetch cities based on the employer's state
+        const citiesInState =
+          City.getCitiesOfState(employerToEdit.country, employerToEdit.state) || [];
+        setCities(citiesInState);
       }
       setNewEmployer(employerToEdit);
     } else {
       generateEmployerId();
     }
   }, [employerToEdit]);
+  
 
   const handleCountryChange = (value) => {
-    const countryISOCode = Country.getCountryByCode(value)?.isoCode;
     setNewEmployer((prev) => ({
       ...prev,
       country: value,
-      city: countryISOCode === prev.country ? prev.city : "",
+      state: "", // Reset state when country changes
+      city: "", // Reset city when country changes
     }));
 
-    if (countryISOCode) {
-      setCities(City.getCitiesOfCountry(countryISOCode));
-    }
+    const statesList = State.getStatesOfCountry(value) || [];
+    setStates(statesList);
+
+    setCities([]);
+
+
+   
+  };
+
+  const handleStateChange = (value) => {
+    setNewEmployer((prev) => ({
+      ...prev,
+      state: value,
+      city: "", // Reset city when state changes
+    }));
+
+    const citiesInState =
+      City.getCitiesOfState(newEmployer.country, value) || [];
+    setCities(citiesInState);
+  };
+
+  const handleCityChange = (value) => {
+    setNewEmployer((prev) => ({
+      ...prev,
+      city: value,
+    }));
   };
 
   const generateEmployerId = async () => {
@@ -103,9 +133,9 @@ const PopupForm = ({ onClose, setEmployers, employerToEdit }) => {
       const response = await axios.get("/api/employers");
       const employers = response.data.data;
       const maxId = employers
-        .filter((emp) => emp.employerId.startsWith("CLIENT-"))
-        .map((emp) => parseInt(emp.employerId.split("-")[1]))
-        .reduce((max, current) => (current > max ? current : max), 0);
+        .filter((emp) => emp.employerId?.startsWith("CLIENT-"))
+        .map((emp) => parseInt(emp.employerId.split("-")[1]) || 0)
+        .reduce((max, current) => Math.max(max, current), 0);
 
       const nextId = maxId + 1;
       setNewEmployer((prev) => ({
@@ -114,59 +144,68 @@ const PopupForm = ({ onClose, setEmployers, employerToEdit }) => {
       }));
     } catch (error) {
       console.error("Error generating employer ID:", error);
-      setError("Failed to generate employer ID. Please try again.");
+      // Set a fallback ID in case of error
+      setNewEmployer((prev) => ({
+        ...prev,
+        employerId: `CLIENT-${Date.now()}`,
+      }));
     }
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setNewEmployer((prev) => ({ ...prev, [name]: value }));
-    setErrors((prev) => ({ ...prev, [name]: "" })); // Clear error when input changes
+    if (errors[name]) {
+      setErrors((prev) => ({ ...prev, [name]: "" }));
+    }
   };
 
   const validateForm = () => {
     const validationErrors = {};
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    const phoneRegex = /^\+?[\d\s-]{10,}$/;
 
-    if (!newEmployer.businessName.trim())
+    if (!newEmployer.businessName?.trim())
       validationErrors.businessName = "Business name is required.";
-    if (!newEmployer.email.trim() || !emailRegex.test(newEmployer.email))
+    if (!newEmployer.email?.trim() || !emailRegex.test(newEmployer.email))
       validationErrors.email = "Valid email is required.";
-    if (!newEmployer.address.trim())
+    if (!newEmployer.address?.trim())
       validationErrors.address = "Address is required.";
-    if (!newEmployer.city.trim()) validationErrors.city = "City is required.";
-    if (!newEmployer.country.trim())
+    if (!newEmployer.city?.trim()) validationErrors.city = "City is required.";
+    if (!newEmployer.country?.trim())
       validationErrors.country = "Country is required.";
-    if (!newEmployer.cpFirstName.trim())
+    if (!newEmployer.cpFirstName?.trim())
       validationErrors.cpFirstName = "First name is required.";
-    if (!newEmployer.cpSurname.trim())
+    if (!newEmployer.cpSurname?.trim())
       validationErrors.cpSurname = "Surname is required.";
-    if (!newEmployer.cpEmail.trim() || !emailRegex.test(newEmployer.cpEmail))
+    if (!newEmployer.cpEmail?.trim() || !emailRegex.test(newEmployer.cpEmail))
       validationErrors.cpEmail = "Valid email is required.";
-    if (!newEmployer.cpPhoneNumber.trim())
-      validationErrors.cpPhoneNumber = "Phone number is required.";
-    if (!newEmployer.subscriptionPlan.trim())
+    if (
+      !newEmployer.cpPhoneNumber?.trim() ||
+      !phoneRegex.test(newEmployer.cpPhoneNumber)
+    )
+      validationErrors.cpPhoneNumber = "Valid phone number is required.";
+    if (!newEmployer.subscriptionPlan?.trim())
       validationErrors.subscriptionPlan = "Subscription plan is required.";
+
     return validationErrors;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (isSubmitting) return;
 
-      // Start submission process
-  setIsSubmitting(true);
-
-
+    setIsSubmitting(true);
     const validationErrors = validateForm();
+
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       setIsSubmitting(false);
-
       return;
     }
 
     try {
-      if (employerToEdit) {
+      if (employerToEdit?._id) {
         const response = await axios.put(
           `/api/employers/${employerToEdit._id}`,
           newEmployer
@@ -183,16 +222,15 @@ const PopupForm = ({ onClose, setEmployers, employerToEdit }) => {
       onClose();
     } catch (error) {
       console.error("Error saving employer:", error);
-    }
-    finally {
-      // End submission process
+      // You might want to show an error message to the user here
+    } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent>
+      <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>
             {employerToEdit ? "Edit Client" : "Add Client"}
@@ -200,11 +238,11 @@ const PopupForm = ({ onClose, setEmployers, employerToEdit }) => {
           <DialogClose onClick={onClose} />
         </DialogHeader>
         {isLoading ? (
-          <LoadingSpinner/>// Loading screen
+          <LoadingSpinner />
         ) : (
           <form
             onSubmit={handleSubmit}
-            className="space-y-6 p-6 h-[65vh] overflow-y-auto"
+            className="space-y-6 p-6 max-h-[65vh] overflow-y-auto"
           >
             <h3 className="text-lg font-semibold">Business Information</h3>
             <div className="space-y-4">
@@ -243,10 +281,9 @@ const PopupForm = ({ onClose, setEmployers, employerToEdit }) => {
               )}
 
               <div className="flex gap-4">
-                <Select
-                  value={newEmployer.country}
-                  onValueChange={handleCountryChange}
-                >
+                <Select 
+                value={newEmployer.country}
+                onValueChange={handleCountryChange}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select Country" />
                   </SelectTrigger>
@@ -262,12 +299,25 @@ const PopupForm = ({ onClose, setEmployers, employerToEdit }) => {
                   <p className="text-red-500">{errors.country}</p>
                 )}
 
-                <Select
-                  value={newEmployer.city}
-                  onValueChange={(value) =>
-                    setNewEmployer((prev) => ({ ...prev, city: value }))
-                  }
-                >
+                {states.length > 0 && (
+                  <Select 
+                  value={newEmployer.state}
+                  onValueChange={handleStateChange}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select State" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {states.map((state) => (
+                        <SelectItem key={state.isoCode} value={state.isoCode}>
+                          {state.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+                <Select 
+                value={newEmployer.city}
+                onValueChange={handleCityChange}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select City" />
                   </SelectTrigger>
@@ -443,17 +493,18 @@ const PopupForm = ({ onClose, setEmployers, employerToEdit }) => {
               </Select>
               {errors.terms && <p className="text-red-500">{errors.terms}</p>}
             </div>
+
             <div className="mt-6 flex justify-end gap-4">
-              <Button onClick={onClose} variant="secondary">
+              <Button type="button" onClick={onClose} variant="secondary">
                 Cancel
               </Button>
-              <Button type="submit" disabled={isSubmitting} className="w-full">
+              <Button type="submit" disabled={isSubmitting}>
                 {isSubmitting
                   ? "Saving..."
                   : employerToEdit
                   ? "Update Client"
                   : "Add Client"}
-              </Button>{" "}
+              </Button>
             </div>
           </form>
         )}

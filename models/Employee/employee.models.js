@@ -75,12 +75,10 @@ const EmployeeSchema = new mongoose.Schema({
     maxlength: 25,
   },
   manager: {
-    // type: mongoose.Schema.Types.ObjectId,
-    // ref: "Employee", // Refers to the Employee collection for hierarchical relations
-    // default: null
-
     type: mongoose.Schema.Types.ObjectId,
     ref:"Manager",
+    required: false, // Manager is not mandatory, can be null
+
     maxlength: 25,
   },
   clientId: {
@@ -123,7 +121,7 @@ const EmployeeSchema = new mongoose.Schema({
   payType: {
     type: String,
     required: true,
-    enum: ["HOUR", "WEEK", "MONTH"],
+    enum: ["HOUR", "SALARY"],
     maxlength: 25,
   },
   ratePerHour: {
@@ -174,6 +172,7 @@ const EmployeeSchema = new mongoose.Schema({
   profileImage:
    { type: String, 
     default: null }, // Optional
+    
   documents: [
     {
       url: { type: String },
