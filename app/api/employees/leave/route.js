@@ -1,10 +1,13 @@
 import { NextResponse } from 'next/server';
 import connectDB from '@/utils/dbConnect';
 import Leave from '@/models/Employee/leaves.models';
+
+
 export async function GET(request) {
   await connectDB();
   const searchParams = request.nextUrl.searchParams
   const employerId = searchParams.get('employerId') 
+  console.log("employerId", employerId)
   try {
     const data = await Leave.find({employerId: employerId});
     return NextResponse.json({ success: true, data: data });

@@ -15,7 +15,7 @@ const DeductionSchema = new mongoose.Schema({
     maxlength: 150
   },
   deduction_rate: {
-    type: Number,
+    type: String,
     required: true,
     maxlength: 150
   },

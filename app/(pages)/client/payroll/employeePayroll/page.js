@@ -7,7 +7,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -26,7 +25,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import Header from "@/components/breadcumb";
 
@@ -69,39 +68,43 @@ const mockEmployeeData = [
 const mockPayrolls = [
   {
     payroll_id: "pay001",
-    date_from: "2024-01-01",
-    date_to: "2024-01-08",
-    month_no: 1,
+    date_from: "2024-02-29",
+    date_to: "2024-03-06",
+    month_no: 3,
     year: 2024,
   },
 ];
 
 const mockAttendanceData = [
   {
-    employeeId: "001-0001",
-    date: "2024-01-01",
-    totalWorkingHours: 8,
+    employeeId: "001-0002",
+    date: "2024-02-29",
+    totalWorkingHours: 9.40,
   },
   {
-    employeeId: "001-0001",
-    date: "2024-01-02",
-    totalWorkingHours: 9,
+    employeeId: "001-0002",
+    date: "2024-03-01",
+    totalWorkingHours: 10.00,
   },
+
   {
-    employeeId: "002-0002",
-    date: "2024-01-01",
-    totalWorkingHours: 7,
+    employeeId: "001-0002",
+    date: "2024-03-05",
+    totalWorkingHours: 9.70,
   },
+
   {
-    employeeId: "002-0002",
-    date: "2024-01-02",
-    totalWorkingHours: 8,
+    employeeId: "001-0002",
+    date: "2024-03-06",
+    totalWorkingHours: 7.20,
   },
+  
 ];
 
 const Payroll = () => {
   const { data: session } = useSession();
   const employerId = session?.user?.username || "TestEmployer";
+  const [payrolls, setpayrolls] = useState([]);
 
   const [formData, setFormData] = useState({
     payroll_id: "",
@@ -110,6 +113,27 @@ const Payroll = () => {
 
   const [empPayrolls, setEmpPayrolls] = useState([]);
 
+
+  //Function to getch Payroll
+  useEffect(() => {
+  const fetchPayrolls = async () => {
+    try {
+      const response = await axios.get(`/api/payroll/payroll-process`);
+      if (response.data.success) {
+        setpayrolls(response.data.data);
+        return response.data.data;
+
+      } else {
+        console.error("Error fetching payrolls:", response.data.error);
+        return [];
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      return [];
+    }
+  }
+   fetchPayrolls();
+  }, []);
   // Function to fetch allowances
   const fetchAllowances = async (allowanceIds) => {
     try {
@@ -156,7 +180,7 @@ const Payroll = () => {
     const mockData = empData.data.data;
     console.log(mockData);
 
-    const selectedPayroll = mockPayrolls.find(
+    const selectedPayroll = payrolls.find(
       (p) => p.payroll_id === formData.payroll_id
     );
 
@@ -167,6 +191,9 @@ const Payroll = () => {
 
     const startDate = new Date(selectedPayroll.date_from);
     const endDate = new Date(selectedPayroll.date_to);
+    const weekNo = selectedPayroll.week_no;
+    const year = selectedPayroll.year;
+    const monthNo = selectedPayroll.month_no;
 
     const generatedPayrolls = await Promise.all(
       mockData.map(async (employee) => {
@@ -204,7 +231,7 @@ const Payroll = () => {
             dailySalary = employee.ratePerHour / 30; // Assuming 30 days per month
             grossPay = dailySalary * workingDays;
           }
-        } else if (employee.payType === "HOURLY") {
+        } else if (employee.payType === "HOUR") {
           // Hourly pay
           grossPay = totalWorkHours * employee.ratePerHour;
         }
@@ -247,14 +274,21 @@ const Payroll = () => {
           grossPay + overtimePay + totalAllowances - totalDeductions;
 
         return {
-          employeeId: `${employee.firstName} ${employee.surname}`,
+          employeeId: employee.employeeId,
+          employeeName: `${employee.firstName} ${employee.surname}`,
           totalWorkHours,
           overtimeHours,
           netPayable,
           grossPay,
-          dailySalary,
           workingDays,
-          salary
+          salary,
+          date_from: endDate,
+          date_to: startDate,
+          year: year,
+          month_no: monthNo,
+          week_no: weekNo,
+          deductions: totalDeductions,
+          allowances: totalAllowances,
         };
       })
     );
@@ -290,7 +324,7 @@ const Payroll = () => {
                     <SelectValue placeholder="Select Payroll" />
                   </SelectTrigger>
                   <SelectContent>
-                    {mockPayrolls.map((payroll) => (
+                    {payrolls.map((payroll) => (
                       <SelectItem
                         key={payroll.payroll_id}
                         value={payroll.payroll_id}
@@ -326,48 +360,65 @@ const Payroll = () => {
                   Overtime Hours
                 </TableHead>
                 <TableHead className="px-4 text-white font-bold">
-                  Salary
+                  Salary / RPH
                 </TableHead>
                 <TableHead className="px-4 text-white font-bold">
                   Gross Pay
                 </TableHead>
-                <TableHead className="px-4 text-white font-bold">
-                  Daily Salary
-                </TableHead>
-                <TableHead className="px-4 text-white font-bold">
-                  Working Days
-                </TableHead>
+               
                 <TableHead className="px-4 text-white font-bold">
                   Net Payable
                 </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {empPayrolls.map((payroll, index) => (
-                <TableRow
-                  key={index}
-                  className="bg-background shadow-lg rounded-lg border-separate"
-                >
-                  <TableCell className="px-4">{payroll.employeeId}</TableCell>
-                  <TableCell className="px-4">
-                    {payroll.totalWorkHours}
-                  </TableCell>
-                  <TableCell className="px-4">
-                    {payroll.overtimeHours}
-                  </TableCell>
-                  <TableCell className="px-4">{payroll.salary}</TableCell>
-
-                  <TableCell className="px-4">{payroll.grossPay}</TableCell>
-                  <TableCell className="px-4">{payroll.dailySalary}</TableCell>
-                  <TableCell className="px-4">{payroll.workingDays}</TableCell>
-
-                  <TableCell className="px-4">
-                    ${parseFloat(payroll.netPayable.toFixed(2))}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
+  {empPayrolls.length > 0 ? (
+    empPayrolls.map((payroll, index) => (
+      <TableRow key={index}  className="bg-background shadow-lg rounded-lg border-separate"
+>
+        <TableCell className="px-4">{payroll.employeeName}</TableCell>
+        <TableCell className="px-4">{payroll.totalWorkHours}</TableCell>
+        <TableCell className="px-4">{payroll.overtimeHours}</TableCell>
+        <TableCell className="px-4">{payroll.salary.toFixed(2)}</TableCell>
+        <TableCell className="px-4">{payroll.grossPay.toFixed(2)}</TableCell>
+        <TableCell className="px-4 font-bold">
+          ${payroll.netPayable.toFixed(2)}
+        </TableCell>
+      </TableRow>
+    ))
+  ) : (
+    <TableRow>
+      <TableCell colSpan={8} className="text-center">
+        No payroll data available. Generate payroll to view details.
+      </TableCell>
+    </TableRow>
+  )}
+</TableBody>
           </Table>
+          <div className="flex justify-end mt-4">
+              <Button
+                onClick={async () => {
+                  try {
+                    const approvePromises = empPayrolls.map((payroll) =>
+                      axios.post("/api/payroll/payslip", {
+                        ...payroll,
+                        payrollId: formData.payroll_id,
+                        employerId,
+                      })
+                    );
+
+                    await Promise.all(approvePromises);
+
+                    alert("Payroll approved successfully!");
+                  } catch (error) {
+                    console.error("Error approving payroll:", error);
+                    alert("An error occurred while approving payroll.");
+                  }
+                }}
+              >
+                Approve Payroll
+              </Button>
+            </div>
         </div>
 
         {/* <div>

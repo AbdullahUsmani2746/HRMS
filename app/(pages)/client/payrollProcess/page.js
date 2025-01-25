@@ -41,12 +41,27 @@ export default function PayrollProcessPage() {
   const calculatePayrollDetails = (dateFrom, dateTo) => {
     const startDate = new Date(dateFrom);
     const endDate = new Date(dateTo);
-
-    const weekNo = Math.ceil((startDate.getDate() + startDate.getDay()) / 7);
-    const monthNo = startDate.getMonth() + 1; // Months are 0-indexed
+  
+    // Helper to calculate the week number of the month
+    const getWeekOfMonth = (date) => {
+      const firstDayOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+      const dayOffset = firstDayOfMonth.getDay(); // Day of the week for the 1st of the month
+      return Math.ceil((date.getDate() + dayOffset) / 7);
+    };
+  
+    const weekNo = getWeekOfMonth(startDate); // Get the week number for the start date
+    const monthNo = startDate.getMonth() + 1; // Months are 0-indexed, so add 1
     const year = startDate.getFullYear();
-
-    return { weekNo, monthNo, year };
+  
+    const details = { weekNo, monthNo, year };
+  
+    // If the week spans across two months, adjust the week count
+    if (startDate.getMonth() !== endDate.getMonth()) {
+      const weekEndMonth = getWeekOfMonth(endDate); // Calculate week number for the end date
+      details.weekNoEndMonth = weekEndMonth; // Include the week number for the second month
+    }
+  
+    return details;
   };
 
   const isDateRangeOverlapping = (newStart, newEnd) => {

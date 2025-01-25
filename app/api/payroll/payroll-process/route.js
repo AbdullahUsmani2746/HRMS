@@ -60,10 +60,9 @@ export async function GET(request) {
       // Calculate year, month_no, and week_no dynamically
       const year = fromDate.getFullYear();
       const monthNo = fromDate.getMonth() + 1; // JavaScript months are 0-based
-      const weekNo = Math.ceil(
-        ((fromDate - new Date(fromDate.getFullYear(), 0, 1)) / (1000 * 60 * 60 * 24) + 1) / 7
-      );
-  
+        // Calculate week_no where weeks reset at the start of every month
+    const firstDayOfMonth = new Date(fromDate.getFullYear(), fromDate.getMonth(), 1);
+    const weekNo = Math.ceil((fromDate.getDate() + firstDayOfMonth.getDay()) / 7);
       // Generate a unique payroll ID
       const payrollId = Math.floor(Math.random() * 1000000);
   

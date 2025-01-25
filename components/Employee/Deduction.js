@@ -78,7 +78,7 @@ const DeductionComponent = ({ existingData = null, onClose }) => {
             </div>
             <div>
               <Input
-                type="number"
+                type="text"
                 value={app.deduction_rate}
                 onChange={(e) => handleDataChange(index, 'deduction_rate', e.target.value)}
                 placeholder="Deduction Rate"

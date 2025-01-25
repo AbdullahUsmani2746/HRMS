@@ -9,6 +9,8 @@ import {
 import { Button } from "@/components/ui/button";
 import axios from "axios";
 import { Toaster, toast } from "sonner";
+import { set } from "mongoose";
+import { useSession } from "next-auth/react";
 
 const AttendanceCard = ({
   icon: Icon,
@@ -42,7 +44,10 @@ const AttendanceSummary = () => {
     date: new Date().toLocaleDateString(),
   });
 
-  const [employeeId, setEmployeeId] = useState("001-0002");
+  const{data:session}=useSession();
+  const employeeId = session?.user.username;
+  // const [employeeId, setEmployeeId] = useState("001-0001");
+  const [employeeName, setEmployeeName] = useState("")
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [isOnBreak, setIsOnBreak] = useState(false);
   const timerRef = useRef(null);
@@ -63,6 +68,18 @@ const AttendanceSummary = () => {
     if (!dateTime) return null;
     return new Date(dateTime).toLocaleTimeString();
   };
+
+  useEffect( () => {
+
+    const fetchEmployeeName =  async ()=>{
+      const responseName = await axios.get(`/api/employees/${employeeId}`);
+      setEmployeeName(responseName.data.data)
+    }
+
+    fetchEmployeeName()
+    
+
+  },[employeeId])  
 
   useEffect(() => {
     const savedData = JSON.parse(localStorage.getItem("attendanceData"));
@@ -193,15 +210,20 @@ const AttendanceSummary = () => {
   };
 
   return (
-    <div className="mt-5 flex flex-col justify-center items-center">
+    <div className=" flex flex-col justify-center items-center">
       <Toaster richColors />
-      <div className="text-center mb-4">
-        <h2 className="text-xl font-semibold">{new Date(attendanceData.date
-        ).toLocaleDateString()}</h2>
-        <p className="text-xl font-bold">
-          Employee {employeeId}&apos;s Attendance
-        </p>
+      <div className="text-right p-4 w-full">
+       
+        
       </div>
+      <div className="bg-foreground p-4 w-full md:flex md:justify-between md:items-center ">
+      <h2 className="text-m text-white">Date: {new Date(attendanceData.date
+        ).toLocaleDateString()}</h2>
+        <p className="text-lg font-semibold text-white">
+          Welcome {employeeName}
+        </p>
+        <p className="text-m text-white ">ID: {employeeId} </p>
+        </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 p-4 max-w-[850px]">
         <AttendanceCard
           icon={LogIn}

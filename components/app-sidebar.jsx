@@ -222,6 +222,12 @@ const data = {
       icon: Clipboard,
       isActive: true,
     },
+    {
+      title: "Current PaySlip",
+      url: "/employee/payslip",
+      icon: DollarSignIcon,
+      isActive: true,
+    },
   ],
 };
 
