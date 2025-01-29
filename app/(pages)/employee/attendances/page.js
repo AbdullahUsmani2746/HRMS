@@ -99,7 +99,7 @@ const AttendanceHistory = () => {
                         <TableCell className="px-4">{new Date(record.date).toLocaleDateString()}</TableCell>
                         <TableCell className="px-4">{new Date(record.checkInTime).toLocaleTimeString()}</TableCell>
                         <TableCell className="px-4">{new Date(record.checkOutTime).toLocaleTimeString()}</TableCell>
-                        <TableCell className="px-4">{record.breakDuration}</TableCell>
+                        <TableCell className="px-4">{record.totalBreakDuration}</TableCell>
                         <TableCell className="px-4">{record.totalWorkingHours}</TableCell>
                         <TableCell className="px-4">{record.leave || "No Leave"}</TableCell>
                         <TableCell className="px-4">{record.status}</TableCell>

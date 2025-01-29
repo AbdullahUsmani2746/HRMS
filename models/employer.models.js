@@ -95,7 +95,7 @@ const EmployerSchema = new mongoose.Schema({
     type: String,
     required: true,
     maxlength: 25,
-    enum: ['DIRECT DEPOSIT', 'CHEQUE']
+    enum: [ 'DIRECT DEPOSIT', 'CHEQUE']
   },
   terms: {
     type: String,

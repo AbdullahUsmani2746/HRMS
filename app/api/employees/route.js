@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import connectDB from "@/utils/dbConnect";
 import Employee from "@/models/Employee/employee.models";
 import { ObjectId } from "bson";
+import User from "@/models/user.models";
 
 export async function GET(request) {
   const searchParams = request.nextUrl.searchParams;
@@ -60,6 +61,19 @@ export async function POST(request) {
 
     // Save the document in MongoDB
     await employer.save();
+
+    // Create a User for this Employer
+    const newUser = new User({
+      username: employer.employeeId, // Assuming username exists in the Employer body
+      email: employer.emailAddress, // Assuming email exists in the Employer body
+      password: "admin", // You can generate a secure default password or use a random generator
+      role: "User", // You can adjust the role if needed
+    });
+
+    // Save the User in MongoDB 
+    await newUser.save();
+
+
     return NextResponse.json(
       { message: "Employer added to the Database", data: employer },
       { status: 201 }

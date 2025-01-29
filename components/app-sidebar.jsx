@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useSession } from "next-auth/react";
 import {
   Avatar,
   AvatarFallback,
@@ -231,7 +232,10 @@ const data = {
   ],
 };
 
-export function AppSidebar({ userType = "client", isManager = true, ...props }) {
+export function AppSidebar({ userType = "client", ...props }) {
+
+    const { data: session } = useSession();
+    const isManager = session?.user?.isManager;
   // Determine the navigation data based on the user type
   let navData = null;
   if (userType === "client") {

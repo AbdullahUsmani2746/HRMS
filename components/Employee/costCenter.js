@@ -2,9 +2,12 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { useSession } from 'next-auth/react';
 
 const CostCenterComponent = ({ existingData = null, onClose }) => {
-  const [data, setData] = useState([{ cost_center: '', cost_center_description: '', employerId:'CLIENT-001' }]);
+  const {data: session} = useSession();
+  const employerId = session?.user?.username || "CLIENT-001";
+  const [data, setData] = useState([{ cost_center: '', cost_center_description: '', employerId: employerId }]);
   const [isEditing, setIsEditing] = useState(false);
   const [editIndex, setEditIndex] = useState(null);
 
@@ -24,7 +27,7 @@ const CostCenterComponent = ({ existingData = null, onClose }) => {
   };
 
   const addData = () => {
-    setData([...data, { cost_center: '', cost_center_description: '', employerId:'CLIENT-001' }]);
+    setData([...data, { cost_center: '', cost_center_description: '', employerId: employerId }]);
   };
 
   const removeData= (index) => {

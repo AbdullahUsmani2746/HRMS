@@ -4,10 +4,11 @@ import { NextResponse } from "next/server";
 import connectDB from "@/utils/dbConnect";
 import Employee from "@/models/Employee/employee.models";
 import { ObjectId } from "bson";
+import User from "@/models/user.models";
 
 
 export async function GET(req, { params }) {
-  const { id } =await params;
+  const { id } = await params;
   console.log(id)
   console.log("ID A")
 
@@ -80,13 +81,24 @@ export async function DELETE(request,value) {
   // Extract the ID from the URL path
   const id = value.params.id
   console.log(id)
-    const deletedEmployer = await Employee.findByIdAndDelete(new ObjectId(id));
-    if (!deletedEmployer) {
+   
+    // Find the employer to get the email or username before deleting
+    const employerToDelete = await Employee.findById(id);
+
+    if (!employerToDelete) {
       return NextResponse.json(
-        { message: `Employer not found ${id}` },
+        { message: `Employer not found with ID: ${id}` },
         { status: 404 }
       );
     }
+
+    // Delete the Employer
+    const deletedEmployer = await Employee.findByIdAndDelete(new ObjectId(id));
+    console.log("Deleted Employer:", deletedEmployer);
+
+    // Delete the corresponding User using their email (or another unique field)
+    const deletedUser = await User.findOneAndDelete({ email: employerToDelete.email });
+    console.log("Deleted User:", deletedUser);
 
     return NextResponse.json(
       { message: "Employer deleted successfully" },

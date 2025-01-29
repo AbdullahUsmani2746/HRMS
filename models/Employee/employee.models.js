@@ -100,7 +100,7 @@ const EmployeeSchema = new mongoose.Schema({
   paymentMethod: {
     type: String,
     required: true,
-    enum: ["DIRECT DEPOSIT", "CHEQUE"],
+    enum: ["CASH", "DIRECT DEPOSIT", "CHEQUE"],
     maxlength: 25,
   },
   bankName: {

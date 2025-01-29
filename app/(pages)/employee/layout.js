@@ -8,9 +8,10 @@ export const metadata = {
 };
 
 export default function EmployeeLayout({ children }) {
+
   return (
     <SidebarProvider>
-      <AppSidebar userType="userEmployee" />
+      <AppSidebar userType="userEmployee"/>
 
       <SidebarInset>{children}</SidebarInset>
     </SidebarProvider>

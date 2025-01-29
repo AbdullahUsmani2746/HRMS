@@ -4,10 +4,16 @@ import PayrollProcess from '@/models/Payroll/payrollProcess.models';
 
 export async function GET(request) {
     try {
+
+      const searchParams = request.nextUrl.searchParams
+      const employerId = searchParams.get('employerId') 
+      console.log("employerId", employerId)
+
+
       await connectDB();
   
       // Fetch all payroll processes
-      const payrolls = await PayrollProcess.find();
+      const payrolls = await PayrollProcess.find({employerId: employerId} );
   
       // Return success response
       return NextResponse.json({ success: true, data: payrolls }, { status: 200 });

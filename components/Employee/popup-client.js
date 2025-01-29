@@ -897,6 +897,7 @@ const PopupForm = ({ onClose, setEmployees, employeeToEdit }) => {
                       <SelectValue placeholder="Payment Method" />
                     </SelectTrigger>
                     <SelectContent>
+                    <SelectItem value="CASH">Cash</SelectItem>
                       <SelectItem value="CHEQUE">Cheque</SelectItem>
                       <SelectItem value="DIRECT DEPOSIT">
                         Direct Deposit

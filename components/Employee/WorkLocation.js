@@ -2,9 +2,12 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { useSession } from 'next-auth/react';
 
 const WorkLocations = ({ existingLocation = null, onClose,  }) => {
-  const [locations, setLocations] = useState([{ work_location: '', work_location_description: '', employerId:'CLIENT-001' }]);
+  const {data: session} = useSession();
+  const employerId = session?.user?.username || "CLIENT-001";
+  const [locations, setLocations] = useState([{ work_location: '', work_location_description: '', employerId:employerId }]);
   const [isEditing, setIsEditing] = useState(false);
   const [editIndex, setEditIndex] = useState(null);
 
@@ -24,7 +27,7 @@ const WorkLocations = ({ existingLocation = null, onClose,  }) => {
   };
 
   const addLocation = () => {
-    setLocations([...locations, { work_location: '', work_location_description: '',employerId:"CLIENT-001" }]);
+    setLocations([...locations, { work_location: '', work_location_description: '',employerId:employerId }]);
   };
 
   const removeLocation = (index) => {

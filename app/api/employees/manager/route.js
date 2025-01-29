@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import connectDB from '@/utils/dbConnect';
 import Manager from '@/models/Employee/manager.models';
 import Department from '@/models/Employee/department.models';
+import User from '@/models/user.models';
 
 export async function GET(request) {
   await connectDB();
@@ -28,6 +29,17 @@ export async function POST(request) {
     }
 
     const data = await Manager.insertMany(body.data);
+
+// Update the corresponding users to set isManager to true
+const employeeIds = body.data.map(manager => manager.employeeId); // Extract employeeIds from the request body
+
+// Update users where employeeId matches the ones in the manager data
+await User.updateMany(
+  { username: { $in: employeeIds } }, // Find users with employeeIds from the manager data
+  { $set: { isManager: true } } // Set isManager to true
+);
+
+
     return NextResponse.json({ success: true, data: data }, { status: 201 });
   } catch (error) {
     return NextResponse.json({ success: false, error: error.message }, { status: 400 });

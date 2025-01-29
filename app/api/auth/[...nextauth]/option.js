@@ -34,6 +34,8 @@ export const authOptions = {
             username: user.username,
             email: user.email,
             role: user.role,
+            isManager: user.isManager || false, // Default to false if not explicitly set
+
           };
         },
       }),
@@ -46,6 +48,8 @@ export const authOptions = {
           token.username = user.username;
           token.email = user.email;
           token.role = user.role;
+          token.isManager = user.isManager; // Include the isManager field
+
         }
         return token;
       },
@@ -56,6 +60,8 @@ export const authOptions = {
           username: token.username,
           email: token.email,
           role: token.role,
+          isManager: token.isManager, // Include isManager in the session
+
         };
         return session;
       },

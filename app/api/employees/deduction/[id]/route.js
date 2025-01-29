@@ -3,6 +3,18 @@ import connectDB from '@/utils/dbConnect';
 import Deduction from '@/models/Employee/deduction.models';
 import { ObjectId } from 'bson';
 
+
+export async function GET(request,{params}) {
+  await connectDB();
+ const id = await params.id
+  try {
+    const data = await Deduction.findOne({_id:id});
+    return NextResponse.json({ success: true, data: data });
+  } catch (error) {
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  }
+}
+
 export async function DELETE(request,value) {
     await connectDB();
     try {
