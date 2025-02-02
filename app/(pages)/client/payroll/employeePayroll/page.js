@@ -104,6 +104,7 @@ const PayrollDashboard = () => {
       const processedPayroll = await processPayrollData(empData.data.data, selectedPayrollPeriod);
 
       setEmpPayrolls(processedPayroll);
+      console.log("Peek A BOO",processedPayroll)
       
       // Calculate statistics
       const stats = calculatePayrollStats(processedPayroll);
@@ -123,21 +124,271 @@ const PayrollDashboard = () => {
     }
   };
 
+  const calculateEmployeePayroll = async (employees, startDate, endDate, payrollId, settings = {}) => {
+    console.log("Starting payroll calculation with:", {
+        totalEmployees: employees.length,
+        startDate,
+        endDate,
+        payrollId
+    });
+
+    const payrollSettings = {
+        baseHoursPerWeek: settings.baseHoursPerWeek || 40,
+        overtimeMultiplier: settings.overtimeMultiplier || 1.5,
+        weeklyPayMultipliers: {
+            weekly: settings.weeklyMultiplier || 1,
+            fortnightly: settings.fortnightlyMultiplier || 2,
+            monthly: settings.monthlyMultiplier || 4.33
+        },
+        maxRegularHoursPerDay: settings.maxRegularHoursPerDay || 8,
+        workingDaysPerWeek: settings.workingDaysPerWeek || 5
+    };
+
+    console.log("Payroll settings:", payrollSettings);
+
+    const [
+        allPeriodicAttendance,
+        allDeductions,
+        allAllowances,
+        allPayrollDeductions,
+        allPayrollAllowances
+    ] = await Promise.all([
+        axios.get('/api/employees/periodicAttendance?employerId='+employerId),
+        axios.get('/api/employees/deduction?employerId='+employerId),
+        axios.get('/api/employees/allownce?employerId='+employerId),
+        axios.get(`/api/payroll/payrollDeduction/${payrollId}`),
+        axios.get(`/api/payroll/payrollAllownce/${payrollId}`)    
+    ]);
+
+    console.log("API responses received:", {
+        // attendanceCount: allAttendance.data.length,
+        periodicAttendanceCount: allPeriodicAttendance.data.data.length,
+        deductionsCount: allDeductions.data.data.length,
+        allowancesCount: allAllowances.data.data.length
+    });
+
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const payPeriodDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+    const payPeriodWeeks = payPeriodDays /7 ;
+    const expectedBaseHours = payrollSettings.baseHoursPerWeek * payPeriodWeeks;
+
+    console.log("Period calculations:", {
+        start,
+        end,
+        payPeriodDays,
+        payPeriodWeeks,
+        expectedBaseHours
+    });
+
+    const convertToTotalHours = (timeString) => {
+        console.log("Converting time string:", timeString);
+        const timePattern = /(\d+)h\s*(\d*)m?/;
+        const match = timeString.match(timePattern);
+        if (!match) return 0;
+        const hours = parseInt(match[1]) || 0;
+        const minutes = parseInt(match[2]) || 0;
+        const totalHours = hours + (minutes / 60);
+        console.log("Converted hours:", totalHours);
+        return totalHours;
+    };
+
+    const parseRate = (rateString) => {
+        console.log("Parsing rate:", rateString);
+        if (!rateString) return 0;
+        if (rateString.includes('%')) {
+            const percentage = parseFloat(rateString);
+            return percentage / 100;
+        }
+        return parseFloat(rateString) || 0;
+    };
+
+    const calculateAdjustments = (items, baseSalary) => {
+        console.log("Calculating adjustments:", { items, baseSalary });
+        return items.reduce((total, item) => {
+            const rate = parseRate(item.rate);
+            if (item.rate.includes('%')) {
+                return total + (baseSalary * rate);
+            }
+            return total + rate;
+        }, 0);
+    };
+
+    const processedEmployees = await Promise.all(
+      employees.map(async (employee) => {
+          console.log("Processing employee:", employee.employeeId);
+  
+          // Fetch employee attendance
+          let EmployeeAttendance;
+          try {
+              EmployeeAttendance = await axios.get(`/api/users/attendance/${employee.employeeId}`);
+          } catch (error) {
+              if (error.response && error.response.status === 404) {
+                  console.log(`No attendance records found for employee: ${employee.employeeId}, skipping.`);
+                  return null;
+              }
+              throw error; // Rethrow other errors
+          }
+    
+          const regularAttendance = EmployeeAttendance.data.filter((a) =>
+              a.employeeId === employee.employeeId &&
+              new Date(a.date).toLocaleDateString() >= new Date(start).toLocaleDateString() &&
+              new Date(a.date).toLocaleDateString() <= new Date(end).toLocaleDateString() &&
+              a.status === "Approved"
+          );
+  
+          const periodicAttendance =
+              regularAttendance.length === 0
+                  ? allPeriodicAttendance.data.data.filter(
+                        (pa) =>
+                            pa.employeeId === employee.employeeId &&
+                            new Date(pa.dateRange) >= start &&
+                            new Date(pa.dateRange) <= end &&
+                            pa.status === "Approved"
+                    )
+                  : [];
+  
+          console.log("Attendance records:", {
+              regularCount: regularAttendance.length,
+              periodicCount: periodicAttendance.length,
+          });
+  
+          if (regularAttendance.length === 0 && periodicAttendance.length === 0) {
+              console.log("No attendance records found for employee:", employee.employeeId);
+              return null;
+          }
+  
+          let totalWorkHours = 0;
+          let overtimeHours = 0;
+  
+          if (regularAttendance.length > 0) {
+              regularAttendance.forEach((att) => {
+                  const dailyRegularHours = Math.min(
+                      convertToTotalHours(att.totalWorkingHours) || 0,
+                      payrollSettings.maxRegularHoursPerDay
+                  );
+                  const dailyOvertimeHours =
+                      Math.max(0, (convertToTotalHours(att.totalWorkingHours) || 0) - payrollSettings.maxRegularHoursPerDay) +
+                      (att.overtime_hours || 0);
+  
+                  totalWorkHours += dailyRegularHours;
+                  overtimeHours += dailyOvertimeHours;
+              });
+          } else if (periodicAttendance.length > 0) {
+              periodicAttendance.forEach((pa) => {
+                  const hours = convertToTotalHours(pa.totalWorkingHours);
+                  const periodicBaseHours = Math.min(hours, expectedBaseHours);
+                  const periodicOvertime = Math.max(0, hours - expectedBaseHours);
+  
+                  totalWorkHours += periodicBaseHours;
+                  overtimeHours += periodicOvertime;
+              });
+          }
+  
+          console.log("Work hours calculated:", { totalWorkHours, overtimeHours });
+  
+          let baseSalary = 0;
+          let hourlyRate = 0;
+  
+          if (employee.payType === "SALARY") {
+              let basePayMultiplier =
+                  payPeriodDays <= 7
+                      ? payrollSettings.weeklyPayMultipliers.weekly
+                      : payPeriodDays <= 14
+                      ? payrollSettings.weeklyPayMultipliers.fortnightly
+                      : payrollSettings.weeklyPayMultipliers.monthly;
+  
+              baseSalary = (employee.ratePerHour || 0) * basePayMultiplier;
+              hourlyRate = employee.ratePerHour / payrollSettings.baseHoursPerWeek;
+          } else if (employee.payType === "HOUR") {
+              hourlyRate = employee.ratePerHour || 0;
+              const regularHours = Math.min(totalWorkHours, expectedBaseHours);
+              console.log("Regular Hours:", regularHours);
+              baseSalary = regularHours * hourlyRate;
+          }
+  
+          console.log("Salary calculations:", { baseSalary, hourlyRate });
+  
+          const employeeDeductions = allDeductions.data.data.filter((d) => employee.deductions.includes(d._id));
+          const employeeAllowances = allAllowances.data.data.filter((a) => employee.allownces.includes(a._id));
+          const employeePayrollDeductions = allPayrollDeductions.data.data.filter((d) => d.employeeId === employee.employeeId);
+          const employeePayrollAllowances = allPayrollAllowances.data.data.filter((a) => a.employeeId === employee.employeeId);
+  
+          console.log("Employee adjustments:", {
+              deductionsCount: employeeDeductions.length,
+              allowancesCount: employeeAllowances.length,
+              payrollDeductionsCount: employeePayrollDeductions.length,
+              payrollAllowancesCount: employeePayrollAllowances.length,
+          });
+  
+          const totalDeductions = calculateAdjustments([...employeeDeductions, ...employeePayrollDeductions], baseSalary);
+          const totalAllowances = calculateAdjustments([...employeeAllowances, ...employeePayrollAllowances], baseSalary);
+  
+          const overtimeRate = hourlyRate * payrollSettings.overtimeMultiplier;
+          const overtimePay = overtimeHours * overtimeRate;
+  
+          const netPayable = baseSalary + totalAllowances + overtimePay - totalDeductions;
+  
+          console.log("Final calculations:", {
+              totalDeductions,
+              totalAllowances,
+              overtimePay,
+              netPayable,
+          });
+  
+          return {
+              employeeId: employee.employeeId,
+              employeeName: employee.firstName,
+              payType: employee.payType,
+              payPeriodDetails: {
+                  startDate: start,
+                  endDate: end,
+                  totalDays: payPeriodDays,
+                  expectedBaseHours: expectedBaseHours,
+              },
+              workDetails: {
+                  totalWorkHours,
+                  overtimeHours,
+                  hourlyRate,
+                  overtimeRate,
+              },
+              payrollBreakdown: {
+                  baseSalary,
+                  allowances: totalAllowances,
+                  deductions: totalDeductions,
+                  overtimePay,
+                  netPayable,
+              },
+              settings: payrollSettings,
+          };
+      })
+  );
+    
+
+    const validPayrolls = processedEmployees.filter(employee => employee !== null);
+    console.log(`Processed ${validPayrolls.length} out of ${employees.length} employees`);
+
+
+    return validPayrolls;
+};
+  
+
   const processPayrollData = async (employees, payrollPeriod) => {
     const startDate = new Date(payrollPeriod.date_from);
     const endDate = new Date(payrollPeriod.date_to);
+    console.log("Apyroll Detail payroll Datas: ",startDate)
 
-    return Promise.all(employees.map(async (employee) => {
       // ... existing payroll calculation logic ...
       // Enhanced with more detailed calculations
-      const payrollDetails = calculateEmployeePayroll(employee, startDate, endDate);
+      const payrollDetails = await calculateEmployeePayroll(employees, startDate.toLocaleDateString(), endDate.toLocaleDateString(), payrollPeriod._id);
+       console.log("Apyroll Details: ",payrollDetails)
       return payrollDetails;
-    }));
   };
 
   const calculatePayrollStats = (payrollData) => {
     const totalEmployees = payrollData.length;
-    const totalPayroll = payrollData.reduce((sum, emp) => sum + emp.netPayable, 0);
+    const totalPayroll = payrollData.reduce((sum, emp) => sum + emp.payrollBreakdown
+    .netPayable, 0);
     const averageSalary = totalPayroll / totalEmployees;
 
     return {
@@ -292,6 +543,7 @@ const PayrollDashboard = () => {
                           <TableHead>Allowances</TableHead>
                           <TableHead>Deductions</TableHead>
                           <TableHead>Net Payable</TableHead>
+                          
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -301,13 +553,13 @@ const PayrollDashboard = () => {
                               <TableCell className="font-medium">
                                 {payroll.employeeName}
                               </TableCell>
-                              <TableCell>{payroll.totalWorkHours}</TableCell>
-                              <TableCell>{payroll.overtimeHours}</TableCell>
-                              <TableCell>${payroll.salary.toFixed(2)}</TableCell>
-                              <TableCell>${payroll.allowances.toFixed(2)}</TableCell>
-                              <TableCell>${payroll.deductions.toFixed(2)}</TableCell>
+                              <TableCell>{payroll.workDetails.totalWorkHours}</TableCell>
+                              <TableCell>{+(payroll.workDetails.overtimeHours).toFixed(2)}</TableCell>
+                              <TableCell>${+(payroll.payrollBreakdown.baseSalary).toFixed(2)}</TableCell>
+                              <TableCell>${+(payroll.payrollBreakdown.allowances).toFixed(2)}</TableCell>
+                              <TableCell>${+(payroll.payrollBreakdown.deductions).toFixed(2)}</TableCell>
                               <TableCell className="font-bold">
-                                ${payroll.netPayable.toFixed(2)}
+                                ${+(payroll.payrollBreakdown.netPayable).toFixed(2)}
                               </TableCell>
                             </TableRow>
                           ))

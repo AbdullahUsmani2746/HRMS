@@ -26,7 +26,9 @@ export async function GET(req, { params }) {
       );
     }
 
-    return NextResponse.json({ message: "Employers fetched From the Database", data:`${employee[0].firstName} ${employee[0].surname} ` });
+    return NextResponse.json({ message: "Employers fetched From the Database", 
+      data:`${employee[0].firstName} ${employee[0].surname} `,
+      EmployeeData: employee[0] });
 
   } catch (error) {
     return NextResponse.json(

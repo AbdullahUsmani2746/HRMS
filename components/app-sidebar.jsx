@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useSession } from "next-auth/react";
 import {
   Avatar,
@@ -8,6 +9,7 @@ import {
   AvatarImage,
 } from "@/components/ui/avatar";
 import {
+  Contact,
   CircleDollarSign,
   AppWindowMac,
   LayoutDashboard,
@@ -25,7 +27,8 @@ import {
   BriefcaseBusiness,
   UserCheck2Icon,
   Clipboard,
-  Target
+  Target,
+  Send
 } from "lucide-react";
 
 import { NavMain } from "@/components/nav-main";
@@ -109,11 +112,17 @@ const data = {
       isActive: true,
     },
     {
-      title: "Employee",
-      url: "/client/employee",
+      title: "Employee Managemnt",
+      url: "#",
       icon: Users,
       isActive: false,
       items:[
+        {
+          title: "Employee",
+          url: "/client/employee",
+          icon: Locate,
+          isActive: true,
+        },
     
     {
       title: "Work Location",
@@ -134,6 +143,21 @@ const data = {
       isActive: true,
     },
     {
+      title: "Employee Type",
+      url: "/client/employeeType",
+      icon: UserCheck2Icon,
+      isActive: true,
+    },
+  ]
+    },
+  {
+    title: "HR Operations",
+    url: "#",
+    icon: Users,
+    isActive: false,
+    items:[
+
+    {
       title: "Pay Schedule",
       url: "/client/schedule",
       icon: CalendarCheckIcon,
@@ -152,17 +176,12 @@ const data = {
       isActive: true,
     },
     {
-      title: "Attedance",
+      title: "Periodic Attendance",
       url: "/client/attendance",
       icon: Clipboard,
       isActive: true,
     },
-    {
-      title: "Employee Type",
-      url: "/client/employeeType",
-      icon: UserCheck2Icon,
-      isActive: true,
-    },
+   
     { 
       title: "Allownces",
       url: "/client/allownce",
@@ -184,25 +203,24 @@ const data = {
     },
   ]
 },
-    // {
-    //   title: "Payroll",
-    //   url: "/client/payroll",
-    //   icon: LucideUmbrella,
-    //   isActive: true,
-    // },
+    
 
     {
-      title: "Payroll",
+      title: "Payroll & Benefits",
       url: "#",
       icon: LucideUmbrella,
       isActive: true,
       items: [
         {
-          title: "Payroll Process",
+          title: "Payroll Cycle",
           url: "/client/payrollProcess",
         },
         {
-          title: "Genearate Payroll",
+          title: "Payroll Compensation",
+          url: "/client/payroll",
+        },
+        {
+          title: "Payroll Calculation",
           url: "/client/payroll/employeePayroll"
         },
         
@@ -218,9 +236,22 @@ const data = {
       isActive: true,
     },
     {
+      title:"Profile",
+      url:"/employee/profile",
+      icon:Contact,
+      isActive: true,
+
+    },
+    {
       title: "Attendances",
       url: "/employee/attendances",
       icon: Clipboard,
+      isActive: true,
+    },
+    {
+      title: "Request",
+      url: "/employee/request",
+      icon: Send,
       isActive: true,
     },
     {
@@ -261,7 +292,11 @@ export function AppSidebar({ userType = "client", ...props }) {
 
   return (
     <Sidebar variant="inset" {...props}>
-      <SidebarHeader>
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+      >      <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild className="bg-foreground">
@@ -272,22 +307,36 @@ export function AppSidebar({ userType = "client", ...props }) {
                     <AvatarFallback className="rounded-lg">CN</AvatarFallback>
                   </Avatar>
                 </div>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold text-white">
+                <div className="grid flex-1 text-left text-sm leading-tight bar-group">
+                  <span className="truncate font-semibold text-foregound bar-group-hover:text-foregound">
                     DASH
                   </span>
-                  <span className="truncate text-xs text-white">Payroll Software</span>
+                  <span className="truncate text-xs text-foregound bar-group-hover:text-background">Payroll Software</span>
                 </div>
               </a>  
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
+      </motion.div>
+
       <SidebarContent>
+      <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3, delay: 0.2 }}
+        >
         <NavMain items={navData} />
+        </motion.div>
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.4 }}
+        >
+          <NavUser user={data.user} />
+        </motion.div>
       </SidebarFooter>
     </Sidebar>
   );

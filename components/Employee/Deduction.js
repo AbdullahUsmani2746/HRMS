@@ -7,7 +7,7 @@ import { useSession } from 'next-auth/react';
 const DeductionComponent = ({ existingData = null, onClose }) => {
   const {data: session} = useSession();
   const employerId = session?.user?.username || "CLIENT-001";
-  const [data, setData] = useState([{ deduction: '', deduction_description: '',deduction_rate:'', employerId: employerId }]);
+  const [data, setData] = useState([{ deduction: '', deduction_description: '',rate:'', employerId: employerId }]);
   const [isEditing, setIsEditing] = useState(false);
   const [editIndex, setEditIndex] = useState(null);
 
@@ -27,7 +27,7 @@ const DeductionComponent = ({ existingData = null, onClose }) => {
   };
 
   const addData = () => {
-    setData([...data, { deduction: '', deduction_description: '',deduction_rate:'' ,employerId: employerId }]);
+    setData([...data, { deduction: '', deduction_description: '',rate:'' ,employerId: employerId }]);
   };
 
   const removeData= (index) => {
@@ -82,8 +82,8 @@ const DeductionComponent = ({ existingData = null, onClose }) => {
             <div>
               <Input
                 type="text"
-                value={app.deduction_rate}
-                onChange={(e) => handleDataChange(index, 'deduction_rate', e.target.value)}
+                value={app.rate}
+                onChange={(e) => handleDataChange(index, 'rate', e.target.value)}
                 placeholder="Deduction Rate"
                 required
               />

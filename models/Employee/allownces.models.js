@@ -15,7 +15,7 @@ const AllownceSchema = new mongoose.Schema({
     maxlength: 150
   },
   
-  allownce_rate: {
+  rate: {
     type: String,
     required: true,
     maxlength: 150

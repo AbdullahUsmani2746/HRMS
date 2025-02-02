@@ -1,30 +1,106 @@
 "use client";
-import { useState, useEffect } from "react";
-import { format } from "date-fns";
+import { useState, useEffect, useMemo } from "react";
+import { format, parseISO } from "date-fns";
+import LoadingSpinner from "@/components/spinner";
+import { motion, AnimatePresence } from "framer-motion";
+import { 
+  Clock, 
+  Calendar as CalendarIcon, 
+  CheckCircle2, 
+  XCircle, 
+  PauseCircle, 
+  Filter, 
+  SortDesc 
+} from "lucide-react";
+
 import { Button } from "@/components/ui/button";
-import Modal from "@/components/Modal";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import Modal from "@/components/Modal";
 import {
   Popover,
   PopoverTrigger,
   PopoverContent,
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 
 import axios from "axios";
-import LoadingSpinner from "@/components/spinner";
-import {
-  Table,
-  TableHeader,
-  TableRow,
-  TableHead,
-  TableBody,
-  TableCell,
-} from "@/components/ui/table";
-import Header from "@/components/breadcumb";
-import { useRouter } from 'next/navigation';
 import { useSession } from "next-auth/react";
 
+// Status Icon Component
+const StatusIcon = ({ status }) => {
+  const statusIcons = {
+    "Pending": <PauseCircle className="text-yellow-500 w-5 h-5" />,
+    "Approved": <CheckCircle2 className="text-green-500 w-5 h-5" />,
+    "Rejected": <XCircle className="text-red-500 w-5 h-5" />
+  };
+
+  return statusIcons[status] || null;
+};
+
+// Attendance Statistics Card
+const AttendanceStatsCard = ({ data }) => {
+  const calculateStats = useMemo(() => {
+    if (!data.length) return {
+      totalHoursWorked: 0,
+      averageBreakHours: 0,
+      totalLeaves: 0
+    };
+
+    return {
+      totalHoursWorked: data.reduce((sum, record) => sum + parseFloat(record.totalWorkingHours), 0),
+      averageBreakHours: data.reduce((sum, record) => sum + parseFloat(record.totalBreakHours), 0) / data.length,
+      totalLeaves: data.reduce((sum, record) => sum + parseInt(record.leaves), 0)
+    };
+  }, [data]);
+
+  return (
+    <motion.div 
+      className="bg-card rounded-xl shadow-md p-6 space-y-4"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+    >
+      <h3 className="text-xl font-semibold text-primary flex items-center gap-2">
+        <Clock className="w-6 h-6" /> Attendance Overview
+      </h3>
+      <div className="grid grid-cols-3 gap-4">
+        <div className="text-center">
+          <p className="text-muted-foreground text-sm">Total Hours Worked</p>
+          <p className="text-2xl font-bold text-primary">
+            {calculateStats.totalHoursWorked.toFixed(1)}
+          </p>
+        </div>
+        <div className="text-center">
+          <p className="text-muted-foreground text-sm">Avg. Break Hours</p>
+          <p className="text-2xl font-bold text-primary">
+            {calculateStats.averageBreakHours.toFixed(1)}
+          </p>
+        </div>
+        <div className="text-center">
+          <p className="text-muted-foreground text-sm">Total Leaves</p>
+          <p className="text-2xl font-bold text-primary">
+            {calculateStats.totalLeaves}
+          </p>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
 
 // DatePickerWithRange Component
 const DateRangePicker = ({ selectedRange, onRangeChange }) => {
@@ -58,14 +134,22 @@ const DateRangePicker = ({ selectedRange, onRangeChange }) => {
   );
 };
 
-// Approvals Component
+// Main Attendance Component
 const PeriodicAttendanceComponent = () => {
+  const { data: session } = useSession();
+  const employerId = session?.user?.username || "default-employer";
 
-  const router = useRouter();
-  const{data: session}= useSession();
-  const employerId = session.user.username;
+  const [attendanceData, setAttendanceData] = useState([]);
+  const [filteredData, setFilteredData] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [filterOptions, setFilterOptions] = useState({
+    status: "",
+    dateRange: null,
+    sortBy: "date"
+  });
 
-  const [newAttendance, setNewAttendance] = useState({
+    const [newAttendance, setNewAttendance] = useState({
     employeeId: "001-0002",
     dateRange: undefined,
     hoursWorked: "",
@@ -73,50 +157,8 @@ const PeriodicAttendanceComponent = () => {
     leaves: 0,
     status: "Pending",
   });
-  const [isLoading, setIsLoading] = useState(false); // Add isLoading state
-  const [ModalOpen, setModalOpen] = useState(false);
-  const[employeeName, setEmployeeName] = useState([]);
-  const [attendanceData, setAttendanceData] = useState([]);
 
-  const closeModal = async () => {
-    setModalOpen(false);
-  };
-  const openModal = () => {
-    setModalOpen(true);
-  };
-
-  const handleFetchAttendance = async () => {
-    // const { from, to } = newAttendance.dateRange;
-
-    try {
-      setIsLoading(true);
-      const employee_name = await axios.get(`/api/employees/001-0002`);
-      const response = await axios.get(`/api/employees/periodicAttendance?employerId=${employerId}`, {
-        // params: {
-        //   employeeId: newAttendance.employeeId,
-        //   startDate: from,
-        //   endDate: to,
-        // },
-      });
-      console.log(employee_name.data.data);
-      setEmployeeName(employee_name.data.data);
-      console.log("Attendance data fetched successfully:", response.data);
-      setAttendanceData(response.data.data);
-    } catch (error) {
-      console.error("Error fetching attendance:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    // if (newAttendance.dateRange?.from && newAttendance.dateRange?.to) {
-      handleFetchAttendance();
-    // }
-  }, []);
-  
-
-  const handleAddAttendance = async () => {
+    const handleAddAttendance = async () => {
     if (!newAttendance.dateRange || !newAttendance.hoursWorked || !newAttendance.breakHours) {
       console.error("Please fill in all required fields.");
       return;
@@ -164,88 +206,281 @@ const PeriodicAttendanceComponent = () => {
   };
   
 
-//   const generateAttendanceData = (range, data) => {
-//     const dates = getDatesInRange(range.from, range.to);
-//     return dates.map((date) => ({
-//       ...data,
-//       date,
-//     }));
-//   };
-
-  const getDatesInRange = (start, end) => {
-    const dates = [];
-    let currentDate = new Date(start);
-    while (currentDate <= new Date(end)) {
-      dates.push(new Date(currentDate));
-      currentDate.setDate(currentDate.getDate() + 1);
-    }
-    return dates;
+   const closeModal = async () => {
+    setModalOpen(false);
   };
+  const openModal = () => {
+    setModalOpen(true);
+  };
+
+  // Filtered and Sorted Data
+  useEffect(() => {
+    let result = [...attendanceData];
+
+    // Filter by Status
+    if (filterOptions.status) {
+      result = result.filter(record => record.status === filterOptions.status);
+    }
+
+    // Filter by Date Range
+    if (filterOptions.dateRange?.from && filterOptions.dateRange?.to) {
+      result = result.filter(record => {
+        const recordDate = parseISO(record.dateRange.split(" to ")[0]);
+        return recordDate >= filterOptions.dateRange.from && 
+               recordDate <= filterOptions.dateRange.to;
+      });
+    }
+
+    // Sort 
+    result.sort((a, b) => {
+      switch(filterOptions.sortBy) {
+        case "hoursWorked":
+          return parseFloat(b.totalWorkingHours) - parseFloat(a.totalWorkingHours);
+        case "date":
+        default:
+          return new Date(b.dateRange.split(" to ")[0]) - new Date(a.dateRange.split(" to ")[0]);
+      }
+    });
+
+    setFilteredData(result);
+  }, [attendanceData, filterOptions]);
+
+  // Fetch Attendance Data
+  const fetchAttendanceData = async () => {
+    try {
+      setIsLoading(true);
+      const response = await axios.get(`/api/employees/periodicAttendance?employerId=${employerId}`);
+      setAttendanceData(response.data.data);
+    } catch (error) {
+      console.error("Error fetching attendance:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchAttendanceData();
+  }, [employerId]);
 
   return (
     <>
-     <Header heading="Periodic Attendance" />
       {isLoading ? (
-        <LoadingSpinner />
-      ) : (
-        <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-          <div className="transition-width duration-300 flex-1 p-6">
-            <div className="p-4">
-              <div className="flex justify-between items-center mb-4">
-                <h1 className="text-2xl">Periodic Attendances</h1>
-                <Button onClick={() => openModal()}>
-                  Add Attendance Entry
-                </Button>
+        <LoadingSpinner 
+  variant="pulse"
+  size="large"
+  text="Processing..."
+  fullscreen={true}
+/>        ) : (
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="min-h-screen bg-background text-foreground p-8"
+    >
+      <div className="max-w-7xl mx-auto">
+        {/* Header Section */}
+        <motion.div 
+          initial={{ y: -20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          className="mb-8 flex justify-between items-center"
+        >
+          <div>
+            <h1 className="text-4xl font-extrabold text-primary mb-2">
+              Periodic Attendance
+            </h1>
+            <p className="text-muted-foreground">
+              Comprehensive overview of employee attendance and working hours
+            </p>
+          </div>
+          <Button 
+            onClick={() => setModalOpen(true)} 
+            className="bg-primary text-primary-foreground hover:bg-primary/90"
+          >
+            Add Attendance
+          </Button>
+        </motion.div>
+
+        {/* Stats and Filters */}
+        <div className="grid grid-cols-4 gap-6 mb-8">
+          {/* Attendance Stats */}
+          <div className="col-span-2">
+            <AttendanceStatsCard data={attendanceData} />
+          </div>
+
+          {/* Filters */}
+          <motion.div 
+            className="col-span-2 bg-card rounded-xl shadow-md p-6"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+          >
+            <div className="flex items-center space-x-4">
+              {/* Status Filter */}
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-muted-foreground mb-2">
+                  Filter by Status
+                </label>
+                <Select 
+                  value={filterOptions.status}
+                  onValueChange={(value) => setFilterOptions(prev => ({
+                    ...prev, 
+                    status: value
+                  }))}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="All Statuses">
+                      {filterOptions.status || "All Statuses"}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="#">All Statuses</SelectItem>
+                    <SelectItem value="Pending">Pending</SelectItem>
+                    <SelectItem value="Approved">Approved</SelectItem>
+                    <SelectItem value="Rejected">Rejected</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
-              <Table className="shadow-md rounded-lg border-separate">
-                <TableHeader>
-                  <TableRow className="bg-foreground text-left">
-                    <TableHead className="px-4 py-2 font-semibold text-white">
-                      ID
-                    </TableHead>
-                    <TableHead className="px-4 py-2 font-semibold text-white">
-                      Name
-                    </TableHead>
-                    <TableHead className="px-4 py-2 font-semibold text-white">
-                      Date from - Date to
-                    </TableHead>
-                    <TableHead className="px-4 py-2 font-semibold text-white">
-                      Total Working hours
-                    </TableHead>
-                    <TableHead className="px-4 py-2 font-semibold text-white">
-                      Total break Hours
-                    </TableHead>
+              {/* Date Range Filter */}
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-muted-foreground mb-2">
+                  Date Range
+                </label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className="w-full justify-start">
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {filterOptions.dateRange?.from ? (
+                        filterOptions.dateRange.to ? (
+                          <>
+                            {format(filterOptions.dateRange.from, "LLL dd, y")} -{" "}
+                            {format(filterOptions.dateRange.to, "LLL dd, y")}
+                          </>
+                        ) : (
+                          format(filterOptions.dateRange.from, "LLL dd, y")
+                        )
+                      ) : (
+                        <span>Pick a date range</span>
+                      )}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar
+                      mode="range"
+                      selected={filterOptions.dateRange}
+                      onSelect={(range) => setFilterOptions(prev => ({
+                        ...prev, 
+                        dateRange: range
+                      }))}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
 
-                    <TableHead className="px-4 py-2 font-semibold text-white">
-                        Leaves
-                    </TableHead>
+              {/* Sort By */}
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-muted-foreground mb-2">
+                  Sort By
+                </label>
+                <Select 
+                  value={filterOptions.sortBy}
+                  onValueChange={(value) => setFilterOptions(prev => ({
+                    ...prev, 
+                    sortBy: value
+                  }))}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Sort by Date">
+                      {filterOptions.sortBy === "date" ? "Date" : "Hours Worked"}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="date">Date</SelectItem>
+                    <SelectItem value="hoursWorked">Hours Worked</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </motion.div>
+        </div>
 
-                    <TableHead className="px-4 py-2 font-semibold text-white">
-                        Status
-                    </TableHead>
-                   
-                  </TableRow>
-                </TableHeader>
-                <TableBody >
-                  {attendanceData!=[] && attendanceData.map((record) => (
-                    <TableRow key={record._id} className="bg-background shadow-lg rounded-lg border-separate">
-                      <TableCell  className="px-4">{record.employeeId}</TableCell>
-                      <TableCell  className="px-4">{employeeName}</TableCell>
-                      <TableCell  className="px-4">{record.dateRange}</TableCell>
-                      <TableCell  className="px-4">{record.totalWorkingHours}</TableCell>
-                      <TableCell  className="px-4">{record.totalBreakHours}</TableCell>
-                      <TableCell  className="px-4">{record.leaves}</TableCell>
-                      <TableCell  className="px-4">{record.status}</TableCell>
-
-
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-
-              {/* Add Attendance Modal */}
-              {ModalOpen && (
+        {/* Attendance Table */}
+        <motion.div 
+          className="bg-card rounded-xl shadow-md overflow-hidden"
+          initial={{ opacity: 0, scale: 0.98 }}
+          animate={{ opacity: 1, scale: 1 }}
+        >
+          <table className="w-full">
+            <thead className="bg-muted/50">
+              <tr>
+                {["Date Range", "Hours Worked", "Break Hours", "Leaves", "Status"].map((header) => (
+                  <th 
+                    key={header} 
+                    className="px-6 py-4 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider"
+                  >
+                    {header}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              <AnimatePresence>
+                {filteredData.map((record, index) => (
+                  <motion.tr
+                    key={record._id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ 
+                      delay: index * 0.05,
+                      duration: 0.3 
+                    }}
+                    className="border-b hover:bg-muted/30 transition-colors"
+                  >
+                    <td className="px-6 py-4 text-sm">
+                      <div className="font-medium text-foreground">
+                        {record.dateRange}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-sm">
+                      <div className="text-muted-foreground">
+                        {record.totalWorkingHours} hrs
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-sm">
+                      <div className="text-muted-foreground">
+                        {record.totalBreakHours} hrs
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-sm">
+                      <Badge variant="secondary">
+                        {record.leaves} days
+                      </Badge>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center space-x-2">
+                        <StatusIcon status={record.status} />
+                        <Badge 
+                          variant={
+                            record.status === "Approved" ? "success" :
+                            record.status === "Rejected" ? "destructive" :
+                            "secondary"
+                          }
+                        >
+                          {record.status}
+                        </Badge>
+                      </div>
+                    </td>
+                  </motion.tr>
+                ))}
+              </AnimatePresence>
+            </tbody>
+          </table>
+        </motion.div>
+      </div>
+    </motion.div>
+      )}
+      {/* Add Attendance Modal */}
+      {modalOpen && (
                 <Modal onClose={closeModal}>
                   <h2 className="text-xl font-semibold mb-4">Add Attendance</h2>
                   <div className="grid grid-cols-2 gap-4">
@@ -363,10 +598,6 @@ const PeriodicAttendanceComponent = () => {
                   </div>
                 </Modal>
               )}
-            </div>
-          </div>
-        </div>
-      )}
     </>
   );
 };

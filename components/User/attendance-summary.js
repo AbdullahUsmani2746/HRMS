@@ -1,6 +1,5 @@
 
 import React, { useState, useEffect } from "react";
-import { LogIn, Coffee, LogOut, Clock } from "lucide-react";
 import {
   Card,
   CardHeader,
@@ -10,6 +9,8 @@ import {
 import axios from "axios";
 import { Toaster, toast } from "sonner";
 import { useSession } from "next-auth/react";
+import { LogIn, Coffee, LogOut, Clock, Calendar, Bell, User } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import LoadingSpinner from "../spinner";
 
 const timeUtils = {
@@ -39,28 +40,48 @@ const timeUtils = {
   }
 };
 
-const AttendanceCard = ({
-  icon: Icon,
-  title,
-  description,
-  bgColor,
-  textColor,
-  onClick,
-  hoverColor,
-  disabled
-}) => (
-  <Card
-    className={`${bgColor} ${textColor} ${!disabled && hoverColor} cursor-pointer border-transparent w-[200px] h-[150px] ${disabled ? 'opacity-50' : ''}`}
-    onClick={!disabled ? onClick : undefined}
+const AttendanceCard = ({ icon: Icon, title, description, bgColor, onClick, disabled, index }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 50 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.5, delay: index * 0.1 }}
   >
-    <CardHeader className="flex flex-col items-start h-full justify-center">
-      <Icon size={24} />
-      <CardTitle className="text-lg mt-2">{title}</CardTitle>
-      <CardDescription className="text-white text-lg font-bold">
-        {description}
-      </CardDescription>
-    </CardHeader>
-  </Card>
+    <motion.div
+      whileHover={!disabled ? {
+        scale: 1.02,
+        transition: { duration: 0.2 }
+      } : {}}
+      whileTap={!disabled ? { scale: 0.98 } : {}}
+    >
+      <Card
+        className={`${bgColor} relative overflow-hidden cursor-pointer border-none shadow-lg h-[180px] ${
+          disabled ? "opacity-50" : "hover:shadow-xl"
+        }`}
+        onClick={!disabled ? onClick : undefined}
+      >
+        <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-black/20" />
+        <div className="absolute -right-4 -top-4 w-24 h-24 blur-3xl bg-white/20 rounded-full" />
+        
+        <CardHeader className="flex flex-col items-start h-full justify-center relative z-10 p-6">
+          <motion.div
+            initial={{ scale: 1 }}
+            animate={{ scale: [1, 1.1, 1] }}
+            transition={{ duration: 2, repeat: Infinity }}
+            className="bg-white/10 p-2 rounded-lg"
+          >
+            <Icon size={24} className="text-white" />
+          </motion.div>
+          
+          <CardTitle className="text-lg mt-4 text-white font-bold">
+            {title}
+          </CardTitle>
+          <CardDescription className="text-white/90 text-base font-medium mt-1">
+            {description}
+          </CardDescription>
+        </CardHeader>
+      </Card>
+    </motion.div>
+  </motion.div>
 );
 
 const AttendanceSummary = () => {
@@ -230,7 +251,12 @@ const AttendanceSummary = () => {
   };
 
   if (loading) {
-    return <LoadingSpinner/>
+    return <LoadingSpinner 
+    variant="pulse"
+    size="large"
+    text="Processing..."
+    fullscreen={true}
+  />    
   }
 
   const currentBreak = state.breaks[state.breaks.length - 1];
@@ -239,61 +265,116 @@ const AttendanceSummary = () => {
     ? `On Break (${timeUtils.formatDuration(totalBreakMinutes)})`
     : `Breaks: ${timeUtils.formatDuration(totalBreakMinutes)}`;
 
-  return (
-    <div className="flex flex-col justify-center items-center">
-      <Toaster richColors />
-      <div className="bg-foreground p-4 w-full md:flex md:justify-between md:items-center">
-        <h2 className="text-m text-white">
-          Date: {new Date(state.date).toLocaleDateString()}
-        </h2>
-        <p className="text-lg font-semibold text-white">
-          Welcome {state.employeeName}
-        </p>
-        <p className="text-m text-white">ID: {employeeId}</p>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 p-4 max-w-[850px]">
-        <AttendanceCard
-          icon={LogIn}
-          title={state.checkInTime ? timeUtils.formatTime(state.checkInTime) : "Click to check in"}
-          description="Check in"
-          bgColor={state.checkInTime ? "bg-gray-500" : "bg-green-700"}
-          hoverColor="hover:bg-green-900"
-          textColor="text-white"
-          onClick={() => handleAttendanceAction("check-in")}
-          disabled={!!state.checkInTime}
-        />
-        <AttendanceCard
-          icon={Coffee}
-          title={breakDisplay}
-          description="Break"
-          bgColor={state.isOnBreak ? "bg-red-500" : "bg-red-700"}
-          hoverColor="hover:bg-red-900"
-          textColor="text-white"
-          onClick={() => handleAttendanceAction("break")}
-          disabled={!state.checkInTime || !!state.checkOutTime}
-        />
-        <AttendanceCard
-          icon={LogOut}
-          title={state.checkOutTime ? timeUtils.formatTime(state.checkOutTime) : "Click to check out"}
-          description="Check out"
-          bgColor={state.checkInTime && !state.checkOutTime && !state.isOnBreak ? "bg-yellow-700" : "bg-gray-500"}
-          hoverColor="hover:bg-yellow-900"
-          textColor="text-white"
-          onClick={() => handleAttendanceAction("check-out")}
-          disabled={!state.checkInTime || !!state.checkOutTime || state.isOnBreak}
-        />
-        <AttendanceCard
-          icon={Clock}
-          title={state.totalWorkingHours || "Not checked out"}
-          description="Working hours"
-          bgColor="bg-blue-800"
-          hoverColor="hover:bg-blue-900"
-          textColor="text-white"
-          disabled={true}
-        />
-      </div>
-    </div>
-  );
-};
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="min-h-screen bg-gradient-to-br from-background via-background/95 to-background"
+      >
+        <Toaster richColors position="top-right" />
+        
+        <motion.div 
+          initial={{ y: -20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          className="bg-primary/5 backdrop-blur-lg border-b border-primary/10"
+        >
+          <div className="max-w-7xl mx-auto p-6">
+            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+              <motion.div
+                initial={{ x: -20, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ delay: 0.2 }}
+                className="flex items-center gap-4"
+              >
+                <div className="p-3 bg-primary/10 rounded-xl">
+                  <Calendar className="text-primary w-6 h-6" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-semibold text-left">
+                    {new Date(state.date).toLocaleDateString()}
+                  </h2>
+                  <p className="text-muted-foreground">Employee ID: {employeeId}</p>
+                </div>
+              </motion.div>
+  
+              <motion.div
+                initial={{ x: 20, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ delay: 0.3 }}
+                className="flex items-center gap-6"
+              >
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="p-2 rounded-full bg-primary/10 cursor-pointer"
+                >
+                  <Bell size={20} className="text-primary" />
+                </motion.div>
+  
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-primary/10 rounded-full">
+                    <User size={20} className="text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Welcome back,</p>
+                    <p className="font-semibold text-primary">{state.employeeName}</p>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+          </div>
+        </motion.div>
+  
+        <div className="max-w-7xl mx-auto p-6 pt-10">
+          <motion.div 
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.4 }}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+          >
+            <AttendanceCard
+              index={0}
+              icon={LogIn}
+              title={state.checkInTime ? timeUtils.formatTime(state.checkInTime) : "Start your day"}
+              description="Check in"
+              bgColor="bg-gradient-to-br from-emerald-600 to-emerald-800"
+              onClick={() => handleAttendanceAction("check-in")}
+              disabled={!!state.checkInTime}
+            />
+            
+            <AttendanceCard
+              index={1}
+              icon={Coffee}
+              title={breakDisplay}
+              description={state.isOnBreak ? "End Break" : "Take a Break"}
+              bgColor="bg-gradient-to-br from-amber-600 to-amber-800"
+              onClick={() => handleAttendanceAction("break")}
+              disabled={!state.checkInTime || !!state.checkOutTime}
+            />
+            
+            <AttendanceCard
+              index={2}
+              icon={LogOut}
+              title={state.checkOutTime ? timeUtils.formatTime(state.checkOutTime) : "End your day"}
+              description="Check out"
+              bgColor="bg-gradient-to-br from-rose-600 to-rose-800"
+              onClick={() => handleAttendanceAction("check-out")}
+              disabled={!state.checkInTime || !!state.checkOutTime || state.isOnBreak}
+            />
+            
+            <AttendanceCard
+              index={3}
+              icon={Clock}
+              title={state.totalWorkingHours || "Not checked out"}
+              description="Working hours"
+              bgColor="bg-gradient-to-br from-blue-600 to-blue-800"
+              disabled={true}
+            />
+          </motion.div>
+        </div>
+      </motion.div>
+    );
+  };
+  
 
 export default AttendanceSummary;
