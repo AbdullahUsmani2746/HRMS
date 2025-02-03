@@ -20,11 +20,11 @@ export async function POST(request) {
     const body = await request.json();
     
     // Validate if the request contains at least one location
-    if (!body.locations || body.locations.length === 0) {
+    if (!body.data || body.data.length === 0) {
       return NextResponse.json({ success: false, error: 'At least one location is required' }, { status: 400 });
     }
 
-    const locations = await WorkLocation.insertMany(body.locations);
+    const locations = await WorkLocation.insertMany(body.data);
     return NextResponse.json({ success: true, data: locations }, { status: 201 });
   } catch (error) {
     return NextResponse.json({ success: false, error: error.message }, { status: 400 });

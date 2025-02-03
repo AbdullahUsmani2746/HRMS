@@ -212,9 +212,54 @@
 
 "use client"
 import DataManagementPage from "@/components/DataManagement";
-import Component from '@/components/Employee/Department'
 import { useSession } from "next-auth/react";
 // AllowancesPage.js
+
+import { FileText } from 'lucide-react';
+import DynamicFormComponent from "@/components/DynamicFormComponent";
+import axios from "axios";
+
+const DynamicComponent = ({ existingData, onClose }) => {
+  const fields = [
+    {
+      name: 'department',
+      label: 'Department',
+      placeholder: 'Enter Department',
+      icon: FileText,
+      required: true
+    },
+    {
+      name: 'department_description',
+      label: 'Description',
+      placeholder: 'Enter description',
+      icon: FileText,
+      required: true
+    },
+   
+  ];
+
+  const handleSubmit = async (data, isEditing, editIndex) => {
+    try {
+      if (isEditing) {
+        await axios.put(`/api/employees/department/${data[editIndex]._id}`, data[editIndex]);
+      } else {
+        await axios.post('/api/employees/department', { data });
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  };
+  return (
+    <DynamicFormComponent
+      title="Department"
+      fields={fields}
+      existingData={existingData}
+      onSubmit={handleSubmit}
+      onClose={onClose}
+      allowMultiple={true}
+    />
+  );
+};
 const Page = () => {
 
   const {data:session} = useSession();
@@ -233,7 +278,7 @@ const Page = () => {
       columns={columns}
       employerId={employerId}
       searchKeys={['department', 'department_description']}
-      FormComponent={Component}
+      FormComponent={DynamicComponent}
     />
   );
 };
