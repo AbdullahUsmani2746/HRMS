@@ -2,9 +2,9 @@ import React from 'react';
 import { Loader2, LoaderCircle } from 'lucide-react';
 
 const LoadingSpinner = ({ 
-  variant = "default", // default, simple, pulse, dots
-  size = "default", // small, default, large
-  fullscreen = false,
+  variant = "pulse", // default, simple, pulse, dots
+  size = "large", // small, default, large
+  fullscreen = true,
   text = "Loading..."
 }) => {
   // Size mappings

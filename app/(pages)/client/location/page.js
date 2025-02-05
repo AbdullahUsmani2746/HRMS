@@ -1,7 +1,6 @@
 
 "use client"
 import DataManagementPage from "@/components/DataManagement";
-import Component from '@/components/Employee/WorkLocation'
 import { useSession } from "next-auth/react";
 import { FileText } from 'lucide-react';
 import DynamicFormComponent from "@/components/DynamicFormComponent";

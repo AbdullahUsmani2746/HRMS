@@ -146,6 +146,19 @@ const PayrollDashboard = () => {
 
     console.log("Payroll settings:", payrollSettings);
 
+
+    // Load tax settings from localStorage
+    const taxSettings = JSON.parse(localStorage.getItem('taxSettings')) || {
+      acc: { employee: 1, employer: 1 },
+      npf: { employee: 10, employer: 10 }
+  };
+  const payeConditions = JSON.parse(localStorage.getItem('payeConditions')) || [
+    { id: 1, min: 0, max: 576, rate: 0 },
+    { id: 2, min: 577, max: 962, rate: 20 },
+    { id: 3, min: 963, max: 1000000000000, rate: 27 }
+  ];
+
+
     const [
         allPeriodicAttendance,
         allDeductions,
@@ -169,8 +182,8 @@ const PayrollDashboard = () => {
 
     const start = new Date(startDate);
     const end = new Date(endDate);
-    const payPeriodDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
-    const payPeriodWeeks = payPeriodDays /7 ;
+    const payPeriodDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+    const payPeriodWeeks = payPeriodDays /5 ;
     const expectedBaseHours = payrollSettings.baseHoursPerWeek * payPeriodWeeks;
 
     console.log("Period calculations:", {
@@ -180,6 +193,28 @@ const PayrollDashboard = () => {
         payPeriodWeeks,
         expectedBaseHours
     });
+
+    
+    const calculatePAYE = (annualSalary) => {
+      let tax = 0;
+      let remainingSalary = annualSalary;
+
+      for (const bracket of payeConditions) {
+          const bracketAmount = Math.min(
+              Math.max(0, remainingSalary - bracket.min),
+              bracket.max - bracket.min
+          );
+          
+          if (bracketAmount > 0) {
+              tax += (bracketAmount * (bracket.rate / 100));
+              remainingSalary -= bracketAmount;
+          }
+          
+          if (remainingSalary <= 0) break;
+      }
+      
+      return tax;
+  };
 
     const convertToTotalHours = (timeString) => {
         console.log("Converting time string:", timeString);
@@ -268,7 +303,7 @@ const PayrollDashboard = () => {
                       payrollSettings.maxRegularHoursPerDay
                   );
                   const dailyOvertimeHours =
-                      Math.max(0, (convertToTotalHours(att.totalWorkingHours) || 0) - payrollSettings.maxRegularHoursPerDay) +
+                      Math.max(0, (convertToTotalHours(att.totalWorkingHours) || 0) - payrollSettings.baseHoursPerWeek) +
                       (att.overtime_hours || 0);
   
                   totalWorkHours += dailyRegularHours;
@@ -320,8 +355,25 @@ const PayrollDashboard = () => {
               payrollDeductionsCount: employeePayrollDeductions.length,
               payrollAllowancesCount: employeePayrollAllowances.length,
           });
+
+                      // Calculate monthly equivalent for PAYE
+                      const monthlyEquivalent = baseSalary * 12;
+                      const payePeriodFactor = payPeriodDays / 30; // Adjust PAYE for pay period
+          
+                      // Calculate PAYE
+                      const annualPAYE = calculatePAYE(monthlyEquivalent);
+                      const periodPAYE = (annualPAYE / 12) * payePeriodFactor;
+          
+                      // Calculate ACC
+                      const accEmployee = baseSalary * (taxSettings.acc.employee / 100);
+                      const accEmployer = baseSalary * (taxSettings.acc.employer / 100);
+          
+                      // Calculate NPF
+                      const npfEmployee = baseSalary * (taxSettings.npf.employee / 100);
+                      const npfEmployer = baseSalary * (taxSettings.npf.employer / 100);
   
-          const totalDeductions = calculateAdjustments([...employeeDeductions, ...employeePayrollDeductions], baseSalary);
+          const statutoryDeductions = periodPAYE + accEmployee + npfEmployee;
+          const totalDeductions = statutoryDeductions + calculateAdjustments([...employeeDeductions, ...employeePayrollDeductions], baseSalary);
           const totalAllowances = calculateAdjustments([...employeeAllowances, ...employeePayrollAllowances], baseSalary);
   
           const overtimeRate = hourlyRate * payrollSettings.overtimeMultiplier;
@@ -355,11 +407,26 @@ const PayrollDashboard = () => {
               payrollBreakdown: {
                   baseSalary,
                   allowances: totalAllowances,
-                  deductions: totalDeductions,
+                  deductions: {
+                    paye: periodPAYE,
+                    acc: accEmployee,
+                    npf: npfEmployee,
+                    other: totalDeductions - statutoryDeductions,
+                    total: totalDeductions
+                  },
+                  employerContributions: {
+                    acc: accEmployer,
+                    npf: npfEmployer,
+                    total: accEmployer + npfEmployer
+                },
                   overtimePay,
                   netPayable,
               },
-              settings: payrollSettings,
+              settings:{
+                ...payrollSettings,
+                tax: taxSettings,
+                payeBrackets: payeConditions
+              }
           };
       })
   );
@@ -541,7 +608,7 @@ const PayrollDashboard = () => {
                           <TableHead>Overtime</TableHead>
                           <TableHead>Base Salary</TableHead>
                           <TableHead>Allowances</TableHead>
-                          <TableHead>Deductions</TableHead>
+                          {/* <TableHead>Deductions</TableHead> */}
                           <TableHead>Net Payable</TableHead>
                           
                         </TableRow>
@@ -557,7 +624,7 @@ const PayrollDashboard = () => {
                               <TableCell>{+(payroll.workDetails.overtimeHours).toFixed(2)}</TableCell>
                               <TableCell>${+(payroll.payrollBreakdown.baseSalary).toFixed(2)}</TableCell>
                               <TableCell>${+(payroll.payrollBreakdown.allowances).toFixed(2)}</TableCell>
-                              <TableCell>${+(payroll.payrollBreakdown.deductions).toFixed(2)}</TableCell>
+                              {/* <TableCell>${+(payroll.payrollBreakdown.deductions).toFixed(2)}</TableCell> */}
                               <TableCell className="font-bold">
                                 ${+(payroll.payrollBreakdown.netPayable).toFixed(2)}
                               </TableCell>

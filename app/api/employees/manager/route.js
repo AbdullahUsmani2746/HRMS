@@ -9,7 +9,10 @@ export async function GET(request) {
   const searchParams = request.nextUrl.searchParams
   const employerId = searchParams.get('employerId') 
   try {
-    const data = await Manager.find({clientId:employerId}).populate('departmentId');
+    const data = await Manager.find({clientId:employerId})
+    .populate('departmentId')
+    .populate('employeeId');  // Populate employeeId
+
     return NextResponse.json({ success: true, data: data });
   } catch (error) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });

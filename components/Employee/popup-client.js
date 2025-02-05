@@ -1039,7 +1039,7 @@ const PopupForm = ({ onClose, setEmployees, employeeToEdit }) => {
               <div>
                 <h3 className="text-MD font-bold">Allownces </h3>
 
-                {allownce.map((single) => (
+                {allownce.map((single) => ( 
                   <div key={single._id}>
                     <label className="flex items-center space-x-3">
                       <Checkbox

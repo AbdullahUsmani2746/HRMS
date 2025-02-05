@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSession } from "next-auth/react";
 import {
@@ -30,6 +31,7 @@ import {
   Target,
   Send
 } from "lucide-react";
+import SettingsModal from "./settingModal";
 
 import { NavMain } from "@/components/nav-main";
 import { NavUser } from "@/components/nav-user";
@@ -227,6 +229,14 @@ const data = {
        
       ],
     },
+
+    {
+      title: "Settings",
+      url: "/client/setting",  // Set to "#" since the modal will open without navigating
+      icon: Settings2,
+      isActive: true,
+    }
+    
   ],
   navUserEmployee: [
     {
@@ -264,6 +274,7 @@ const data = {
 };
 
 export function AppSidebar({ userType = "client", ...props }) {
+
 
     const { data: session } = useSession();
     const isManager = session?.user?.isManager;
@@ -328,6 +339,8 @@ export function AppSidebar({ userType = "client", ...props }) {
         >
         <NavMain items={navData} />
         </motion.div>
+
+     
       </SidebarContent>
       <SidebarFooter>
         <motion.div
@@ -338,6 +351,8 @@ export function AppSidebar({ userType = "client", ...props }) {
           <NavUser user={data.user} />
         </motion.div>
       </SidebarFooter>
+
+      
     </Sidebar>
   );
 }

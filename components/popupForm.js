@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 import { Country, State, City } from "country-state-city";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Dialog,
   DialogContent,
@@ -17,7 +18,30 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Save, X } from 'lucide-react';
 import LoadingSpinner from "./spinner";
+
+const ANIMATION_VARIANTS = {
+  container: {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.3, when: "beforeChildren", staggerChildren: 0.1 }
+    },
+    exit: { opacity: 0, y: -20, transition: { duration: 0.2 } }
+  },
+  item: {
+    hidden: { opacity: 0, x: -20 },
+    visible: {
+      opacity: 1,
+      x: 0,
+      transition: { type: "spring", stiffness: 300, damping: 24 }
+    },
+    exit: { opacity: 0, x: 20, transition: { duration: 0.2 } }
+  }
+};
 
 const PopupForm = ({ onClose, setEmployers, employerToEdit }) => {
   const [newEmployer, setNewEmployer] = useState({
@@ -72,17 +96,12 @@ const PopupForm = ({ onClose, setEmployers, employerToEdit }) => {
     fetchSubscriptionPlans();
   }, []);
 
-  // And replace the useEffect for employerToEdit with this:
   useEffect(() => {
     if (employerToEdit) {
-      // Use the country code directly
       if (employerToEdit.country) {
         const statesList = State.getStatesOfCountry(employerToEdit.country) || [];
         setStates(statesList);
-  
-        // Fetch cities based on the employer's state
-        const citiesInState =
-          City.getCitiesOfState(employerToEdit.country, employerToEdit.state) || [];
+        const citiesInState = City.getCitiesOfState(employerToEdit.country, employerToEdit.state) || [];
         setCities(citiesInState);
       }
       setNewEmployer(employerToEdit);
@@ -90,34 +109,26 @@ const PopupForm = ({ onClose, setEmployers, employerToEdit }) => {
       generateEmployerId();
     }
   }, [employerToEdit]);
-  
 
   const handleCountryChange = (value) => {
     setNewEmployer((prev) => ({
       ...prev,
       country: value,
-      state: "", // Reset state when country changes
-      city: "", // Reset city when country changes
+      state: "",
+      city: "",
     }));
-
     const statesList = State.getStatesOfCountry(value) || [];
     setStates(statesList);
-
     setCities([]);
-
-
-   
   };
 
   const handleStateChange = (value) => {
     setNewEmployer((prev) => ({
       ...prev,
       state: value,
-      city: "", // Reset city when state changes
+      city: "",
     }));
-
-    const citiesInState =
-      City.getCitiesOfState(newEmployer.country, value) || [];
+    const citiesInState = City.getCitiesOfState(newEmployer.country, value) || [];
     setCities(citiesInState);
   };
 
@@ -136,15 +147,12 @@ const PopupForm = ({ onClose, setEmployers, employerToEdit }) => {
         .filter((emp) => emp.employerId?.startsWith("CLIENT-"))
         .map((emp) => parseInt(emp.employerId.split("-")[1]) || 0)
         .reduce((max, current) => Math.max(max, current), 0);
-
       const nextId = maxId + 1;
       setNewEmployer((prev) => ({
         ...prev,
         employerId: `CLIENT-${String(nextId).padStart(3, "0")}`,
       }));
     } catch (error) {
-      console.error("Error generating employer ID:", error);
-      // Set a fallback ID in case of error
       setNewEmployer((prev) => ({
         ...prev,
         employerId: `CLIENT-${Date.now()}`,
@@ -180,10 +188,7 @@ const PopupForm = ({ onClose, setEmployers, employerToEdit }) => {
       validationErrors.cpSurname = "Surname is required.";
     if (!newEmployer.cpEmail?.trim() || !emailRegex.test(newEmployer.cpEmail))
       validationErrors.cpEmail = "Valid email is required.";
-    if (
-      !newEmployer.cpPhoneNumber?.trim() ||
-      !phoneRegex.test(newEmployer.cpPhoneNumber)
-    )
+    if (!newEmployer.cpPhoneNumber?.trim() || !phoneRegex.test(newEmployer.cpPhoneNumber))
       validationErrors.cpPhoneNumber = "Valid phone number is required.";
     if (!newEmployer.subscriptionPlan?.trim())
       validationErrors.subscriptionPlan = "Subscription plan is required.";
@@ -206,15 +211,8 @@ const PopupForm = ({ onClose, setEmployers, employerToEdit }) => {
 
     try {
       if (employerToEdit?._id) {
-        const response = await axios.put(
-          `/api/employers/${employerToEdit._id}`,
-          newEmployer
-        );
-        setEmployers((prev) =>
-          prev.map((emp) =>
-            emp._id === employerToEdit._id ? response.data.data : emp
-          )
-        );
+        const response = await axios.put(`/api/employers/${employerToEdit._id}`, newEmployer);
+        setEmployers((prev) => prev.map((emp) => emp._id === employerToEdit._id ? response.data.data : emp));
       } else {
         const response = await axios.post("/api/employers", newEmployer);
         setEmployers((prev) => [...prev, response.data.data]);
@@ -222,7 +220,6 @@ const PopupForm = ({ onClose, setEmployers, employerToEdit }) => {
       onClose();
     } catch (error) {
       console.error("Error saving employer:", error);
-      // You might want to show an error message to the user here
     } finally {
       setIsSubmitting(false);
     }
@@ -230,284 +227,199 @@ const PopupForm = ({ onClose, setEmployers, employerToEdit }) => {
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>
-            {employerToEdit ? "Edit Client" : "Add Client"}
-          </DialogTitle>
-          <DialogClose onClick={onClose} />
-        </DialogHeader>
-        {isLoading ? (
-          <LoadingSpinner />
-        ) : (
-          <form
-            onSubmit={handleSubmit}
-            className="space-y-6 p-6 max-h-[65vh] overflow-y-auto"
-          >
-            <h3 className="text-lg font-semibold">Business Information</h3>
-            <div className="space-y-4">
-              <Input
-                type="text"
-                name="businessName"
-                value={newEmployer.businessName}
-                onChange={handleChange}
-                placeholder="Business Name"
-                required
-              />
-              {errors.businessName && (
-                <p className="text-red-500">{errors.businessName}</p>
+      <DialogContent className="max-w-2xl p-0">
+        <motion.div variants={ANIMATION_VARIANTS.container} initial="hidden" animate="visible" exit="exit" className="w-full bg-foreground ">
+          <Card className="bg-foreground border-foreground/10 shadow-xl">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-2xl font-bold text-background flex justify-between items-center">
+                {employerToEdit ? "Edit Client" : "Add Client"}
+                <Button variant="ghost" size="icon" onClick={onClose} className="text-background/60 hover:text-background">
+                  <X className="w-5 h-5" />
+                </Button>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {isLoading ? (
+                <LoadingSpinner />
+              ) : (
+                <form onSubmit={handleSubmit} className="space-y-6 px-1 h-[75vh] overflow-y-auto">
+                  <AnimatePresence mode="wait">
+                    <motion.div variants={ANIMATION_VARIANTS.item} className="space-y-6">
+                      <div className="space-y-4 p-4 rounded-lg bg-background/5 border border-background/10">
+                        <h3 className="text-lg font-semibold text-background">Business Information</h3>
+                        <div className="space-y-4">
+                          <Input type="text" name="businessName" value={newEmployer.businessName} onChange={handleChange} placeholder="Business Name" className="bg-background/5 border-background/10 text-background placeholder:text-background/40" required />
+                          {errors.businessName && <p className="text-red-500 text-sm">{errors.businessName}</p>}
+
+                          <Input type="email" name="email" value={newEmployer.email} onChange={handleChange} placeholder="Email" className="bg-background/5 border-background/10 text-background placeholder:text-background/40" required />
+                          {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
+
+                          <Input type="text" name="address" value={newEmployer.address} onChange={handleChange} placeholder="Address" className="bg-background/5 border-background/10 text-background placeholder:text-background/40" required />
+                          {errors.address && <p className="text-red-500 text-sm">{errors.address}</p>}
+
+                          <div className="grid grid-cols-3 gap-4">
+                            <Select value={newEmployer.country} onValueChange={handleCountryChange}>
+                              <SelectTrigger className="bg-background/5 border-background/10 text-background">
+                                <SelectValue placeholder="Select Country" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {countries.map((country) => (
+                                  <SelectItem key={country.isoCode} value={country.isoCode}>{country.name}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+
+                            {states.length > 0 && (
+                              <Select value={newEmployer.state} onValueChange={handleStateChange}>
+                                <SelectTrigger className="bg-background/5 border-background/10 text-background">
+                                  <SelectValue placeholder="Select State" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {states.map((state) => (
+                                    <SelectItem key={state.isoCode} value={state.isoCode}>{state.name}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            )}
+
+                            <Select value={newEmployer.city} onValueChange={handleCityChange}>
+                              <SelectTrigger className="bg-background/5 border-background/10 text-background">
+                                <SelectValue placeholder="Select City" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {uniqueCities.map((city) => (
+                                  <SelectItem key={city.name} value={city.name}>{city.name}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="space-y-4 p-4 rounded-lg bg-background/5 border border-background/10">
+                        <h3 className="text-lg font-semibold text-background">Contact Person Information</h3>
+                        <div className="grid grid-cols-3 gap-4">
+                          <Input type="text" name="cpFirstName" value={newEmployer.cpFirstName} onChange={handleChange} placeholder="First Name" className="bg-background/5 border-background/10 text-background placeholder:text-background/40" required />
+                          <Input type="text" name="cpMiddleName" value={newEmployer.cpMiddleName} onChange={handleChange} placeholder="Middle Name" className="bg-background/5 border-background/10 text-background placeholder:text-background/40" />
+                          <Input type="text" name="cpSurname" value={newEmployer.cpSurname} onChange={handleChange} placeholder="Surname" className="bg-background/5 border-background/10 text-background placeholder:text-background/40" required />
+                        </div>
+                        {(errors.cpFirstName || errors.cpSurname) && (
+                          <div className="space-y-1">
+                            {errors.cpFirstName && <p className="text-red-500 text-sm">{errors.cpFirstName}</p>}
+                            {errors.cpSurname && <p className="text-red-500 text-sm">{errors.cpSurname}</p>}
+                          </div>
+                        )}
+
+                        <Input type="email" name="cpEmail" value={newEmployer.cpEmail} onChange={handleChange} placeholder="Email" className="bg-background/5 border-background/10 text-background placeholder:text-background/40" required />
+                        {errors.cpEmail && <p className="text-red-500 text-sm">{errors.cpEmail}</p>}
+
+                        <Input type="text" name="cpPhoneNumber" value={newEmployer.cpPhoneNumber} onChange={handleChange} placeholder="Phone Number" className="bg-background/5 border-background/10 text-background placeholder:text-background/40" required />
+                        {errors.cpPhoneNumber && <p className="text-red-500 text-sm">{errors.cpPhoneNumber}</p>}
+
+                        <Input type="text" name="cpAddress" value={newEmployer.cpAddress} onChange={handleChange} placeholder="Address" className="bg-background/5 border-background/10 text-background placeholder:text-background/40" />
+                      </div>
+
+                      <div className="space-y-4 p-4 rounded-lg bg-background/5 border border-background/10">
+                      <h3 className="text-lg font-semibold text-background">Employer Details</h3>
+                        <div className="space-y-4">
+                          <Input
+                            type="text"
+                            name="employerId"
+                            value={newEmployer.employerId}
+                            readOnly
+                            className="bg-background/5 border-background/10 text-background placeholder:text-background/40"
+                            required
+                          />
+                          {errors.employerId && <p className="text-red-500 text-sm">{errors.employerId}</p>}
+
+                          <Select
+                            value={newEmployer.subscriptionPlan}
+                            onValueChange={(value) => setNewEmployer((prev) => ({
+                              ...prev,
+                              subscriptionPlan: value,
+                            }))}
+                          >
+                            <SelectTrigger className="bg-background/5 border-background/10 text-background">
+                              <SelectValue placeholder="Select Subscription Plan" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {subscriptionPlans.map((plan) => (
+                                <SelectItem key={plan._id} value={plan._id}>
+                                  {plan.planName}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          {errors.subscriptionPlan && <p className="text-red-500 text-sm">{errors.subscriptionPlan}</p>}
+                        </div>
+
+                        <div className="grid grid-cols-3 gap-4 mt-4">
+                          <Select
+                            value={newEmployer.status}
+                            onValueChange={(value) => setNewEmployer((prev) => ({ ...prev, status: value }))}
+                          >
+                            <SelectTrigger className="bg-background/5 border-background/10 text-background">
+                              <SelectValue placeholder="Status" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="ACTIVE">Active</SelectItem>
+                              <SelectItem value="INACTIVE">Inactive</SelectItem>
+                            </SelectContent>
+                          </Select>
+
+                          <Select
+                            value={newEmployer.paymentMethod}
+                            onValueChange={(value) => setNewEmployer((prev) => ({ ...prev, paymentMethod: value }))}
+                          >
+                            <SelectTrigger className="bg-background/5 border-background/10 text-background">
+                              <SelectValue placeholder="Payment Method" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="DIRECT DEPOSIT">Direct Deposit</SelectItem>
+                              <SelectItem value="CHEQUE">Cheque</SelectItem>
+                            </SelectContent>
+                          </Select>
+
+                          <Select
+                            value={newEmployer.terms}
+                            onValueChange={(value) => setNewEmployer((prev) => ({ ...prev, terms: value }))}
+                          >
+                            <SelectTrigger className="bg-background/5 border-background/10 text-background">
+                              <SelectValue placeholder="Terms" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="MONTHLY">Monthly</SelectItem>
+                              <SelectItem value="YEARLY">Yearly</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+
+                      <div className="flex justify-end gap-4 pt-4 border-t border-background/10">
+                        <Button
+                          type="button"
+                          onClick={onClose}
+                          variant="outline"
+                          className="border-background/10 text-background hover:bg-background/5"
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          type="submit"
+                          disabled={isSubmitting}
+                          className="bg-background text-foreground hover:bg-background/90"
+                        >
+                          <Save className="w-4 h-4 mr-2" />
+                          {isSubmitting ? "Saving..." : employerToEdit ? "Update Client" : "Add Client"}
+                        </Button>
+                      </div>
+                    </motion.div>
+                  </AnimatePresence>
+                </form>
               )}
-
-              <Input
-                type="email"
-                name="email"
-                value={newEmployer.email}
-                onChange={handleChange}
-                placeholder="Email"
-                required
-              />
-              {errors.email && <p className="text-red-500">{errors.email}</p>}
-
-              <Input
-                type="text"
-                name="address"
-                value={newEmployer.address}
-                onChange={handleChange}
-                placeholder="Address"
-                required
-              />
-              {errors.address && (
-                <p className="text-red-500">{errors.address}</p>
-              )}
-
-              <div className="flex gap-4">
-                <Select 
-                value={newEmployer.country}
-                onValueChange={handleCountryChange}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select Country" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {countries.map((country) => (
-                      <SelectItem key={country.isoCode} value={country.isoCode}>
-                        {country.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {errors.country && (
-                  <p className="text-red-500">{errors.country}</p>
-                )}
-
-                {states.length > 0 && (
-                  <Select 
-                  value={newEmployer.state}
-                  onValueChange={handleStateChange}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select State" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {states.map((state) => (
-                        <SelectItem key={state.isoCode} value={state.isoCode}>
-                          {state.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-                <Select 
-                value={newEmployer.city}
-                onValueChange={handleCityChange}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select City" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {uniqueCities.map((city) => (
-                      <SelectItem key={city.name} value={city.name}>
-                        {city.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {errors.city && <p className="text-red-500">{errors.city}</p>}
-              </div>
-            </div>
-
-            <h3 className="text-lg font-semibold">
-              Contact Person Information
-            </h3>
-            <div className="grid grid-cols-3 gap-4">
-              <Input
-                type="text"
-                name="cpFirstName"
-                value={newEmployer.cpFirstName}
-                onChange={handleChange}
-                placeholder="First Name"
-                required
-              />
-              {errors.cpFirstName && (
-                <p className="text-red-500 col-span-3">{errors.cpFirstName}</p>
-              )}
-
-              <Input
-                type="text"
-                name="cpMiddleName"
-                value={newEmployer.cpMiddleName}
-                onChange={handleChange}
-                placeholder="Middle Name"
-              />
-              <Input
-                type="text"
-                name="cpSurname"
-                value={newEmployer.cpSurname}
-                onChange={handleChange}
-                placeholder="Surname"
-                required
-              />
-              {errors.cpSurname && (
-                <p className="text-red-500 col-span-3">{errors.cpSurname}</p>
-              )}
-            </div>
-
-            <Input
-              type="email"
-              name="cpEmail"
-              value={newEmployer.cpEmail}
-              onChange={handleChange}
-              placeholder="Email"
-              required
-            />
-            {errors.cpEmail && <p className="text-red-500">{errors.cpEmail}</p>}
-
-            <Input
-              type="text"
-              name="cpPhoneNumber"
-              value={newEmployer.cpPhoneNumber}
-              onChange={handleChange}
-              placeholder="Phone Number"
-              required
-            />
-            {errors.cpPhoneNumber && (
-              <p className="text-red-500">{errors.cpPhoneNumber}</p>
-            )}
-
-            <Input
-              type="text"
-              name="cpAddress"
-              value={newEmployer.cpAddress}
-              onChange={handleChange}
-              placeholder="Address"
-            />
-            {errors.cpAddress && (
-              <p className="text-red-500">{errors.cpAddress}</p>
-            )}
-
-            <h3 className="text-lg font-semibold">Employer Details</h3>
-            <div className="space-y-4">
-              <Input
-                type="text"
-                name="employerId"
-                value={newEmployer.employerId}
-                readOnly
-                placeholder={newEmployer.employerId}
-                required
-              />
-              {errors.employerId && (
-                <p className="text-red-500">{errors.employerId}</p>
-              )}
-
-              <Select
-                value={newEmployer.subscriptionPlan}
-                onValueChange={(value) =>
-                  setNewEmployer((prev) => ({
-                    ...prev,
-                    subscriptionPlan: value,
-                  }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select Subscription Plan" />
-                </SelectTrigger>
-                <SelectContent>
-                  {subscriptionPlans.map((plan) => (
-                    <SelectItem key={plan._id} value={plan._id}>
-                      {plan.planName}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.subscriptionPlan && (
-                <p className="text-red-500">{errors.subscriptionPlan}</p>
-              )}
-            </div>
-
-            {/* Additional fields for Status, Payment Method, and Terms */}
-            <div className="flex gap-4">
-              <Select
-                value={newEmployer.status}
-                onValueChange={(value) =>
-                  setNewEmployer((prev) => ({ ...prev, status: value }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ACTIVE">Active</SelectItem>
-                  <SelectItem value="INACTIVE">Inactive</SelectItem>
-                </SelectContent>
-              </Select>
-              {errors.status && <p className="text-red-500">{errors.status}</p>}
-
-              <Select
-                value={newEmployer.paymentMethod}
-                onValueChange={(value) =>
-                  setNewEmployer((prev) => ({ ...prev, paymentMethod: value }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Payment Method" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="DIRECT DEPOSIT">Direct Deposit</SelectItem>
-                  <SelectItem value="CHEQUE">Cheque</SelectItem>
-                </SelectContent>
-              </Select>
-              {errors.paymentMethod && (
-                <p className="text-red-500">{errors.paymentMethod}</p>
-              )}
-
-              <Select
-                value={newEmployer.terms}
-                onValueChange={(value) =>
-                  setNewEmployer((prev) => ({ ...prev, terms: value }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Terms" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="MONTHLY">Monthly</SelectItem>
-                  <SelectItem value="YEARLY">Yearly</SelectItem>
-                </SelectContent>
-              </Select>
-              {errors.terms && <p className="text-red-500">{errors.terms}</p>}
-            </div>
-
-            <div className="mt-6 flex justify-end gap-4">
-              <Button type="button" onClick={onClose} variant="secondary">
-                Cancel
-              </Button>
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting
-                  ? "Saving..."
-                  : employerToEdit
-                  ? "Update Client"
-                  : "Add Client"}
-              </Button>
-            </div>
-          </form>
-        )}
+            </CardContent>
+          </Card>
+        </motion.div>
       </DialogContent>
     </Dialog>
   );

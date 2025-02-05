@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Trash2, Save, PenSquare, Plus } from 'lucide-react';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 
 const ANIMATION_VARIANTS = {
@@ -37,6 +39,8 @@ const DynamicFormComponent = ({
   onClose,
   allowMultiple = true,
   endpoint = '',
+  onFieldChange,
+
 }) => {
   const { data: session } = useSession();
   const employerId = session?.user?.username || "CLIENT-001";
@@ -60,6 +64,8 @@ const DynamicFormComponent = ({
       employerId
     };
     setData(updatedData);
+    console.log(updatedData)
+
   };
 
   const addData = () => {
@@ -84,45 +90,72 @@ const DynamicFormComponent = ({
     }
   };
 
+  const handleFieldChange = (index, field, value) => {
+    if (onFieldChange) {
+      onFieldChange(field, value, data[index], (newData) => {
+        const updatedData = [...data];
+        updatedData[index] = newData;
+        setData(updatedData);
+        console.log(updatedData)
+      });
+    } else {
+      handleDataChange(index, field, value);
+    }
+  };
+
   const renderField = (field, value, index) => {
     const commonProps = {
       value: value || '',
-      onChange: (e) => handleDataChange(index, field.name, e.target.value),
+      onChange: (e) => handleFieldChange(index, field.name, e.target.value),
       placeholder: field.placeholder,
       className: "bg-background/5 border-background/10 text-background placeholder:text-background/40",
       required: field.required !== false,
+      disabled: field.disabled
     };
 
     if (field.type === 'select') {
-        return (
-          <div className="relative">
-           <Select
-          value={value?._id || value || ''}
-          onValueChange={(selectedValue) => {
-            const selectedOption = field.options.find(opt => opt.value === selectedValue);
-            handleDataChange(index, field.name, {
-              _id: selectedOption.value,
-              [field.displayKey]: selectedOption.label  // Store both id and display value
-            }); 
-          }}
-        >
-              <SelectTrigger>
-                <SelectValue 
-              placeholder={value?.[field.displayKey] || field.placeholder} 
-              />
-              </SelectTrigger>
-              <SelectContent>
-                {field.options.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        );
-      }
+      const currentValue = value?._id || '';
+      const currentLabel = value?.[field.displayKey] || field.placeholder;
 
+      console.log("Value: ", currentValue)
+      console.log("label: ", currentLabel)
+
+
+      return (
+        <div className="relative">
+          {field.icon && (
+            <field.icon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-background/40 w-4 h-4" />
+          )}
+          <Select
+            value={currentValue}
+            onValueChange={(selectedValue) => {
+              const selectedOption = field.options.find(opt => opt.value === selectedValue);
+              console.log(selectedOption)
+              if (selectedOption) {
+              console.log(selectedOption)
+
+                handleFieldChange(index, field.name, {
+                  _id: selectedOption.value,
+                  [field.displayKey]: selectedOption.label
+                });
+              }
+            }}
+            disabled={field.disabled}
+          >
+            <SelectTrigger className={field.icon ? 'pl-10' : ''}>
+              <SelectValue placeholder={currentLabel} />
+            </SelectTrigger>
+            <SelectContent>
+              {field.options.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      );
+    }
     if (field.type === 'textarea') {
       return (
         <div className="relative">

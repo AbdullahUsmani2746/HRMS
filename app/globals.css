@@ -23,8 +23,8 @@ body {
 
 /* Firefox */
 * {
-  scrollbar-width: thin;
-  scrollbar-color: #181C14 #dbd9db;
+  scrollbar-width:thin;
+  scrollbar-color: #181C14 #a19fa1;
 }
 @layer base {
   :root {
