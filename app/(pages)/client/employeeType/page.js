@@ -1,11 +1,5 @@
-
-
-
-
-
 "use client"
 import DataManagementPage from "@/components/DataManagement";
-import Component from '@/components/Employee/Employee_type'
 import { useSession } from "next-auth/react";
 // AllowancesPage.js
 
