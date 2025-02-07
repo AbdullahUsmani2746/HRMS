@@ -4,17 +4,14 @@ const payslipSchema = new mongoose.Schema({
   employeeId: {
     type: String,
     required: true,
-    index: true
   },
   employerId: {
     type: String,
     required: true,
-    index: true
   },
   payrollId: {
     type: Number,
     required: true,
-    index: true
   },
   employeeName: {
     type: String,
@@ -178,15 +175,15 @@ const payslipSchema = new mongoose.Schema({
   createdAt: {
     type: Date,
     default: Date.now
-    
+
   }
 }, {
   timestamps: true
 });
 
 // Indexes for common queries
-payslipSchema.index({ employeeId: 1, payrollId: 1 }, { unique: true });
-payslipSchema.index({ employerId: 1, 'payPeriodDetails.startDate': 1 });
+// payslipSchema.index({ employeeId: 1, payrollId: 1 }, { unique: true });
+// payslipSchema.index({ employerId: 1, 'payPeriodDetails.startDate': 1 });
 
 // Calculate total cost to employer
 payslipSchema.virtual('totalCost').get(function() {

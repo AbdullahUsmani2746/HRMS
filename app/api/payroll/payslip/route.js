@@ -47,24 +47,27 @@ export async function GET(req) {
     
     const { searchParams } = new URL(req.url);
     // const startDate2 = searchParams.get('startDate');
-    // const startDate = "2025-01-27T19:00:00.000Z";
+    const startDate = searchParams.get('startDate');
     
     // const endDate2 = searchParams.get('endDate');
-    // const endDate = "2025-01-29T19:00:00.000Z";
+    const endDate = searchParams.get('endDate');
 
     // const employerId = searchParams.get('employerId');
     
-    // const query = {
-    //   ...(startDate && endDate && {
-    //     'payPeriodDetails.startDate': { 
-    //       $gte: new Date(startDate),
-    //       $lte: new Date(endDate)
-    //     }
-    //   }),
-    //   ...(employerId && { employerId })
-    // };
+    const query = {
+      ...(startDate && endDate && {
+        "payPeriodDetails.startDate": { 
+          $gte: startDate, 
+          $lte: endDate
+        }
+      }),
+      // ...(employerId && { employerId })  // Uncomment if you want to filter by employerId
+    };
 
-    const payslips = await Payslip.find({});
+    console.log(query)
+
+
+    const payslips = await Payslip.find(query);
       // .sort({ 'payPeriodDetails.startDate': -1 });
 
     return NextResponse.json(payslips);

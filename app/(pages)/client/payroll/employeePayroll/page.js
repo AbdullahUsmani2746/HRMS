@@ -3,13 +3,6 @@ import React, { useEffect, useState } from 'react';
 import { useSession } from "next-auth/react";
 import axios from "axios";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
   Card,
   CardContent,
   CardDescription,
@@ -47,6 +40,8 @@ const PayrollDashboard = () => {
   const { data: session } = useSession();
   const employerId = session?.user?.username || "TestEmployer";
   const [payrolls, setPayrolls] = useState([]);
+  const [schedules, setSchedules] = useState([]);
+
   const [empPayrolls, setEmpPayrolls] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [status, setStatus] = useState({ type: '', message: '' });
@@ -70,8 +65,12 @@ const PayrollDashboard = () => {
     try {
       setIsLoading(true);
       const response = await axios.get(`/api/payroll/payroll-process?employerId=${employerId}`);
-      if (response.data.success) {
+      const responseSchedules = await axios.get(`/api/employees/schedule?employerId=${employerId}`);
+      
+      
+      if (response.data.success && responseSchedules.data.success ) {
         setPayrolls(response.data.data);
+        setSchedules(responseSchedules.data.data)
       }
     } catch (error) {
       setStatus({
@@ -152,11 +151,23 @@ const PayrollDashboard = () => {
       acc: { employee: 1, employer: 1 },
       npf: { employee: 10, employer: 10 }
   };
-  const payeConditions = JSON.parse(localStorage.getItem('payeConditions')) || [
-    { id: 1, min: 0, max: 576, rate: 0 },
-    { id: 2, min: 577, max: 962, rate: 20 },
-    { id: 3, min: 963, max: 1000000000000, rate: 27 }
-  ];
+  const payeConditions = JSON.parse(localStorage.getItem('payeConditions')) || {
+    Weekly: [
+      { id: 1, min: 0, max: 288, rate: 0, subtract: 0 },
+      { id: 2, min: 288.01, max: 481, rate: 20, subtract: 57.6 },
+      { id: 3, min: 481.01, max: 100000000000000000000000000000000000000, rate: 27, subtract: 91.27 },
+    ],
+    Fortnightly: [
+      { id: 1, min: 0, max: 576, rate: 0, subtract: 0 },
+      { id: 2, min: 576.01, max: 962, rate: 20, subtract: 115.2 },
+      { id: 3, min: 962.01, max: 100000000000000000000000000000000000000, rate: 27, subtract: 182.54 },
+    ],
+    Monthly: [
+      { id: 1, min: 0, max: 1250, rate: 0, subtract: 0 },
+      { id: 2, min: 1250.01, max: 2083, rate: 20, subtract: 250 },
+      { id: 3, min: 2083.01, max: 100000000000000000000000000000000000000, rate: 27, subtract: 395.81 },
+    ],
+  };
 
 
     const [
@@ -195,22 +206,29 @@ const PayrollDashboard = () => {
     });
 
     
-    const calculatePAYE = (annualSalary) => {
+    const calculatePAYE = (annualSalary, type) => {
       let tax = 0;
       let remainingSalary = annualSalary;
 
-      for (const bracket of payeConditions) {
-          const bracketAmount = Math.min(
-              Math.max(0, remainingSalary - bracket.min),
-              bracket.max - bracket.min
-          );
+      for (const bracket of payeConditions[type]) {
+        // Check if the remainingSalary falls within the current bracket range
+        if (remainingSalary > bracket.min && remainingSalary <= bracket.max) {
+          // Calculate the amount within the bracket range
+          const bracketAmount = remainingSalary;
           
-          if (bracketAmount > 0) {
-              tax += (bracketAmount * (bracket.rate / 100));
-              remainingSalary -= bracketAmount;
-          }
+          // Apply the tax calculation
+          tax += (bracketAmount * (bracket.rate / 100)) - bracket.subtract;
           
-          if (remainingSalary <= 0) break;
+          // Output for debugging
+          console.log("Bracket ID:", bracket.id);
+          console.log("Remaining Salary:", remainingSalary);
+          console.log("Bracket Amount:", bracketAmount);
+          console.log("Tax applied:", (bracketAmount * (bracket.rate / 100)) - bracket.subtract);
+          
+          // Reduce the remaining salary by the bracketAmount
+          remainingSalary -= bracketAmount;
+          break; // Once a match is found, break the loop
+        }
       }
       
       return tax;
@@ -298,13 +316,16 @@ const PayrollDashboard = () => {
   
           if (regularAttendance.length > 0) {
               regularAttendance.forEach((att) => {
-                  const dailyRegularHours = Math.min(
-                      convertToTotalHours(att.totalWorkingHours) || 0,
-                      payrollSettings.maxRegularHoursPerDay
-                  );
+                  const dailyRegularHours = 
+                  // Math.min(
+                      convertToTotalHours(att.totalWorkingHours) || 0;
+                      // payrollSettings.maxRegularHoursPerDay
+                  // );
+                  console.log("Daily Hours: ",dailyRegularHours);
                   const dailyOvertimeHours =
                       Math.max(0, (convertToTotalHours(att.totalWorkingHours) || 0) - payrollSettings.baseHoursPerWeek) +
                       (att.overtime_hours || 0);
+                      console.log("Daily Hours: ",dailyOvertimeHours)
   
                   totalWorkHours += dailyRegularHours;
                   overtimeHours += dailyOvertimeHours;
@@ -357,12 +378,17 @@ const PayrollDashboard = () => {
           });
 
                       // Calculate monthly equivalent for PAYE
-                      const monthlyEquivalent = baseSalary * 12;
+                      // const monthlyEquivalent = baseSalary * 12;
+                      const monthlyEquivalent = baseSalary ;
                       const payePeriodFactor = payPeriodDays / 30; // Adjust PAYE for pay period
           
+                      const Type = schedules.find((sch)=>sch._id===employee.paySchedule)
+                      console.log("type: ",Type)
                       // Calculate PAYE
-                      const annualPAYE = calculatePAYE(monthlyEquivalent);
-                      const periodPAYE = (annualPAYE / 12) * payePeriodFactor;
+                      const annualPAYE = calculatePAYE(monthlyEquivalent, Type.pay_schedule) ;
+                      // const periodPAYE = (annualPAYE / 12) * payePeriodFactor;
+                      const periodPAYE = annualPAYE ;
+
           
                       // Calculate ACC
                       const accEmployee = baseSalary * (taxSettings.acc.employee / 100);
@@ -608,7 +634,9 @@ const PayrollDashboard = () => {
                           <TableHead>Overtime</TableHead>
                           <TableHead>Base Salary</TableHead>
                           <TableHead>Allowances</TableHead>
-                          {/* <TableHead>Deductions</TableHead> */}
+                          <TableHead>PAYE</TableHead>
+                          <TableHead>NPF</TableHead>
+                          <TableHead>ACC</TableHead>
                           <TableHead>Net Payable</TableHead>
                           
                         </TableRow>
@@ -624,7 +652,9 @@ const PayrollDashboard = () => {
                               <TableCell>{+(payroll.workDetails.overtimeHours).toFixed(2)}</TableCell>
                               <TableCell>${+(payroll.payrollBreakdown.baseSalary).toFixed(2)}</TableCell>
                               <TableCell>${+(payroll.payrollBreakdown.allowances).toFixed(2)}</TableCell>
-                              {/* <TableCell>${+(payroll.payrollBreakdown.deductions).toFixed(2)}</TableCell> */}
+                              <TableCell>${+(payroll.payrollBreakdown.deductions.paye).toFixed(2)}</TableCell>
+                              <TableCell>${+(payroll.payrollBreakdown.deductions.npf).toFixed(2)}</TableCell>
+                              <TableCell>${+(payroll.payrollBreakdown.deductions.acc).toFixed(2)}</TableCell>
                               <TableCell className="font-bold">
                                 ${+(payroll.payrollBreakdown.netPayable).toFixed(2)}
                               </TableCell>

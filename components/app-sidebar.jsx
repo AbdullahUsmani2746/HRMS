@@ -231,11 +231,18 @@ const data = {
     },
 
     {
+      title: "Reports",
+      url: "/client/reports",
+      icon: PieChart,
+      isActive: true,
+    },
+    {
       title: "Settings",
       url: "/client/setting",  // Set to "#" since the modal will open without navigating
       icon: Settings2,
       isActive: true,
     }
+    
     
   ],
   navUserEmployee: [

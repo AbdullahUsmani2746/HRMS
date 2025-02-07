@@ -111,12 +111,14 @@ const ModernPayrollDashboard = () => {
         ])
       },
       acc: {
-        headers: ['NPF Number', 'Employee', 'Earnings', 'ACC Levy'],
+        headers: ['NPF Number', 'Employee', 'Gross Salary', 'Employee Contribution', 'Employer Contribution'],
         rows: filteredPayslips.map(payslip => [
           payslip.employeeId,
           payslip.employeeName,
           `$${(payslip.payrollBreakdown.baseSalary + payslip.payrollBreakdown.allowances).toFixed(2)}`,
-          `$${payslip.payrollBreakdown.deductions.acc.toFixed(2)}`
+          `$${payslip.payrollBreakdown.deductions.acc.toFixed(2)}`,
+          `$${payslip.payrollBreakdown.employerContributions.acc.toFixed(2)}`
+
         ])
       }
     };
@@ -124,9 +126,9 @@ const ModernPayrollDashboard = () => {
     return tableConfigs[reportType] || tableConfigs.payroll;
   };
 
-  const handleExport = async (format, type) => {
+  const handleExport = async (format) => {
     try {
-      const response = await fetch(`/api/export/${reportType}?month=${month}&year=${year}&format=${format}&type=${type}`);
+      const response = await fetch(`/api/export/${reportType}?month=${month}&year=${year}&format=${format}`);
       
       if (!response.ok) {
         const errorData = await response.json();
@@ -238,7 +240,7 @@ const ModernPayrollDashboard = () => {
               <Button 
                 variant="outline" 
                 className="flex items-center gap-2"
-                onClick={() => handleExport('xlsx' , 'acc')}
+                onClick={() => handleExport('xlsx')}
               >
                 <FileSpreadsheet className="w-4 h-4" />
                 Export Excel
