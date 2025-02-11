@@ -26,6 +26,10 @@ const PayrollProcessSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
+  status:{
+    type:String,
+    default:"Pending"
+  },
   employerId: {
     type: String,
     required: true,

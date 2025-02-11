@@ -63,14 +63,74 @@ export async function GET(request) {
         );
       }
   
-      // Calculate year, month_no, and week_no dynamically
-      const year = fromDate.getFullYear();
-      const monthNo = fromDate.getMonth() + 1; // JavaScript months are 0-based
-        // Calculate week_no where weeks reset at the start of every month
-    const firstDayOfMonth = new Date(fromDate.getFullYear(), fromDate.getMonth(), 1);
-    const weekNo = Math.ceil((fromDate.getDate() + firstDayOfMonth.getDay()) / 7);
-      // Generate a unique payroll ID
-      const payrollId = Math.floor(Math.random() * 1000000);
+  // Calculate year and base month
+  const year = fromDate.getFullYear();
+  const baseMonthNo = fromDate.getMonth() + 1; // JavaScript months are 0-based
+  
+  // Get the week boundaries
+  const startOfWeek = new Date(fromDate);
+  
+  const endOfWeek = new Date(toDate);
+  
+  // Count days in current month vs next month for this week
+  let daysInCurrentMonth = 0;
+  let daysInNextMonth = 0;
+  
+  const tempDate = new Date(startOfWeek);
+  for (let i = 0; i < 7; i++) {
+    if (tempDate.getMonth() === fromDate.getMonth()) {
+      daysInCurrentMonth++;
+    } else {
+      daysInNextMonth++;
+    }
+    tempDate.setDate(tempDate.getDate() + 1);
+  }
+  
+  // Determine which month to assign this week to
+  const monthNo = daysInNextMonth > daysInCurrentMonth ? 
+    (baseMonthNo % 12) + 1 : baseMonthNo;
+    
+  // Calculate week number based on the date's position in its assigned month
+  let weekNo;
+  
+  if (daysInNextMonth > daysInCurrentMonth) {
+    // If the week belongs to the next month, start counting from week 1
+    weekNo = 1;
+  } else {
+    // Only count days within the current month
+    const firstDayOfMonth = new Date(year, monthNo - 1, 1);
+    const firstWeekDay = firstDayOfMonth.getDay();
+    const dateOfMonth = fromDate.getDate();
+    
+    console.log(`
+      
+      firstDayOfMonth:${firstDayOfMonth}
+firstWeekDay:${firstWeekDay}
+dateOfMonth:${dateOfMonth}`)
+    // Calculate the week number for dates in the current month
+    weekNo = Math.ceil((dateOfMonth + firstWeekDay) / 7);
+  }
+
+  console.log(
+    `
+    weekNO: ${weekNo},
+daysInCurrentMonth:${daysInCurrentMonth},
+daysInNextMonth:${daysInNextMonth}
+endOfWeek:${endOfWeek}
+startOfWeek:${startOfWeek}
+baseMonthNo:${baseMonthNo}
+year:${year},
+baseMonthNo:${baseMonthNo}
+monthNo:${monthNo}
+
+
+
+
+    `
+  )
+  
+  // Generate a unique payroll ID
+  const payrollId = Math.floor(Math.random() * 1000000);
   
       // Create a new payroll process
       const newPayroll = new PayrollProcess({

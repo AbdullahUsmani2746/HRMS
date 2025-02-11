@@ -17,6 +17,18 @@ const payslipSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  monthNo: {
+    type: Number,
+    required: true,
+  },
+  weekNo: {
+    type: Number,
+    required: true,
+  },
+  year: {
+    type: Number,
+    required: true,
+  },
   payType: {
     type: String,
     enum: ['HOUR', 'SALARY'],

@@ -26,7 +26,7 @@ const PayrollDeductionShema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  deduction_amount: {
+  rate: {
     type: String,
     required: true,
   }

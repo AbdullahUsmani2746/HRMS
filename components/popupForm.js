@@ -8,6 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogClose,
+  DialogDescription
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import {
@@ -226,7 +227,13 @@ const PopupForm = ({ onClose, setEmployers, employerToEdit }) => {
   };
 
   return (
-    <Dialog open={true} onOpenChange={onClose}>
+    <Dialog open={true} onOpenChange={onClose} className="bg-[#000000]">
+      <DialogHeader>
+          <DialogTitle>Add Client</DialogTitle>
+          <DialogDescription>
+          Manage your clients and their subscription plans
+          </DialogDescription>
+        </DialogHeader>
       <DialogContent className="max-w-2xl p-0">
         <motion.div variants={ANIMATION_VARIANTS.container} initial="hidden" animate="visible" exit="exit" className="w-full bg-foreground ">
           <Card className="bg-foreground border-foreground/10 shadow-xl">
@@ -400,7 +407,7 @@ const PopupForm = ({ onClose, setEmployers, employerToEdit }) => {
                           type="button"
                           onClick={onClose}
                           variant="outline"
-                          className="border-background/10 text-background hover:bg-background/5"
+                          className="border-background/10 text-foreground hover:bg-background/5"
                         >
                           Cancel
                         </Button>

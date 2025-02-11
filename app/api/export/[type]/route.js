@@ -2,99 +2,67 @@ import ExcelJS from 'exceljs';
 import { NextResponse } from 'next/server';
 import connectDB from '@/utils/dbConnect';
 import Payslip from '@/models/Payroll/payslip.models';
+import { createACCTemplate } from '@/app/templates/accTemplate';
+import { createNPFTemplate } from '@/app/templates/npfTemplate';
+import { createP4Template } from '@/app/templates/p4Template';
+import Employer from '@/models/employer.models';
+
 
 export async function GET(req, { params }) {
   try {
     await connectDB();
     
     const { searchParams } = new URL(req.url);
-    const month = searchParams.get('month');
-    const year = searchParams.get('year');
+      // Extract the ID from the URL path
+      console.log("TYPE: ", params.type);
+
+    const startDate = searchParams.get('startDate');
+    const endDate = searchParams.get('endDate');
     const format = searchParams.get('format');
+    const clientID = searchParams.get('employerId');
+    const periodType = searchParams.get('periodType');
+
+
+    // Calculate year and base month
+  const year = new Date(startDate).getFullYear();
+  const month = new Date(endDate).getMonth() + 1; // JavaScript months are 0-based
     
-    if (!month || !year || !format) {
+    if (!startDate || !endDate || !format) {
       return NextResponse.json(
         { error: 'Missing required parameters' },
         { status: 400 }
       );
     }
+    const query = {
+        ...(startDate && endDate && {
+          "payPeriodDetails.startDate": { 
+            $gte: startDate, 
+            $lte: endDate
+          }
+        }),
+        // ...(employerId && { employerId })  // Uncomment if you want to filter by employerId
+      };
 
-    const startDate = new Date(`${year}-${month}-01`);
-    const endDate = new Date(startDate.getFullYear(), startDate.getMonth() + 1, 0);
 
-    // const payslips = await Payslip.find({
-    //   'payPeriodDetails.startDate': {
-    //     $gte: startDate,
-    //     $lte: endDate
-    //   }
-    // });
+    const payslips = await Payslip.find(query);
+    const EmployerDetails = await Employer.findOne({employerId: clientID})
 
-    const payslips = await Payslip.find({
-      });
+    console.log("Employer Details: ", EmployerDetails)
 
     const workbook = new ExcelJS.Workbook();
     workbook.creator = 'Payroll System';
     workbook.created = new Date();
     
-    const worksheet = workbook.addWorksheet('Report', {
-      properties: { tabColor: { argb: 'FFC0000' } }
-    });
-
-    // Configure columns based on report type
     if (params.type === 'acc') {
-      worksheet.columns = [
-        { header: 'Employee ID', key: 'employeeId', width: 15 },
-        { header: 'Employee Name', key: 'employeeName', width: 25 },
-        { header: 'Earnings', key: 'earnings', width: 15, style: { numFmt: '$#,##0.00' } },
-        { header: 'ACC Levy', key: 'accLevy', width: 15, style: { numFmt: '$#,##0.00' } }
-      ];
-
-      // Add data rows
-      payslips.forEach(payslip => {
-        worksheet.addRow({
-          employeeId: payslip.employeeId,
-          employeeName: payslip.employeeName,
-          earnings: payslip.payrollBreakdown.baseSalary + payslip.payrollBreakdown.allowances,
-          accLevy: payslip.payrollBreakdown.deductions.acc
-        });
-      });
+      await createACCTemplate(workbook, { month, year, payslips, periodType, EmployerDetails });
     }
+    else if (params.type === 'npf') {
+        await createNPFTemplate(workbook, { month, year,payslips, periodType, EmployerDetails });
+      }
+      else if (params.type === 'paye') {
+        await createP4Template(workbook, {month, year, payslips, periodType, EmployerDetails });
+      }
 
-    // Add totals row
-    const totalRow = worksheet.addRow({
-      employeeId: 'Total',
-      employeeName: '',
-      earnings: { formula: 'SUM(C2:C' + (payslips.length + 1) + ')' },
-      accLevy: { formula: 'SUM(D2:D' + (payslips.length + 1) + ')' }
-    });
-
-    // Style header row
-    worksheet.getRow(1).font = { bold: true };
-    worksheet.getRow(1).fill = {
-      type: 'pattern',
-      pattern: 'solid',
-      fgColor: { argb: 'FFE0E0E0' }
-    };
-
-    // Style total row
-    totalRow.font = { bold: true };
-    totalRow.fill = {
-      type: 'pattern',
-      pattern: 'solid',
-      fgColor: { argb: 'FFE0E0E0' }
-    };
-
-    // Add borders
-    worksheet.eachRow((row) => {
-      row.eachCell((cell) => {
-        cell.border = {
-          top: { style: 'thin' },
-          left: { style: 'thin' },
-          bottom: { style: 'thin' },
-          right: { style: 'thin' }
-        };
-      });
-    });
 
     const buffer = await workbook.xlsx.writeBuffer();
     const response = new NextResponse(buffer);

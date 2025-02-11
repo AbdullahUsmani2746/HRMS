@@ -51,6 +51,28 @@ const PayrollDashboard = () => {
     averageSalary: 0
   });
   const [selectedPayroll, setSelectedPayroll] = useState(null);
+    // Load tax settings from localStorage
+    const taxSettings = JSON.parse(localStorage.getItem('taxSettings')) || {
+      acc: { employee: 1, employer: 1 },
+      npf: { employee: 10, employer: 10 }
+  };
+  const payeConditions = JSON.parse(localStorage.getItem('payeConditions')) || {
+    Weekly: [
+      { id: 1, min: 0, max: 288, rate: 0, subtract: 0 },
+      { id: 2, min: 288.01, max: 481, rate: 20, subtract: 57.6 },
+      { id: 3, min: 481.01, max: 100000000000000000000000000000000000000, rate: 27, subtract: 91.27 },
+    ],
+    Fortnightly: [
+      { id: 1, min: 0, max: 576, rate: 0, subtract: 0 },
+      { id: 2, min: 576.01, max: 962, rate: 20, subtract: 115.2 },
+      { id: 3, min: 962.01, max: 100000000000000000000000000000000000000, rate: 27, subtract: 182.54 },
+    ],
+    Monthly: [
+      { id: 1, min: 0, max: 1250, rate: 0, subtract: 0 },
+      { id: 2, min: 1250.01, max: 2083, rate: 20, subtract: 250 },
+      { id: 3, min: 2083.01, max: 100000000000000000000000000000000000000, rate: 27, subtract: 395.81 },
+    ],
+  };
 
   const [formData, setFormData] = useState({
     payroll_id: "",
@@ -123,12 +145,12 @@ const PayrollDashboard = () => {
     }
   };
 
-  const calculateEmployeePayroll = async (employees, startDate, endDate, payrollId, settings = {}) => {
+  const calculateEmployeePayroll = async (employees, startDate, endDate, payrollPeriod, settings = {}) => {
     console.log("Starting payroll calculation with:", {
         totalEmployees: employees.length,
         startDate,
         endDate,
-        payrollId
+        payrollID: payrollPeriod.payroll_id,
     });
 
     const payrollSettings = {
@@ -146,29 +168,6 @@ const PayrollDashboard = () => {
     console.log("Payroll settings:", payrollSettings);
 
 
-    // Load tax settings from localStorage
-    const taxSettings = JSON.parse(localStorage.getItem('taxSettings')) || {
-      acc: { employee: 1, employer: 1 },
-      npf: { employee: 10, employer: 10 }
-  };
-  const payeConditions = JSON.parse(localStorage.getItem('payeConditions')) || {
-    Weekly: [
-      { id: 1, min: 0, max: 288, rate: 0, subtract: 0 },
-      { id: 2, min: 288.01, max: 481, rate: 20, subtract: 57.6 },
-      { id: 3, min: 481.01, max: 100000000000000000000000000000000000000, rate: 27, subtract: 91.27 },
-    ],
-    Fortnightly: [
-      { id: 1, min: 0, max: 576, rate: 0, subtract: 0 },
-      { id: 2, min: 576.01, max: 962, rate: 20, subtract: 115.2 },
-      { id: 3, min: 962.01, max: 100000000000000000000000000000000000000, rate: 27, subtract: 182.54 },
-    ],
-    Monthly: [
-      { id: 1, min: 0, max: 1250, rate: 0, subtract: 0 },
-      { id: 2, min: 1250.01, max: 2083, rate: 20, subtract: 250 },
-      { id: 3, min: 2083.01, max: 100000000000000000000000000000000000000, rate: 27, subtract: 395.81 },
-    ],
-  };
-
 
     const [
         allPeriodicAttendance,
@@ -180,8 +179,8 @@ const PayrollDashboard = () => {
         axios.get('/api/employees/periodicAttendance?employerId='+employerId),
         axios.get('/api/employees/deduction?employerId='+employerId),
         axios.get('/api/employees/allownce?employerId='+employerId),
-        axios.get(`/api/payroll/payrollDeduction/${payrollId}`),
-        axios.get(`/api/payroll/payrollAllownce/${payrollId}`)    
+        axios.get(`/api/payroll/payrollDeduction/${payrollPeriod._id}`),
+        axios.get(`/api/payroll/payrollAllownce/${payrollPeriod._id}`)    
     ]);
 
     console.log("API responses received:", {
@@ -208,9 +207,13 @@ const PayrollDashboard = () => {
     
     const calculatePAYE = (annualSalary, type) => {
       let tax = 0;
+
+
       let remainingSalary = annualSalary;
 
       for (const bracket of payeConditions[type]) {
+
+
         // Check if the remainingSalary falls within the current bracket range
         if (remainingSalary > bracket.min && remainingSalary <= bracket.max) {
           // Calculate the amount within the bracket range
@@ -284,11 +287,19 @@ const PayrollDashboard = () => {
           }
     
           const regularAttendance = EmployeeAttendance.data.filter((a) =>
+          {
+
+            let DateObject = new Date(a.date).toLocaleDateString();
+
+            return(
+          
               a.employeeId === employee.employeeId &&
-              new Date(a.date).toLocaleDateString() >= new Date(start).toLocaleDateString() &&
-              new Date(a.date).toLocaleDateString() <= new Date(end).toLocaleDateString() &&
+              new Date(DateObject).getTime() >= new Date(start).getTime() &&
+              new Date(DateObject).getTime() <= new Date(end).getTime() &&
               a.status === "Approved"
-          );
+            )
+          }
+        );
   
           const periodicAttendance =
               regularAttendance.length === 0
@@ -367,8 +378,8 @@ const PayrollDashboard = () => {
   
           const employeeDeductions = allDeductions.data.data.filter((d) => employee.deductions.includes(d._id));
           const employeeAllowances = allAllowances.data.data.filter((a) => employee.allownces.includes(a._id));
-          const employeePayrollDeductions = allPayrollDeductions.data.data.filter((d) => d.employeeId === employee.employeeId);
-          const employeePayrollAllowances = allPayrollAllowances.data.data.filter((a) => a.employeeId === employee.employeeId);
+          const employeePayrollDeductions = allPayrollDeductions.data.data.filter((d) => d.employeeId === employee._id);
+          const employeePayrollAllowances = allPayrollAllowances.data.data.filter((a) => a.employeeId === employee._id);
   
           console.log("Employee adjustments:", {
               deductionsCount: employeeDeductions.length,
@@ -413,11 +424,16 @@ const PayrollDashboard = () => {
               overtimePay,
               netPayable,
           });
+
+
   
           return {
               employeeId: employee.employeeId,
               employeeName: employee.firstName,
               payType: employee.payType,
+              monthNo: payrollPeriod.month_no,
+              weekNo:payrollPeriod.week_no,
+              year:payrollPeriod.year,
               payPeriodDetails: {
                   startDate: start,
                   endDate: end,
@@ -473,7 +489,7 @@ const PayrollDashboard = () => {
 
       // ... existing payroll calculation logic ...
       // Enhanced with more detailed calculations
-      const payrollDetails = await calculateEmployeePayroll(employees, startDate.toLocaleDateString(), endDate.toLocaleDateString(), payrollPeriod._id);
+      const payrollDetails = await calculateEmployeePayroll(employees, startDate.toLocaleDateString(), endDate.toLocaleDateString(), payrollPeriod);
        console.log("Apyroll Details: ",payrollDetails)
       return payrollDetails;
   };

@@ -127,7 +127,8 @@ export async function GET(req, { params }) {
   const { employeeId } = params;
 
   try {
-    const attendance = await Attendance.find({ employeeId }).sort({ date: -1 }); // Fetch attendance sorted by date
+    // const attendance = await Attendance.find({ employeeId }).sort({ date: -1 }); // Fetch attendance sorted by date
+    const attendance = await Attendance.find({ employeeId }); // Fetch attendance sorted by date
 
     if (!attendance || attendance.length === 0) {
       return NextResponse.json(

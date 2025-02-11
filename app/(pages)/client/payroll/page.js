@@ -45,7 +45,7 @@ const PayrollPageComponent = () => {
   // States for allowance form
   const [allowanceForm, setAllowanceForm] = useState({
     allowance_id: "",
-    allowance_amount: "",
+    rate: "",
     month_no: "",
     week_no: "",
     employeeId: "",
@@ -54,7 +54,7 @@ const PayrollPageComponent = () => {
   // States for deduction form
   const [deductionForm, setDeductionForm] = useState({
     deduction_id: "",
-    deduction_amount: "",
+    rate: "",
     month_no: "",
     week_no: "",
     employeeId: "",
@@ -119,7 +119,7 @@ const PayrollPageComponent = () => {
       setAllowanceForm((prev) => ({
         ...prev,
         allowance_id: allowanceId,
-        allowance_amount: allowanceData.allownce_rate,
+        rate: allowanceData.rate,
       }));
     } catch (err) {
       setError("Failed to fetch allowance details");
@@ -192,7 +192,7 @@ const PayrollPageComponent = () => {
       setDeductionForm((prev) => ({
         ...prev,
         deduction_id: deductionId,
-        deduction_amount: deductionData.deduction_rate,
+        rate: deductionData.rate,
       }));
     } catch (err) {
       setError("Failed to fetch deduction details");
@@ -305,7 +305,7 @@ const PayrollPageComponent = () => {
       // Reset form
       setAllowanceForm({
         allowance_id: "",
-        allowance_amount: "",
+        rate: "",
         month_no: selectedPayroll?.month_no || "",
         week_no: selectedPayroll?.week_no || "",
         employeeId: "",
@@ -341,7 +341,7 @@ const PayrollPageComponent = () => {
       // Reset form
       setDeductionForm({
         deduction_id: "",
-        deduction_amount: "",
+        rate: "",
         month_no: selectedPayroll?.month_no || "",
         week_no: selectedPayroll?.week_no || "",
         employeeId: "",
@@ -395,7 +395,10 @@ const PayrollPageComponent = () => {
               <SelectContent>
                 {payrollIds.map((payroll) => (
                   <SelectItem key={payroll._id} value={payroll._id}>
-                    Payroll ID: {payroll.payroll_id}
+                    Payroll ID: {payroll.payroll_id}<br/>
+                    Start Date: {new Date(payroll.date_from).toLocaleDateString()}<br/>
+                    End Date: {new Date(payroll.date_to).toLocaleDateString()}
+
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -459,11 +462,11 @@ const PayrollPageComponent = () => {
                     </label>
                     <Input
                       type="number"
-                      value={allowanceForm.allowance_amount}
+                      value={allowanceForm.rate}
                       onChange={(e) =>
                         setAllowanceForm({
                           ...allowanceForm,
-                          allowance_amount: e.target.value,
+                          rate: e.target.value,
                         })
                       }
                       disabled
@@ -603,11 +606,11 @@ const PayrollPageComponent = () => {
                     </label>
                     <Input
                       type="text"
-                      value={deductionForm.deduction_amount}
+                      value={deductionForm.rate}
                       onChange={(e) =>
                         setDeductionForm({
                           ...deductionForm,
-                          deduction_amount: e.target.value,
+                          rate: e.target.value,
                         })
                       }
                       disabled
@@ -727,7 +730,7 @@ const PayrollPageComponent = () => {
                               </div>
                             ))}
                         </TableCell>
-                        <TableCell>${allowance.allowance_amount}</TableCell>
+                        <TableCell>${allowance.rate}</TableCell>
                         <TableCell>{allowance.month_no}</TableCell>
                         <TableCell>{allowance.week_no}</TableCell>
                         <TableCell>
@@ -792,7 +795,7 @@ const PayrollPageComponent = () => {
                               </div>
                             ))}
                         </TableCell>
-                        <TableCell>${deduction.deduction_amount}</TableCell>
+                        <TableCell>${deduction.rate}</TableCell>
                         <TableCell>{deduction.month_no}</TableCell>
                         <TableCell>{deduction.week_no}</TableCell>
                         

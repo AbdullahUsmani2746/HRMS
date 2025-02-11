@@ -26,7 +26,7 @@ const PayrollAllownceShema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  allowance_amount: {
+  rate: {
     type: String,
     required: true,
   }
