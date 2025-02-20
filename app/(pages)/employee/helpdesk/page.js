@@ -17,8 +17,8 @@ const page = () => {
     <div>
       <DataManagementPage
       pageTitle="Help Desk"
-      pageDescription="Manage and track employee allowances efficiently"
-      addButtonText="Add Complaint"
+      pageDescription="Manage and track your camplaince efficiently"
+      addButtonText="Raise New Complaint"
       apiEndpoint={`/api/employees/tickets`}
       columns={columns}
       employerId={employeeId}
