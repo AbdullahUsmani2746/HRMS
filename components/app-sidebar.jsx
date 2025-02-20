@@ -185,8 +185,8 @@ const data = {
     },
    
     { 
-      title: "Allownces",
-      url: "/client/allownce",
+      title: "Allowances",
+      url: "/client/allowance",
       icon: DollarSignIcon,
       isActive: true,
     },
@@ -247,7 +247,7 @@ const data = {
   ],
   navUserEmployee: [
     {
-      title: "Dashboard",
+      title: "Overview",
       url: "/employee/dashboard",
       icon: LayoutDashboard,
       isActive: true,

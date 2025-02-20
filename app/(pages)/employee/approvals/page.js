@@ -224,8 +224,10 @@ const Approvals = () => {
             const periodicResponse = await axios.get(
               `/api/employees/periodicAttendance/?employerId=${clientId}`
             );
+
+            console.log(periodicResponse);
             periodicAttendanceRecords = periodicResponse.data.data
-              .filter((record) => record.status === "Pending")
+              .filter((record) => record.status === "Pending" && record.employeeId === employee.employeeId)
               .map((record) => ({
                 ...record,
                 type: "periodicAttendance",

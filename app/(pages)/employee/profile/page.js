@@ -73,7 +73,7 @@ const EmployeeProfile = () => {
                   {employee.firstName?.[0]}{employee.surname?.[0]}
                 </div>
               )}
-            </Avatar>
+            </Avatar> 
             <Badge 
               className={`absolute -top-2 -right-2 ${
                 employee.status === 'ACTIVE' ? 'bg-green-500' : 'bg-red-500'

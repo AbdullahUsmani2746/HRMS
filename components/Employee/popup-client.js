@@ -23,6 +23,7 @@ import { Checkbox } from "@/components/ui/checkbox"; // Ensure correct import
 
 import LoadingSpinner from "@/components/spinner";
 import Image from "next/image";
+import { SelectGroup, SelectLabel } from "@radix-ui/react-select";
 
 const PopupForm = ({ onClose, setEmployees, employeeToEdit }) => {
   const { data: session } = useSession();
@@ -876,128 +877,8 @@ const PopupForm = ({ onClose, setEmployees, employeeToEdit }) => {
                   </SelectContent>
                 </Select>
               </div>
-            </section>
 
-            {/* Payment Details */}
-            <h3 className="text-MD font-bold">Payment Details</h3>
-            <section>
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <label className="block pb-1">Payment Method</label>
-                  <Select
-                    value={employeeData.paymentMethod}
-                    onValueChange={(value) =>
-                      setEmployeeData((prev) => ({
-                        ...prev,
-                        paymentMethod: value,
-                      }))
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Payment Method" />
-                    </SelectTrigger>
-                    <SelectContent>
-                    <SelectItem value="CASH">Cash</SelectItem>
-                      <SelectItem value="CHEQUE">Cheque</SelectItem>
-                      <SelectItem value="DIRECT DEPOSIT">
-                        Direct Deposit
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <label className="block pb-1">Bank Name</label>
-                  <Input
-                    name="bankName"
-                    value={employeeData.bankName}
-                    onChange={handleChange}
-                    placeholder="Bank Name"
-                  />
-                </div>
-
-                <div>
-                  <label className="block pb-1">Account Name</label>
-                  <Input
-                    name="accountName"
-                    value={employeeData.accountName}
-                    onChange={handleChange}
-                    placeholder="Account Name"
-                  />
-                </div>
-
-                <div>
-                  <label className="block pb-1">Account Number</label>
-                  <Input
-                    name="accountNumber"
-                    value={employeeData.accountNumber}
-                    onChange={handleChange}
-                    placeholder="Account Number"
-                  />
-                </div>
-              </div>
-            </section>
-
-            {/* Pay Details */}
-            <h3 className="text-MD font-bold">Pay Details</h3>
-
-            <section>
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <label className="block pb-1">Pay Type</label>
-                  <Select
-                    value={employeeData.payType}
-                    onValueChange={(value) =>
-                      setEmployeeData((prev) => ({ ...prev, payType: value }))
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Pay Type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="HOUR">Per Hour</SelectItem>
-                      <SelectItem value="SALARY">Salary</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                 
-                  <label className="block pb-1">Rate Per Hour</label>
-
-                  <Input
-                    name="ratePerHour"
-                    value={employeeData.ratePerHour}
-                    onChange={handleChange}
-                    placeholder="Rate Per Hour"
-                  />
-                </div>
-
-                <div>
-                  <label className="block pb-1">Pay Frequency</label>
-                  <Select
-                    value={employeeData.payFrequency}
-                    onValueChange={(value) =>
-                      setEmployeeData((prev) => ({
-                        ...prev,
-                        payFrequency: value,
-                      }))
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Pay Frequency" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="WEEK">Weekly</SelectItem>
-                      <SelectItem value="MONTH">Monthly</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </section>
-
-            {/* Employee Type */}
-            <section>
+              {/* Employee Type */}
               <div>
                 <label className="block pb-1">Employee Type</label>
 
@@ -1030,6 +911,141 @@ const PopupForm = ({ onClose, setEmployees, employeeToEdit }) => {
               </div>
             </section>
 
+            {/* Payment Details */}
+            <h3 className="text-MD font-bold">Payment Details</h3>
+            <section>
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <label className="block pb-1">Payment Method</label>
+                  <Select
+                    value={employeeData.paymentMethod}
+                    onValueChange={(value) =>
+                      setEmployeeData((prev) => ({
+                        ...prev,
+                        paymentMethod: value,
+                      }))
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Payment Method" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="CASH">Cash</SelectItem>
+                      <SelectItem value="CHEQUE">Cheque</SelectItem>
+                      <SelectItem value="DIRECT DEPOSIT">
+                        Direct Deposit
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {employeeData.paymentMethod === "CASH" ? (
+                  ""
+                ) : (
+                  <>
+                    <div>
+                      <label className="block pb-1">Bank Name</label>
+                      <Input
+                        name="bankName"
+                        value={employeeData.bankName}
+                        onChange={handleChange}
+                        placeholder="Bank Name"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block pb-1">Account Name</label>
+                      <Input
+                        name="accountName"
+                        value={employeeData.accountName}
+                        onChange={handleChange}
+                        placeholder="Account Name"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block pb-1">Account Number</label>
+                      <Input
+                        name="accountNumber"
+                        value={employeeData.accountNumber}
+                        onChange={handleChange}
+                        placeholder="Account Number"
+                      />
+                    </div>
+                  </>
+                )}
+              </div>
+            </section>
+
+            {/* Pay Details */}
+            <h3 className="text-MD font-bold">Pay Details</h3>
+
+            <section>
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <label className="block pb-1">Pay Type</label>
+                  <Select
+                    value={employeeData.payType}
+                    onValueChange={(value) =>
+                      setEmployeeData((prev) => ({ ...prev, payType: value }))
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Pay Type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="HOUR">Per Hour</SelectItem>
+                      <SelectItem value="SALARY">Salary</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  {employeeData.payType === "SALARY" ? (
+                    <label className="block pb-1">Salary </label>
+                  ) : (
+                    <label className="block pb-1">Rate Per Hour</label>
+                  )}
+
+                  <Input
+                    name="ratePerHour"
+                    value={employeeData.ratePerHour}
+                    onChange={handleChange}
+                    placeholder={
+                      employeeData.payType === "SALARY"
+                        ? "Salary"
+                        : "Rate Per Hour"
+                    }
+                  />
+                </div>
+
+                <div>
+                  <label className="block pb-1">Pay Frequency</label>
+                  <Select
+                    value={employeeData.payFrequency}
+                    onValueChange={(value) =>
+                      setEmployeeData((prev) => ({
+                        ...prev,
+                        payFrequency: value,
+                      }))
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Pay Frequency" />
+                    </SelectTrigger>
+                    <SelectContent>
+                    <SelectGroup>
+                    <SelectLabel>Pay Frequency</SelectLabel>
+                    <SelectItem value="Weekly">Weekly</SelectItem>
+                      <SelectItem value="Fortnightly">Fortnightly</SelectItem>
+                      <SelectItem value="Monthly">Monthly</SelectItem>
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </section>
+
             {/* Allownce and Deduction */}
             <h3 className="text-sm font-bold text-center bg-foreground text-white p-2">
               Allownces and Deduction Details{" "}
@@ -1039,7 +1055,7 @@ const PopupForm = ({ onClose, setEmployees, employeeToEdit }) => {
               <div>
                 <h3 className="text-MD font-bold">Allownces </h3>
 
-                {allownce.map((single) => ( 
+                {allownce.map((single) => (
                   <div key={single._id}>
                     <label className="flex items-center space-x-3">
                       <Checkbox
@@ -1074,7 +1090,9 @@ const PopupForm = ({ onClose, setEmployees, employeeToEdit }) => {
             {/*Leaves */}
 
             <section>
-              <h3 className="text-sm font-bold text-center bg-foreground text-white p-2">Leaves Details </h3>
+              <h3 className="text-sm font-bold text-center bg-foreground text-white p-2">
+                Leaves Details{" "}
+              </h3>
               <div className="mt-3">
                 {leave.map((single) => (
                   <div key={single._id}>

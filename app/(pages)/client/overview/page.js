@@ -24,10 +24,10 @@ const Overview = () => {
   // State management
   const [isLoading, setIsLoading] = useState(false);
   const [tasks, setTasks] = useState([
-    { id: 1, title: "Review timesheets", completed: false, priority: "high" },
-    { id: 2, title: "Approve vacation requests", completed: false, priority: "medium" },
-    { id: 3, title: "Schedule team meeting", completed: true, priority: "low" },
-    { id: 4, title: "Update employee records", completed: false, priority: "medium" }
+    { id: 1, title: "Review timesheets", completed: false,  },
+    { id: 2, title: "Approve vacation requests", completed: false },
+    { id: 3, title: "Schedule team meeting", completed: true, },
+    { id: 4, title: "Update employee records", completed: false, }
   ]);
   const [newTask, setNewTask] = useState("");
   const [notifications, setNotifications] = useState([
@@ -51,7 +51,6 @@ const Overview = () => {
         id: tasks.length + 1,
         title: newTask,
         completed: false,
-        priority: "medium"
       };
       setTasks([...tasks, task]);
       setNewTask("");
@@ -160,7 +159,7 @@ const Overview = () => {
                         <span className={`flex-1 ${task.completed ? 'line-through text-gray-400' : ''}`}>
                           {task.title}
                         </span>
-                        <Badge variant={task.priority}>{task.priority}</Badge>
+                        {/* <Badge variant={task.priority}>{task.priority}</Badge> */}
                         <button
                           onClick={() => removeTask(task.id)}
                           className="ml-2 text-gray-400 hover:text-red-500"

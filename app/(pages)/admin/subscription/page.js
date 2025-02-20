@@ -220,7 +220,7 @@ const Subscription = () => {
             </motion.div>
 
             {/* Search Section */}
-            <motion.div 
+            {/* <motion.div 
               className="mb-6 flex flex-col sm:flex-row gap-4"
               variants={ANIMATION_VARIANTS.item}
             >
@@ -245,7 +245,7 @@ const Subscription = () => {
                   }`}
                 />
               </Button>
-            </motion.div>
+            </motion.div> */}
 
             {/* Table Section */}
             {isLoading ? (

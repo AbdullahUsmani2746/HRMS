@@ -183,7 +183,7 @@ const EmployeeTable = () => {
            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-background/40 w-4 h-4" />
            <Input
                type="text"
-               placeholder="Search Employees"
+               placeholder="Search Employees by thier Name"
                value={searchQuery}
                onChange={(e) => setSearchQuery(e.target.value)}
                className="pl-10 bg-background/5 border-background/10 text-background placeholder:text-background/40 w-full"
@@ -232,7 +232,7 @@ const EmployeeTable = () => {
            <Table className="text-white">
              <TableHeader>
              <TableRow className="border-background/10 bg-background/5">
-             <TableHead className="w-[100px] text-background font-medium py-3 px-3">Profile</TableHead>
+             {/* <TableHead className="w-[100px] text-background font-medium py-3 px-3">Profile</TableHead> */}
                  {columns.filter(col => col.isVisible).map((col) => (
                    <TableHead className="text-background font-medium py-3 px-3" key={col.id}>{col.header}</TableHead>
                  ))}
@@ -251,7 +251,7 @@ const EmployeeTable = () => {
                      whileHover="hover"
                      className="border-b border-background/10 "
                    >
-                     <TableCell>
+                     {/* <TableCell>
                        <motion.div
                          whileHover={{ scale: 1.1}}
                          transition={{ type: "spring", stiffness: 300 }}
@@ -264,7 +264,7 @@ const EmployeeTable = () => {
                            alt="Employee Profile"
                          />
                        </motion.div>
-                     </TableCell>
+                     </TableCell> */}
                      {columns.filter(col => col.isVisible).map((col) => (
                        <TableCell key={col.id} >
                          {col.id === "status" ? (
@@ -316,7 +316,7 @@ const EmployeeTable = () => {
                              {Designation.find(des => des._id === employee.jobTitle)?.job_title}
                            </Badge>
                          ) : (
-                           employee[col.id]
+                           col.id2 ? employee[col.id]+ ' ' + employee[col.id2] : employee[col.id] 
                          )}
                        </TableCell>
                      ))}
