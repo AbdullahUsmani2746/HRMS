@@ -51,12 +51,12 @@ const Helpdesk = () => {
   return (
     <div className="flex flex-col items-center min-h-screen bg-background p-4 space-y-6 text-background">
       {/* Ticket View */}
-      <Card className="w-full max-w-3xl bg-background border-white/10 shadow-xl">
-        <CardHeader className="flex justify-between items-center px-4 py-3 border-b border-background/10">
-          <CardTitle className="text-2xl font-bold">Ticket View</CardTitle>
+      <Card className="w-full max-w-3xl bg-foreground border-white/10 shadow-xl">
+        <CardHeader className=" px-4 py-3 border-b border-background/10">
+          <CardTitle className="text-2xl text-background font-bold">Ticket View</CardTitle>
           <Dialog open={modalOpen} onOpenChange={setModalOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-background text-foreground hover:bg-background/90">Raise New Complaint</Button>
+              <Button className=" bg-background text-foreground hover:bg-background/90">Raise New Complaint</Button>
             </DialogTrigger>
             <DialogContent className="bg-foreground border border-white/10">
               <DialogHeader>

@@ -259,9 +259,10 @@ const DataManagementPage = ({
                             {column.header}
                           </TableHead>
                         ))}
+                        {pageTitle !== "Help Desk" &&
                         <TableHead className="text-background font-medium py-5 px-6">
                           Actions
-                        </TableHead>
+                        </TableHead>}
                       </TableRow>
                     </TableHeader>
                     <TableBody>
