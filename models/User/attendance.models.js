@@ -15,6 +15,12 @@ const AttendanceSchema = new mongoose.Schema({
   totalBreakDuration: { type: String },
   isOnBreak: { type: Boolean, default: false },
   status: { type: String, default: "Pending" },
+  rejectionReason: {
+    type: String,
+    required: function() {
+      return this.status === "Rejected";
+    }
+  }
 });
 
 export default mongoose.models.Attendance ||

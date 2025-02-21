@@ -30,6 +30,13 @@ const PeriodicAttendanceSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    rejectionReason: {
+      type: String,
+      required: function() {
+        return this.status === "Rejected";
+      }
+    }
+
   },
   {
     timestamps: true,

@@ -173,6 +173,8 @@ const Approvals = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [error, setError] = useState(null);
+  const [rejectionReason, setRejectionReason] = useState("");
+
 
   // Fetch data with error handling
   const fetchData = useCallback(async () => {
@@ -269,7 +271,7 @@ const Approvals = () => {
 
     // Optimistically update UI
     const updatedData = attendanceData.map((record) =>
-      record._id === recordId ? { ...record, status: newStatus } : record
+      record._id === recordId ? { ...record, status: newStatus,  rejectionReason: reason  } : record
     );
     setAttendanceData(updatedData);
 
@@ -279,8 +281,13 @@ const Approvals = () => {
           ? `/api/users/attendance/${recordId}`
           : `/api/employees/periodicAttendance/${recordId}`;
 
-      await axios.put(apiEndpoint, { _id: recordId, status: newStatus });
-
+          await axios.put(apiEndpoint, { 
+            _id: recordId, 
+            status: newStatus,
+            rejectionReason: reason // Include rejection reason in API call
+          });
+    
+    
       // Remove approved records
       if (newStatus === "Approved") {
         setAttendanceData((prev) =>
@@ -528,53 +535,70 @@ const Approvals = () => {
                               </Dialog>
 
                               <Dialog>
-                                <DialogTrigger asChild>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="hidden group-hover:inline-flex"
-                                    disabled={isUpdating}
-                                  >
-                                    <X className="h-4 w-4 text-red-500" />
-                                  </Button>
-                                </DialogTrigger>
-                                <DialogContent>
-                                  <DialogHeader>
-                                    <DialogTitle>Confirm Rejection</DialogTitle>
-                                    <DialogDescription>
-                                      Are you sure you want to reject this
-                                      attendance request?
-                                    </DialogDescription>
-                                  </DialogHeader>
-                                  <DialogFooter>
-                                  <DialogClose asChild>
-
-                                  <div className="flex justify-end gap-2 mt-4">
-                                    <Button
-                                      variant="outline"
-                                      
-                                    >
-                                      Cancel
-                                    </Button>
-                                    <Button
-                                      variant="destructive"
-                                      onClick={() => {
-                                        handleStatusChange(
-                                          record._id,
-                                          "Rejected",
-                                          record.type
-                                        );
-                                        
-                                      }}
-                                    >
-                                      Confirm Rejection
-                                    </Button>
-                                  </div>
-                                  </DialogClose>  
-                                  </DialogFooter>
-
-                                </DialogContent>
-                              </Dialog>
+    <DialogTrigger asChild>
+      <Button
+        variant="ghost"
+        size="sm"
+        className="hidden group-hover:inline-flex"
+        disabled={isUpdating}
+      >
+        <X className="h-4 w-4 text-red-500" />
+      </Button>
+    </DialogTrigger>
+    <DialogContent>
+      <DialogHeader>
+        <DialogTitle>Reject Attendance Request</DialogTitle>
+        <DialogDescription>
+          Please provide a reason for rejecting this attendance request.
+          This will be visible to the employee.
+        </DialogDescription>
+      </DialogHeader>
+      <div className="my-4">
+        <label
+          htmlFor="rejectionReason"
+          className="block text-sm font-medium mb-2"
+        >
+          Rejection Reason
+        </label>
+        <textarea
+          id="rejectionReason"
+          className="w-full min-h-[100px] p-3 rounded-md border border-input bg-background"
+          placeholder="Enter the reason for rejection..."
+          value={rejectionReason}
+          onChange={(e) => setRejectionReason(e.target.value)}
+        />
+      </div>
+      <DialogFooter>
+        <DialogClose asChild>
+          <div className="flex justify-end gap-2 mt-4">
+            <Button
+              variant="outline"
+              onClick={() => setRejectionReason("")}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                if (!rejectionReason.trim()) {
+                  toast.error("Please provide a rejection reason");
+                  return;
+                }
+                handleStatusChange(
+                  record._id,
+                  "Rejected",
+                  record.type,
+                  rejectionReason.trim()
+                );
+              }}
+            >
+              Confirm Rejection
+            </Button>
+          </div>
+        </DialogClose>
+      </DialogFooter>
+    </DialogContent>
+  </Dialog>
                             </div>
                           </TableCell>
                         </motion.tr>

@@ -3,11 +3,10 @@ import Helpdesk from '@/components/Helpdesk/Helpdesk'
 import React from 'react'
 import DataManagementPage from '@/components/DataManagement'
 import { useSession } from 'next-auth/react'
-
 const page = () => {
 
 
-  const {data:session} = useSession();
+  const {data: session} = useSession();
   const employeeId = session?.user?.username;
   const columns = [
     { key: 'complaint_no', header: 'Complaint No' },
