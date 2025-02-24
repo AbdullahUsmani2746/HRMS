@@ -29,7 +29,8 @@ import {
   UserCheck2Icon,
   Clipboard,
   Target,
-  Send
+  Send,
+  CheckCircle
 } from "lucide-react";
 import SettingsModal from "./settingModal";
 
@@ -299,6 +300,12 @@ export function AppSidebar({ userType = "client", ...props }) {
   if (isManager && userType === "userEmployee") {
     navData = [
       ...data.navUserEmployee, // Existing items
+      {
+        title: "Request Approvals",
+        url: "/employee/requestApproval",  // Link to the approval page
+        icon: CheckCircle,     // Example icon, can be customized
+        isActive: true,
+      },
       {
         title: "Approvals",
         url: "/employee/approvals",  // Link to the approval page

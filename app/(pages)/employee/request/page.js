@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from "framer-motion";
-import { Calendar as CalendarIcon, Clock, FileText, Plus, Search, ChevronDown } from "lucide-react";
+
+import { Calendar as CalendarIcon, Edit, Trash2, Plus, Search, ChevronDown } from "lucide-react";
 import { format } from "date-fns";
 import axios from 'axios';
 import LoadingSpinner from "@/components/spinner";
@@ -40,6 +41,9 @@ const ANIMATION_VARIANTS = {
   }
 };
 
+
+
+
 const RequestForm = ({ type, onClose, existingData }) => {
   const [formData, setFormData] = useState({
     type: type,
@@ -70,112 +74,143 @@ const RequestForm = ({ type, onClose, existingData }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <CardHeader>
-        <CardTitle>{type === 'leave' ? 'Leave Request' : 'Attendance Correction'}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          {type === 'leave' && (
-            <div>
-              <label className="block text-sm font-medium mb-2">Leave Type</label>
-              <Select 
-                value={formData.leaveType}
-                onValueChange={(value) => setFormData(prev => ({ ...prev, leaveType: value }))}
+    <motion.div
+      variants={ANIMATION_VARIANTS.container}
+      initial="hidden"
+      animate="visible"
+      exit="exit"
+      className="w-full max-w-2xl mx-auto"
+    >
+      <Card className="bg-foreground border-white/10 shadow-xl">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-2xl font-bold text-background">
+            {type === 'leave' ? 'Leave Request' : 'Attendance Correction'}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit}>
+            <motion.div
+              variants={ANIMATION_VARIANTS.item}
+              className="space-y-4 p-4 rounded-lg bg-background/5 border border-background/10"
+            >
+              {type === 'leave' && (
+                <motion.div variants={ANIMATION_VARIANTS.item}>
+                  <label className="text-sm text-background/60">Leave Type</label>
+                  <Select 
+                    value={formData.leaveType}
+                    onValueChange={(value) => setFormData(prev => ({ ...prev, leaveType: value }))}
+                  >
+                    <SelectTrigger className="bg-background/5 border-background/10 text-background">
+                      <SelectValue placeholder="Select leave type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {leaveTypes.map(type => (
+                        <SelectItem key={type.value} value={type.value}>
+                          {type.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </motion.div>
+              )}
+
+              <motion.div variants={ANIMATION_VARIANTS.item}>
+                <label className="text-sm text-background/60">
+                  {type === 'leave' ? 'Leave Duration' : 'Date'}
+                </label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      className="w-full justify-start mt-2 bg-background/5 border-background/10 text-background hover:bg-background/10"
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {formData.startDate ? (
+                        type === 'leave' && formData.endDate ? 
+                        `${format(formData.startDate, "MMM dd, yyyy")} - ${format(formData.endDate, "MMM dd, yyyy")}` :
+                        format(formData.startDate, "MMM dd, yyyy")
+                      ) : (
+                        "Select date"
+                      )}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar
+                      mode={type === 'leave' ? "range" : "single"}
+                      selected={type === 'leave' ? { from: formData.startDate, to: formData.endDate } : formData.startDate}
+                      onSelect={(date) => {
+                        if (type === 'leave') {
+                          setFormData(prev => ({
+                            ...prev,
+                            startDate: date?.from || null,
+                            endDate: date?.to || null
+                          }));
+                        } else {
+                          setFormData(prev => ({ ...prev, startDate: date }));
+                        }
+                      }}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </motion.div>
+
+              {type === 'attendance' && (
+                <motion.div 
+                  variants={ANIMATION_VARIANTS.item}
+                  className="grid grid-cols-2 gap-4"
+                >
+                  <div>
+                    <label className="text-sm text-background/60">Check In</label>
+                    <Input
+                      type="time"
+                      value={formData.checkIn}
+                      onChange={(e) => setFormData(prev => ({ ...prev, checkIn: e.target.value }))}
+                      className="mt-2 bg-background/5 border-background/10 text-background"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm text-background/60">Check Out</label>
+                    <Input
+                      type="time"
+                      value={formData.checkOut}
+                      onChange={(e) => setFormData(prev => ({ ...prev, checkOut: e.target.value }))}
+                      className="mt-2 bg-background/5 border-background/10 text-background"
+                    />
+                  </div>
+                </motion.div>
+              )}
+
+              <motion.div variants={ANIMATION_VARIANTS.item}>
+                <label className="text-sm text-background/60">Reason</label>
+                <Textarea
+                  value={formData.reason}
+                  onChange={(e) => setFormData(prev => ({ ...prev, reason: e.target.value }))}
+                  placeholder="Enter your reason here..."
+                  className="mt-2 min-h-[100px] bg-background/5 border-background/10 text-background placeholder:text-background/40"
+                />
+              </motion.div>
+            </motion.div>
+
+            <div className="flex justify-end gap-2 pt-4 border-t border-background/10">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={onClose}
+                className="border-background/10 text-foreground hover:bg-background/5"
               >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select leave type" />
-                </SelectTrigger>
-                <SelectContent>
-                  {leaveTypes.map(type => (
-                    <SelectItem key={type.value} value={type.value}>
-                      {type.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                Cancel
+              </Button>
+              <Button 
+                type="submit"
+                className="bg-background text-foreground hover:bg-background/90"
+              >
+                Submit Request
+              </Button>
             </div>
-          )}
-
-          <div>
-            <label className="block text-sm font-medium mb-2">
-              {type === 'leave' ? 'Leave Duration' : 'Date'}
-            </label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className="w-full justify-start">
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {formData.startDate ? (
-                    type === 'leave' && formData.endDate ? 
-                    `${format(formData.startDate, "MMM dd, yyyy")} - ${format(formData.endDate, "MMM dd, yyyy")}` :
-                    format(formData.startDate, "MMM dd, yyyy")
-                  ) : (
-                    "Select date"
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
-                <Calendar
-                  mode={type === 'leave' ? "range" : "single"}
-                  selected={type === 'leave' ? { from: formData.startDate, to: formData.endDate } : formData.startDate}
-                  onSelect={(date) => {
-                    if (type === 'leave') {
-                      setFormData(prev => ({
-                        ...prev,
-                        startDate: date?.from || null,
-                        endDate: date?.to || null
-                      }));
-                    } else {
-                      setFormData(prev => ({ ...prev, startDate: date }));
-                    }
-                  }}
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
-
-          {type === 'attendance' && (
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-2">Check In</label>
-                <Input
-                  type="time"
-                  value={formData.checkIn}
-                  onChange={(e) => setFormData(prev => ({ ...prev, checkIn: e.target.value }))}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">Check Out</label>
-                <Input
-                  type="time"
-                  value={formData.checkOut}
-                  onChange={(e) => setFormData(prev => ({ ...prev, checkOut: e.target.value }))}
-                />
-              </div>
-            </div>
-          )}
-
-          <div>
-            <label className="block text-sm font-medium mb-2">Reason</label>
-            <Textarea
-              value={formData.reason}
-              onChange={(e) => setFormData(prev => ({ ...prev, reason: e.target.value }))}
-              placeholder="Enter your reason here..."
-              className="min-h-[100px]"
-            />
-          </div>
-
-          <div className="flex justify-end space-x-3">
-            <Button type="button" variant="outline" onClick={onClose}>
-              Cancel
-            </Button>
-            <Button type="submit">
-              Submit Request
-            </Button>
-          </div>
-        </div>
-      </CardContent>
-    </form>
+          </form>
+        </CardContent>
+      </Card>
+    </motion.div>
   );
 };
 
@@ -188,6 +223,7 @@ const RequestManagement = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [data, setData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const itemsPerPage = 5;
 
   const columns = requestType === 'leave' ? [
     { key: 'leaveType', header: 'Leave Type' },
@@ -219,6 +255,24 @@ const RequestManagement = () => {
     }
   };
 
+  const filteredData = data.filter(item =>
+    item.reason?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.status?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const sortedData = [...filteredData].sort((a, b) => {
+    const firstKey = columns[0].key;
+    if (sortOrder === "asc") {
+      return a[firstKey].toString().localeCompare(b[firstKey].toString());
+    }
+    return b[firstKey].toString().localeCompare(a[firstKey].toString());
+  });
+
+  const totalPages = Math.ceil(sortedData.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentData = sortedData.slice(startIndex, endIndex);
+
   const handlePageChange = (page) => {
     setCurrentPage(page);
   };
@@ -237,7 +291,6 @@ const RequestManagement = () => {
   const generatePaginationItems = () => {
     const items = [];
     const maxVisiblePages = 5;
-    const totalPages = Math.ceil(data.length / 10);
     
     if (totalPages <= maxVisiblePages) {
       for (let i = 1; i <= totalPages; i++) {
@@ -274,31 +327,62 @@ const RequestManagement = () => {
         initial="hidden"
         animate="visible"
       >
-        <Card>
+        <Card className="bg-foreground border-white/10 shadow-xl">
           <CardContent className="p-8">
-            <div className="flex justify-between items-center mb-6">
-              <Select value={requestType} onValueChange={setRequestType}>
-                <SelectTrigger className="w-[200px]">
-                  <SelectValue placeholder="Select request type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="leave">Leave Requests</SelectItem>
-                  <SelectItem value="attendance">Attendance Requests</SelectItem>
-                </SelectContent>
-              </Select>
-              
-              <Button onClick={() => openModal()} className="ml-4">
-                <Plus className="w-5 h-5 mr-2" />
-                New Request
-              </Button>
-            </div>
+            {/* Header Section */}
+            <motion.div 
+              className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8"
+              variants={ANIMATION_VARIANTS.item}
+            >
+              <div className="space-y-2">
+                <h1 className="text-4xl font-bold text-background tracking-tight">
+                  {requestType === 'leave' ? 'Leave Requests' : 'Attendance Requests'}
+                </h1>
+                <p className="text-background/70">
+                  Manage and track all {requestType} requests in one place
+                </p>
+              </div>
 
-            <div className="mb-6 flex flex-col sm:flex-row gap-4">
+              <div className="flex gap-4">
+                <Select 
+                  value={requestType} 
+                  onValueChange={setRequestType}
+                  className="min-w-[200px]"
+                >
+                  <SelectTrigger className="bg-background/5 border-background/10 text-background">
+                    <SelectValue placeholder="Select request type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="leave">Leave Requests</SelectItem>
+                    <SelectItem value="attendance">Attendance Requests</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <motion.div
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <Button
+                    onClick={() => openModal()}
+                    className="bg-background text-foreground hover:bg-background/90 transition-all duration-200 shadow-lg hover:shadow-background/20"
+                  >
+                    <Plus className="w-5 h-5 mr-2" />
+                    New Request
+                  </Button>
+                </motion.div>
+              </div>
+            </motion.div>
+
+            {/* Search Section */}
+            <motion.div 
+              className="mb-6 flex flex-col sm:flex-row gap-4"
+              variants={ANIMATION_VARIANTS.item}
+            >
               <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-background/40 w-4 h-4" />
                 <Input
                   placeholder="Search requests..."
-                  className="pl-10"
+                  className="pl-10 bg-background/5 border-background/10 text-background placeholder:text-background/40 w-full"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -306,80 +390,151 @@ const RequestManagement = () => {
               <Button
                 variant="outline"
                 onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+                className="border-background/10 text-foreground hover:bg-background/5"
               >
                 Sort
-                <ChevronDown className={`ml-2 h-4 w-4 transform transition-transform ${
-                  sortOrder === "desc" ? "rotate-180" : ""
-                }`} />
+                <ChevronDown 
+                  className={`ml-2 h-4 w-4 transform transition-transform ${
+                    sortOrder === "desc" ? "rotate-180" : ""
+                  }`}
+                />
               </Button>
-            </div>
+            </motion.div>
 
+            {/* Table Section */}
             {isLoading ? (
               <div className="flex justify-center items-center h-64">
-                <LoadingSpinner />
+                <LoadingSpinner 
+                  variant="pulse"
+                  size="large"
+                  text="Processing..."
+                  fullscreen={true}
+                />
               </div>
             ) : (
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      {columns.map((column) => (
-                        <TableHead key={column.key}>{column.header}</TableHead>
-                      ))}
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {data.map((item) => (
-                      <TableRow key={item._id}>
+              <motion.div
+                variants={ANIMATION_VARIANTS.container}
+                className="relative overflow-hidden rounded-lg border border-background/10"
+              >
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="border-background/10 bg-background/5">
                         {columns.map((column) => (
-                          <TableCell key={`${item._id}-${column.key}`}>
-                            {item[column.key]}
-                          </TableCell>
+                          <TableHead 
+                            key={column.key}
+                            className="text-background font-medium py-5 px-6"
+                          >
+                            {column.header}
+                          </TableHead>
                         ))}
-                        <TableCell>
-                          <Button variant="ghost" onClick={() => openModal(item)}>
-                            Edit
-                          </Button>
-                        </TableCell>
+                        <TableHead className="text-background font-medium py-5 px-6">
+                          Actions
+                        </TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
+                    </TableHeader>
+                    <TableBody>
+                      <AnimatePresence>
+                        {currentData.map((item) => (
+                          <motion.tr
+                            key={item._id}
+                            variants={ANIMATION_VARIANTS.item}
+                            initial="hidden"
+                            animate="visible"
+                            exit="hidden"
+                            className="border-background/10 hover:bg-background/5 transition-colors"
+                          >
+                            {columns.map((column) => (
+                              <TableCell 
+                                key={`${item._id}-${column.key}`}
+                                className="py-4 px-6 text-background"
+                              >
+                                {item[column.key]}
+                              </TableCell>
+                            ))}
+                            <TableCell className="py-4 px-6">
+                              <div className="flex gap-4">
+                                <motion.button
+                                  whileHover={{ scale: 1.1 }}
+                                  whileTap={{ scale: 0.9 }}
+                                  onClick={() => openModal(item)}
+                                  className="text-blue-400 hover:text-blue-300 transition-colors"
+                                >
+                                  <Edit className="w-5 h-5" />
+                                </motion.button>
+                                <motion.button
+                                  whileHover={{ scale: 1.1 }}
+                                  whileTap={{ scale: 0.9 }}
+                                  onClick={() => onDelete(item._id)}
+                                  className="text-red-400 hover:text-red-300 transition-colors"
+                                >
+                                  <Trash2 className="w-5 h-5" />
+                                </motion.button>
+                              </div>
+                            </TableCell>
+                          </motion.tr>
+                        ))}
+                      </AnimatePresence>
+                    </TableBody>
+                  </Table>
+                </div>
+
+                {/* Pagination */}
+                {sortedData.length > 0 && (
+                  <div className="mt-4 py-4 border-t border-background/10">
+                    <Pagination>
+                      <PaginationContent className="text-background">
+                        <PaginationItem>
+                          <PaginationPrevious
+                            className={`text-background ${currentPage === 1 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-background/10'}`}
+                            onClick={() => currentPage > 1 && handlePageChange(currentPage - 1)}
+                          />
+                        </PaginationItem>
+                        
+                        {generatePaginationItems().map((item, index) => (
+                          <PaginationItem key={index}>
+                            {item === 'ellipsis' ? (
+                              <PaginationEllipsis className="text-background" />
+                            ) : (
+                              <PaginationLink
+                                className={`text-background ${currentPage === item ? 'bg-background/20' : 'hover:bg-background/10'}`}
+                                onClick={() => handlePageChange(item)}
+                                isActive={currentPage === item}
+                              >
+                                {item}
+                              </PaginationLink>
+                            )}
+                          </PaginationItem>
+                        ))}
+
+                        <PaginationItem>
+                          <PaginationNext
+                            className={`text-background ${currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : 'hover:bg-background/10'}`}
+                            onClick={() => currentPage < totalPages && handlePageChange(currentPage + 1)}
+                          />
+                        </PaginationItem>
+                      </PaginationContent>
+                    </Pagination>
+                  </div>
+                )}
+              </motion.div>
             )}
 
-            {data.length > 0 && (
-              <div className="mt-4 flex justify-center">
-                <Pagination>
-                  <PaginationContent>
-                    <PaginationItem>
-                      <PaginationPrevious onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1} />
-                    </PaginationItem>
-                    {generatePaginationItems().map((item, index) => (
-                      <PaginationItem key={index}>
-                        {item === 'ellipsis' ? (
-                          <PaginationEllipsis />
-                        ) : (
-                          <PaginationLink
-                            onClick={() => handlePageChange(item)}
-                            isActive={currentPage === item}
-                          >
-                            {item}
-                          </PaginationLink>
-                        )}
-                      </PaginationItem>
-                    ))}
-                    <PaginationItem>
-                      <PaginationNext onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === Math.ceil(data.length / 10)} />
-                    </PaginationItem>
-                  </PaginationContent>
-                </Pagination>
-              </div>
+            {/* Empty State */}
+            {!isLoading && sortedData.length === 0 && (
+              <motion.div 
+                variants={ANIMATION_VARIANTS.item}
+                className="text-center py-12"
+              >
+                <p className="text-background/40 text-lg">
+                  {searchTerm ? 'No requests found matching your search' : 'No requests added yet'}
+                </p>
+              </motion.div>
             )}
           </CardContent>
         </Card>
 
+        {/* Modal */}
         <AnimatePresence>
           {isModalOpen && (
             <Modal onClose={closeModal}>
