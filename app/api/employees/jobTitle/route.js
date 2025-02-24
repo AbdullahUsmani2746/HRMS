@@ -1,7 +1,6 @@
-import { NextResponse } from 'next/server';
-import connectDB from '@/utils/dbConnect';
 import JobTitle from '@/models/Employee/job_title.models';
-import Department from '@/models/Employee/department.models';
+import connectDB from '@/utils/dbConnect';
+import { NextResponse } from 'next/server';
 
 export async function GET(request) {
   await connectDB();
