@@ -18,6 +18,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { useToast } from "@/hooks/use-toast";
+import { useSession } from 'next-auth/react';
 
 const ANIMATION_VARIANTS = {
   container: {
@@ -71,12 +72,12 @@ const RequestApprovalModal = ({ request, onClose, onApprove, onReject }) => {
               <div className="grid grid-cols-2 gap-4">
                 <motion.div variants={ANIMATION_VARIANTS.item}>
                   <label className="text-sm text-background/60">Employee</label>
-                  <p className="mt-1 text-background">{request.employee.name}</p>
+                  <p className="mt-1 text-background">{request.employeeId}</p>
                 </motion.div>
-                <motion.div variants={ANIMATION_VARIANTS.item}>
+                {/* <motion.div variants={ANIMATION_VARIANTS.item}>
                   <label className="text-sm text-background/60">Department</label>
                   <p className="mt-1 text-background">{request.employee.department}</p>
-                </motion.div>
+                </motion.div> */}
                 {request.type === 'leave' ? (
                   <>
                     <motion.div variants={ANIMATION_VARIANTS.item}>
@@ -96,7 +97,7 @@ const RequestApprovalModal = ({ request, onClose, onApprove, onReject }) => {
                     <motion.div variants={ANIMATION_VARIANTS.item}>
                       <label className="text-sm text-background/60">Date</label>
                       <p className="mt-1 text-background">
-                        {format(new Date(request.date), "MMM dd, yyyy")}
+                        {format(new Date(request.startDate), "MMM dd, yyyy")}
                       </p>
                     </motion.div>
                     <motion.div variants={ANIMATION_VARIANTS.item}>
@@ -142,6 +143,8 @@ const RequestApprovalModal = ({ request, onClose, onApprove, onReject }) => {
 
 const RequestApprovalDashboard = () => {
   const { toast } = useToast();
+  const {data: session} = useSession();
+  const employeeId = session?.user?.username;
   const [activeTab, setActiveTab] = useState("leave");
   const [requests, setRequests] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -156,15 +159,15 @@ const RequestApprovalDashboard = () => {
 
   const columns = {
     leave: [
-      { key: "employee.name", header: "Employee" },
+      { key: "employeeId", header: "Employee" },
       { key: "leaveType", header: "Leave Type" },
       { key: "startDate", header: "Start Date" },
       { key: "endDate", header: "End Date" },
       { key: "status", header: "Status" }
     ],
     attendance: [
-      { key: "employee.name", header: "Employee" },
-      { key: "date", header: "Date" },
+      { key: "employeeId", header: "Employee" },
+      { key: "startDate", header: "Date" },
       { key: "checkIn", header: "Check In" },
       { key: "checkOut", header: "Check Out" },
       { key: "status", header: "Status" }
@@ -178,11 +181,11 @@ const RequestApprovalDashboard = () => {
   const fetchRequests = async () => {
     setIsLoading(true);
     try {
-      const response = await axios.get('/api/manager/requests', {
+      const response = await axios.get(`/api/users/request`, {
         params: {
           type: activeTab,
-          page: currentPage,
-          status: filterStatus
+          status: filterStatus,
+          employerId: "CLIENT-"+employeeId.split("-")[0]
         }
       });
       setRequests(response.data);
@@ -356,7 +359,9 @@ const RequestApprovalDashboard = () => {
                       </TableHeader>
                       <TableBody>
                         <AnimatePresence>
-{requests.map((request) => (
+                            {requests
+                            .filter(item => item.type === activeTab)
+                            .map((request) => (
                             <motion.tr
                               key={request._id}
                               variants={ANIMATION_VARIANTS.item}
@@ -383,7 +388,7 @@ const RequestApprovalDashboard = () => {
                                   variant="outline"
                                   size="sm"
                                   onClick={() => handleViewRequest(request)}
-                                  className="flex items-center text-background hover:bg-background/10"
+                                  className="flex items-center text-foreground hover:bg-background/10"
                                 >
                                   <MessageSquare className="w-4 h-4 mr-2" />
                                   View

@@ -115,13 +115,13 @@ const data = {
       isActive: true,
     },
     {
-      title: "Employee Managemnt",
+      title: "Employee Management",
       url: "#",
       icon: Users,
       isActive: false,
       items:[
         {
-          title: "Employee",
+          title: "Employee Onboarding",
           url: "/client/employee",
           icon: Locate,
           isActive: true,
@@ -160,12 +160,7 @@ const data = {
     isActive: false,
     items:[
 
-    {
-      title: "Pay Schedule",
-      url: "/client/schedule",
-      icon: CalendarCheckIcon,
-      isActive: true,
-    },
+   
     {
       title: "Manager",
       url: "/client/manager",
@@ -178,12 +173,7 @@ const data = {
       icon: BriefcaseBusiness,
       isActive: true,
     },
-    {
-      title: "Periodic Attendance",
-      url: "/client/attendance",
-      icon: Clipboard,
-      isActive: true,
-    },
+    
    
     { 
       title: "Allowances",
@@ -205,6 +195,13 @@ const data = {
       isActive: true,
     },
   ]
+},
+
+{
+  title: "Time Entry Management",
+  url: "/client/attendance",
+  icon: Clipboard,
+  isActive: true,
 },
     
 
@@ -307,7 +304,7 @@ export function AppSidebar({ userType = "client", ...props }) {
         isActive: true,
       },
       {
-        title: "Approvals",
+        title: "Attendance Approvals",
         url: "/employee/approvals",  // Link to the approval page
         icon: BriefcaseBusiness,     // Example icon, can be customized
         isActive: true,

@@ -1,23 +1,56 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-import { Calendar as CalendarIcon, Edit, Trash2, Plus, Search, ChevronDown } from "lucide-react";
+import {
+  Calendar as CalendarIcon,
+  Edit,
+  Trash2,
+  Plus,
+  Search,
+  ChevronDown,
+} from "lucide-react";
 import { format } from "date-fns";
-import axios from 'axios';
+import axios from "axios";
 import LoadingSpinner from "@/components/spinner";
-import { Button } from '@/components/ui/button';
-import Modal from '@/components/Modal';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Button } from "@/components/ui/button";
+import Modal from "@/components/Modal";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import Header from "@/components/breadcumb";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Calendar } from "@/components/ui/calendar";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { useSession } from "next-auth/react";
 
 const ANIMATION_VARIANTS = {
   container: {
@@ -27,49 +60,48 @@ const ANIMATION_VARIANTS = {
       transition: {
         duration: 0.3,
         when: "beforeChildren",
-        staggerChildren: 0.1
-      }
-    }
+        staggerChildren: 0.1,
+      },
+    },
   },
   item: {
     hidden: { y: 20, opacity: 0 },
     visible: {
       y: 0,
       opacity: 1,
-      transition: { type: "spring", stiffness: 300, damping: 24 }
-    }
-  }
+      transition: { type: "spring", stiffness: 300, damping: 24 },
+    },
+  },
 };
 
-
-
-
-const RequestForm = ({ type, onClose, existingData }) => {
+const RequestForm = ({ type, onClose, existingData, employeeId }) => {
   const [formData, setFormData] = useState({
     type: type,
+    employeeId: employeeId,
+    employerId: `CLIENT-${employeeId.split("-")[0]}`,
     startDate: existingData?.startDate || null,
     endDate: existingData?.endDate || null,
-    reason: existingData?.reason || '',
-    leaveType: existingData?.leaveType || 'annual',
-    checkIn: existingData?.checkIn || '',
-    checkOut: existingData?.checkOut || '',
-    status: 'Pending'
+    reason: existingData?.reason || "",
+    leaveType: existingData?.leaveType || "annual",
+    checkIn: existingData?.checkIn || "",
+    checkOut: existingData?.checkOut || "",
+    status: "Pending",
   });
 
   const leaveTypes = [
-    { value: 'annual', label: 'Annual Leave' },
-    { value: 'sick', label: 'Sick Leave' },
-    { value: 'emergency', label: 'Emergency Leave' },
-    { value: 'unpaid', label: 'Unpaid Leave' }
+    { value: "annual", label: "Annual Leave" },
+    { value: "sick", label: "Sick Leave" },
+    { value: "emergency", label: "Emergency Leave" },
+    { value: "unpaid", label: "Unpaid Leave" },
   ];
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('/api/requests', formData);
+      await axios.post(`/api/users/request/${employeeId}`, formData);
       onClose();
     } catch (error) {
-      console.error('Error submitting request:', error);
+      console.error("Error submitting request:", error);
     }
   };
 
@@ -84,7 +116,7 @@ const RequestForm = ({ type, onClose, existingData }) => {
       <Card className="bg-foreground border-white/10 shadow-xl">
         <CardHeader className="pb-4">
           <CardTitle className="text-2xl font-bold text-background">
-            {type === 'leave' ? 'Leave Request' : 'Attendance Correction'}
+            {type === "leave" ? "Leave Request" : "Attendance Correction"}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -93,18 +125,22 @@ const RequestForm = ({ type, onClose, existingData }) => {
               variants={ANIMATION_VARIANTS.item}
               className="space-y-4 p-4 rounded-lg bg-background/5 border border-background/10"
             >
-              {type === 'leave' && (
+              {type === "leave" && (
                 <motion.div variants={ANIMATION_VARIANTS.item}>
-                  <label className="text-sm text-background/60">Leave Type</label>
-                  <Select 
+                  <label className="text-sm text-background/60">
+                    Leave Type
+                  </label>
+                  <Select
                     value={formData.leaveType}
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, leaveType: value }))}
+                    onValueChange={(value) =>
+                      setFormData((prev) => ({ ...prev, leaveType: value }))
+                    }
                   >
                     <SelectTrigger className="bg-background/5 border-background/10 text-background">
                       <SelectValue placeholder="Select leave type" />
                     </SelectTrigger>
                     <SelectContent>
-                      {leaveTypes.map(type => (
+                      {leaveTypes.map((type) => (
                         <SelectItem key={type.value} value={type.value}>
                           {type.label}
                         </SelectItem>
@@ -116,37 +152,42 @@ const RequestForm = ({ type, onClose, existingData }) => {
 
               <motion.div variants={ANIMATION_VARIANTS.item}>
                 <label className="text-sm text-background/60">
-                  {type === 'leave' ? 'Leave Duration' : 'Date'}
+                  {type === "leave" ? "Leave Duration" : "Date"}
                 </label>
                 <Popover>
                   <PopoverTrigger asChild>
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       className="w-full justify-start mt-2 bg-background/5 border-background/10 text-background hover:bg-background/10"
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {formData.startDate ? (
-                        type === 'leave' && formData.endDate ? 
-                        `${format(formData.startDate, "MMM dd, yyyy")} - ${format(formData.endDate, "MMM dd, yyyy")}` :
-                        format(formData.startDate, "MMM dd, yyyy")
-                      ) : (
-                        "Select date"
-                      )}
+                      {formData.startDate
+                        ? type === "leave" && formData.endDate
+                          ? `${format(
+                              formData.startDate,
+                              "MMM dd, yyyy"
+                            )} - ${format(formData.endDate, "MMM dd, yyyy")}`
+                          : format(formData.startDate, "MMM dd, yyyy")
+                        : "Select date"}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0">
                     <Calendar
-                      mode={type === 'leave' ? "range" : "single"}
-                      selected={type === 'leave' ? { from: formData.startDate, to: formData.endDate } : formData.startDate}
+                      mode={type === "leave" ? "range" : "single"}
+                      selected={
+                        type === "leave"
+                          ? { from: formData.startDate, to: formData.endDate }
+                          : formData.startDate
+                      }
                       onSelect={(date) => {
-                        if (type === 'leave') {
-                          setFormData(prev => ({
+                        if (type === "leave") {
+                          setFormData((prev) => ({
                             ...prev,
                             startDate: date?.from || null,
-                            endDate: date?.to || null
+                            endDate: date?.to || null,
                           }));
                         } else {
-                          setFormData(prev => ({ ...prev, startDate: date }));
+                          setFormData((prev) => ({ ...prev, startDate: date }));
                         }
                       }}
                     />
@@ -154,26 +195,40 @@ const RequestForm = ({ type, onClose, existingData }) => {
                 </Popover>
               </motion.div>
 
-              {type === 'attendance' && (
-                <motion.div 
+              {type === "attendance" && (
+                <motion.div
                   variants={ANIMATION_VARIANTS.item}
                   className="grid grid-cols-2 gap-4"
                 >
                   <div>
-                    <label className="text-sm text-background/60">Check In</label>
+                    <label className="text-sm text-background/60">
+                      Check In
+                    </label>
                     <Input
                       type="time"
                       value={formData.checkIn}
-                      onChange={(e) => setFormData(prev => ({ ...prev, checkIn: e.target.value }))}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          checkIn: e.target.value,
+                        }))
+                      }
                       className="mt-2 bg-background/5 border-background/10 text-background"
                     />
                   </div>
                   <div>
-                    <label className="text-sm text-background/60">Check Out</label>
+                    <label className="text-sm text-background/60">
+                      Check Out
+                    </label>
                     <Input
                       type="time"
                       value={formData.checkOut}
-                      onChange={(e) => setFormData(prev => ({ ...prev, checkOut: e.target.value }))}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          checkOut: e.target.value,
+                        }))
+                      }
                       className="mt-2 bg-background/5 border-background/10 text-background"
                     />
                   </div>
@@ -184,7 +239,9 @@ const RequestForm = ({ type, onClose, existingData }) => {
                 <label className="text-sm text-background/60">Reason</label>
                 <Textarea
                   value={formData.reason}
-                  onChange={(e) => setFormData(prev => ({ ...prev, reason: e.target.value }))}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, reason: e.target.value }))
+                  }
                   placeholder="Enter your reason here..."
                   className="mt-2 min-h-[100px] bg-background/5 border-background/10 text-background placeholder:text-background/40"
                 />
@@ -192,15 +249,15 @@ const RequestForm = ({ type, onClose, existingData }) => {
             </motion.div>
 
             <div className="flex justify-end gap-2 pt-4 border-t border-background/10">
-              <Button 
-                type="button" 
-                variant="outline" 
+              <Button
+                type="button"
+                variant="outline"
                 onClick={onClose}
                 className="border-background/10 text-foreground hover:bg-background/5"
               >
                 Cancel
               </Button>
-              <Button 
+              <Button
                 type="submit"
                 className="bg-background text-foreground hover:bg-background/90"
               >
@@ -215,9 +272,11 @@ const RequestForm = ({ type, onClose, existingData }) => {
 };
 
 const RequestManagement = () => {
+  const { data: session } = useSession();
+  const employeeId = session?.user?.username;
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedData, setSelectedData] = useState(null);
-  const [requestType, setRequestType] = useState('leave');
+  const [requestType, setRequestType] = useState("leave");
   const [searchTerm, setSearchTerm] = useState("");
   const [sortOrder, setSortOrder] = useState("asc");
   const [currentPage, setCurrentPage] = useState(1);
@@ -225,19 +284,22 @@ const RequestManagement = () => {
   const [isLoading, setIsLoading] = useState(false);
   const itemsPerPage = 5;
 
-  const columns = requestType === 'leave' ? [
-    { key: 'leaveType', header: 'Leave Type' },
-    { key: 'startDate', header: 'Start Date' },
-    { key: 'endDate', header: 'End Date' },
-    { key: 'reason', header: 'Reason' },
-    { key: 'status', header: 'Status' }
-  ] : [
-    { key: 'date', header: 'Date' },
-    { key: 'checkIn', header: 'Check In' },
-    { key: 'checkOut', header: 'Check Out' },
-    { key: 'reason', header: 'Reason' },
-    { key: 'status', header: 'Status' }
-  ];
+  const columns =
+    requestType === "leave"
+      ? [
+          { key: "leaveType", header: "Leave Type" },
+          { key: "startDate", header: "Start Date" },
+          { key: "endDate", header: "End Date" },
+          { key: "reason", header: "Reason" },
+          { key: "status", header: "Status" },
+        ]
+      : [
+          { key: "startDate", header: "Date" },
+          { key: "checkIn", header: "Check In" },
+          { key: "checkOut", header: "Check Out" },
+          { key: "reason", header: "Reason" },
+          { key: "status", header: "Status" },
+        ];
 
   useEffect(() => {
     fetchRequests();
@@ -246,18 +308,21 @@ const RequestManagement = () => {
   const fetchRequests = async () => {
     setIsLoading(true);
     try {
-      const response = await axios.get(`/api/requests?type=${requestType}&page=${currentPage}`);
+      const response = await axios.get(
+        `/api/users/request/${employeeId}?type=${requestType}`
+      );
       setData(response.data);
     } catch (error) {
-      console.error('Error fetching requests:', error);
+      console.error("Error fetching requests:", error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const filteredData = data.filter(item =>
-    item.reason?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.status?.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredData = data.filter(
+    (item) =>
+      item.reason?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.status?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const sortedData = [...filteredData].sort((a, b) => {
@@ -291,7 +356,7 @@ const RequestManagement = () => {
   const generatePaginationItems = () => {
     const items = [];
     const maxVisiblePages = 5;
-    
+
     if (totalPages <= maxVisiblePages) {
       for (let i = 1; i <= totalPages; i++) {
         items.push(i);
@@ -299,19 +364,19 @@ const RequestManagement = () => {
     } else {
       if (currentPage <= 3) {
         for (let i = 1; i <= 3; i++) items.push(i);
-        items.push('ellipsis');
+        items.push("ellipsis");
         items.push(totalPages);
       } else if (currentPage >= totalPages - 2) {
         items.push(1);
-        items.push('ellipsis');
+        items.push("ellipsis");
         for (let i = totalPages - 2; i <= totalPages; i++) items.push(i);
       } else {
         items.push(1);
-        items.push('ellipsis');
+        items.push("ellipsis");
         items.push(currentPage - 1);
         items.push(currentPage);
         items.push(currentPage + 1);
-        items.push('ellipsis');
+        items.push("ellipsis");
         items.push(totalPages);
       }
     }
@@ -320,8 +385,12 @@ const RequestManagement = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header heading={requestType === 'leave' ? 'Leave Requests' : 'Attendance Requests'} />
-      <motion.div 
+      <Header
+        heading={
+          requestType === "leave" ? "Leave Requests" : "Attendance Requests"
+        }
+      />
+      <motion.div
         className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8"
         variants={ANIMATION_VARIANTS.container}
         initial="hidden"
@@ -330,13 +399,15 @@ const RequestManagement = () => {
         <Card className="bg-foreground border-white/10 shadow-xl">
           <CardContent className="p-8">
             {/* Header Section */}
-            <motion.div 
+            <motion.div
               className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8"
               variants={ANIMATION_VARIANTS.item}
             >
               <div className="space-y-2">
                 <h1 className="text-4xl font-bold text-background tracking-tight">
-                  {requestType === 'leave' ? 'Leave Requests' : 'Attendance Requests'}
+                  {requestType === "leave"
+                    ? "Leave Requests"
+                    : "Attendance Requests"}
                 </h1>
                 <p className="text-background/70">
                   Manage and track all {requestType} requests in one place
@@ -344,8 +415,8 @@ const RequestManagement = () => {
               </div>
 
               <div className="flex gap-4">
-                <Select 
-                  value={requestType} 
+                <Select
+                  value={requestType}
                   onValueChange={setRequestType}
                   className="min-w-[200px]"
                 >
@@ -354,7 +425,9 @@ const RequestManagement = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="leave">Leave Requests</SelectItem>
-                    <SelectItem value="attendance">Attendance Requests</SelectItem>
+                    <SelectItem value="attendance">
+                      Attendance Requests
+                    </SelectItem>
                   </SelectContent>
                 </Select>
 
@@ -374,7 +447,7 @@ const RequestManagement = () => {
             </motion.div>
 
             {/* Search Section */}
-            <motion.div 
+            <motion.div
               className="mb-6 flex flex-col sm:flex-row gap-4"
               variants={ANIMATION_VARIANTS.item}
             >
@@ -389,11 +462,13 @@ const RequestManagement = () => {
               </div>
               <Button
                 variant="outline"
-                onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+                onClick={() =>
+                  setSortOrder(sortOrder === "asc" ? "desc" : "asc")
+                }
                 className="border-background/10 text-foreground hover:bg-background/5"
               >
                 Sort
-                <ChevronDown 
+                <ChevronDown
                   className={`ml-2 h-4 w-4 transform transition-transform ${
                     sortOrder === "desc" ? "rotate-180" : ""
                   }`}
@@ -404,7 +479,7 @@ const RequestManagement = () => {
             {/* Table Section */}
             {isLoading ? (
               <div className="flex justify-center items-center h-64">
-                <LoadingSpinner 
+                <LoadingSpinner
                   variant="pulse"
                   size="large"
                   text="Processing..."
@@ -421,7 +496,7 @@ const RequestManagement = () => {
                     <TableHeader>
                       <TableRow className="border-background/10 bg-background/5">
                         {columns.map((column) => (
-                          <TableHead 
+                          <TableHead
                             key={column.key}
                             className="text-background font-medium py-5 px-6"
                           >
@@ -435,7 +510,9 @@ const RequestManagement = () => {
                     </TableHeader>
                     <TableBody>
                       <AnimatePresence>
-                        {currentData.map((item) => (
+                        {currentData
+                        .filter(item => item.type === requestType)
+                        .map((item) => (
                           <motion.tr
                             key={item._id}
                             variants={ANIMATION_VARIANTS.item}
@@ -445,12 +522,12 @@ const RequestManagement = () => {
                             className="border-background/10 hover:bg-background/5 transition-colors"
                           >
                             {columns.map((column) => (
-                              <TableCell 
-                                key={`${item._id}-${column.key}`}
-                                className="py-4 px-6 text-background"
-                              >
-                                {item[column.key]}
-                              </TableCell>
+                            <TableCell key={`${item._id}-${column.key}`} className="py-4 px-6 text-background">
+                            {["Date", "Start Date", "End Date"].includes(column.header)
+                              ? format(new Date(item[column.key]), "MMM dd, yyyy")
+                              : item[column.key]}
+                          </TableCell>
+                            
                             ))}
                             <TableCell className="py-4 px-6">
                               <div className="flex gap-4">
@@ -486,18 +563,29 @@ const RequestManagement = () => {
                       <PaginationContent className="text-background">
                         <PaginationItem>
                           <PaginationPrevious
-                            className={`text-background ${currentPage === 1 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-background/10'}`}
-                            onClick={() => currentPage > 1 && handlePageChange(currentPage - 1)}
+                            className={`text-background ${
+                              currentPage === 1
+                                ? "opacity-50 cursor-not-allowed"
+                                : "hover:bg-background/10"
+                            }`}
+                            onClick={() =>
+                              currentPage > 1 &&
+                              handlePageChange(currentPage - 1)
+                            }
                           />
                         </PaginationItem>
-                        
+
                         {generatePaginationItems().map((item, index) => (
                           <PaginationItem key={index}>
-                            {item === 'ellipsis' ? (
+                            {item === "ellipsis" ? (
                               <PaginationEllipsis className="text-background" />
                             ) : (
                               <PaginationLink
-                                className={`text-background ${currentPage === item ? 'bg-background/20' : 'hover:bg-background/10'}`}
+                                className={`text-background ${
+                                  currentPage === item
+                                    ? "bg-background/20"
+                                    : "hover:bg-background/10"
+                                }`}
                                 onClick={() => handlePageChange(item)}
                                 isActive={currentPage === item}
                               >
@@ -509,8 +597,15 @@ const RequestManagement = () => {
 
                         <PaginationItem>
                           <PaginationNext
-                            className={`text-background ${currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : 'hover:bg-background/10'}`}
-                            onClick={() => currentPage < totalPages && handlePageChange(currentPage + 1)}
+                            className={`text-background ${
+                              currentPage === totalPages
+                                ? "opacity-50 cursor-not-allowed"
+                                : "hover:bg-background/10"
+                            }`}
+                            onClick={() =>
+                              currentPage < totalPages &&
+                              handlePageChange(currentPage + 1)
+                            }
                           />
                         </PaginationItem>
                       </PaginationContent>
@@ -522,12 +617,14 @@ const RequestManagement = () => {
 
             {/* Empty State */}
             {!isLoading && sortedData.length === 0 && (
-              <motion.div 
+              <motion.div
                 variants={ANIMATION_VARIANTS.item}
                 className="text-center py-12"
               >
                 <p className="text-background/40 text-lg">
-                  {searchTerm ? 'No requests found matching your search' : 'No requests added yet'}
+                  {searchTerm
+                    ? "No requests found matching your search"
+                    : "No requests added yet"}
                 </p>
               </motion.div>
             )}
@@ -542,6 +639,7 @@ const RequestManagement = () => {
                 type={requestType}
                 existingData={selectedData}
                 onClose={closeModal}
+                employeeId={employeeId}
               />
             </Modal>
           )}

@@ -41,6 +41,7 @@ import {
 
 import axios from "axios";
 import { useSession } from "next-auth/react";
+import Header from "@/components/breadcumb";
 
 // Status Icon Component
 const StatusIcon = ({ status }) => {
@@ -62,19 +63,27 @@ const AttendanceStatsCard = ({ data }) => {
       totalLeaves: 0
     };
 
+
+
     return {
       totalHoursWorked: data.reduce((sum, record) => sum + parseFloat(record.totalWorkingHours), 0),
       averageBreakHours: data.reduce((sum, record) => sum + parseFloat(record.totalBreakHours), 0) / data.length,
-      totalLeaves: data.reduce((sum, record) => sum + parseInt(record.leaves), 0)
+      totalLeaves: data.reduce((sum, record) => parseInt(sum) + parseInt(record.leaves === "" ? 0 : record.leaves), 0),
+
     };
   }, [data]);
 
+  console.log(calculateStats)
+
+
   return (
-    <motion.div 
+        <motion.div 
       className="bg-card rounded-xl shadow-md p-6 space-y-4"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
     >
+
+
       <h3 className="text-xl font-semibold text-primary flex items-center gap-2">
         <Clock className="w-6 h-6" /> Attendance Overview
       </h3>
@@ -168,7 +177,7 @@ const PeriodicAttendanceComponent = () => {
       const { from, to } = newAttendance.dateRange;
   
       // Format the date range as "1 Dec to 29 Dec"
-      const formattedDateRange = `${format(new Date(from), "d MMM")} to ${format(new Date(to), "d MMM")}`;
+      const formattedDateRange = `${new Date(from)} to ${new Date(to)}`;
   
       // Prepare the payload
       const attendancePayload = {
@@ -188,7 +197,7 @@ const PeriodicAttendanceComponent = () => {
       console.log("Attendance added successfully:", response.data);
   
       // Optional: Fetch updated attendance data
-      handleFetchAttendance();
+      // handleFetchAttendance();
   
       // Close modal and reset form
       closeModal();
@@ -271,11 +280,16 @@ const PeriodicAttendanceComponent = () => {
   text="Processing..."
   fullscreen={true}
 />        ) : (
+  <>
+  <Header heading="Time Entry Management"/>
+
     <motion.div 
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       className="min-h-screen bg-background text-foreground p-8"
     >
+
+      
       <div className="max-w-7xl mx-auto">
         {/* Header Section */}
         <motion.div 
@@ -285,7 +299,7 @@ const PeriodicAttendanceComponent = () => {
         >
           <div>
             <h1 className="text-4xl font-extrabold text-primary mb-2">
-              Periodic Attendance
+              Time Entry Management
             </h1>
             <p className="text-muted-foreground">
               Comprehensive overview of employee attendance and working hours
@@ -295,7 +309,7 @@ const PeriodicAttendanceComponent = () => {
             onClick={() => setModalOpen(true)} 
             className="bg-primary text-primary-foreground hover:bg-primary/90"
           >
-            Add Attendance
+            Add Attendance Time
           </Button>
         </motion.div>
 
@@ -412,7 +426,7 @@ const PeriodicAttendanceComponent = () => {
           <table className="w-full">
             <thead className="bg-muted/50">
               <tr>
-                {["Date Range", "Hours Worked", "Break Hours", "Leaves", "Status"].map((header) => (
+                {["Employee ID","Date Range", "Hours Worked", "Break Hours", "Leaves", "Status"].map((header) => (
                   <th 
                     key={header} 
                     className="px-6 py-4 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider"
@@ -436,9 +450,16 @@ const PeriodicAttendanceComponent = () => {
                     }}
                     className="border-b hover:bg-muted/30 transition-colors"
                   >
+
+                    <td className="px-6 py-4 text-sm">
+                      <div className="text-muted-foreground">
+                        {record.employeeId}
+                      </div>
+                    </td>
                     <td className="px-6 py-4 text-sm">
                       <div className="font-medium text-foreground">
-                        {record.dateRange}
+                        {`${new Date(record.dateRange.split(" to ")[0]).toLocaleDateString()} to
+                        ${new Date(record.dateRange.split(" to ")[1]).toLocaleDateString()} `}
                       </div>
                     </td>
                     <td className="px-6 py-4 text-sm">
@@ -478,7 +499,7 @@ const PeriodicAttendanceComponent = () => {
         </motion.div>
       </div>
     </motion.div>
-      )}
+      </>)}
       {/* Add Attendance Modal */}
       {modalOpen && (
                 <Modal onClose={closeModal}>

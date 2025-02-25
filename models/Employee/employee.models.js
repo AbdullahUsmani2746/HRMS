@@ -64,11 +64,6 @@ const EmployeeSchema = new mongoose.Schema({
     required: true,
     maxlength: 25,
   },
-  paySchedule: {
-    type: String,
-    required: true,
-    maxlength: 25,
-  },
   workLocation: {
     type: String,
     required: true,
@@ -105,17 +100,17 @@ const EmployeeSchema = new mongoose.Schema({
   },
   bankName: {
     type: String,
-    required: true,
+    required: function() { return this.paymentMethod === ('DIRECT DEPOSIT' || 'CHEQUE'); },
     maxlength: 25,
   },
   accountName: {
     type: String,
-    required: true,
+    required: function() { return this.paymentMethod === ('DIRECT DEPOSIT' || 'CHEQUE'); },
     maxlength: 25,
   },
   accountNumber: {
     type: String,
-    required: true,
+    required: function() { return this.paymentMethod === ('DIRECT DEPOSIT' || 'CHEQUE'); },
     maxlength: 25,
   },
   payType: {
@@ -131,7 +126,7 @@ const EmployeeSchema = new mongoose.Schema({
   payFrequency: {
     type: String,
     required: true,
-    enum: ["YEAR", "MONTH", "WEEK"],
+    enum: ["Monthly", "Fortnightly", "Weekly"],
     maxlength: 25,
   },
   employeeType: {

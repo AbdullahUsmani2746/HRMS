@@ -40,7 +40,6 @@ const PayrollDashboard = () => {
   const { data: session } = useSession();
   const employerId = session?.user?.username || "TestEmployer";
   const [payrolls, setPayrolls] = useState([]);
-  const [schedules, setSchedules] = useState([]);
 
   const [empPayrolls, setEmpPayrolls] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -87,12 +86,10 @@ const PayrollDashboard = () => {
     try {
       setIsLoading(true);
       const response = await axios.get(`/api/payroll/payroll-process?employerId=${employerId}`);
-      const responseSchedules = await axios.get(`/api/employees/schedule?employerId=${employerId}`);
       
       
-      if (response.data.success && responseSchedules.data.success ) {
+      if (response.data.success ) {
         setPayrolls(response.data.data);
-        setSchedules(responseSchedules.data.data)
       }
     } catch (error) {
       setStatus({
@@ -393,10 +390,9 @@ const PayrollDashboard = () => {
                       const monthlyEquivalent = baseSalary ;
                       const payePeriodFactor = payPeriodDays / 30; // Adjust PAYE for pay period
           
-                      const Type = schedules.find((sch)=>sch._id===employee.paySchedule)
-                      console.log("type: ",Type)
+                     
                       // Calculate PAYE
-                      const annualPAYE = calculatePAYE(monthlyEquivalent, Type.pay_schedule) ;
+                      const annualPAYE = calculatePAYE(monthlyEquivalent, employee.payFrequency) ;
                       // const periodPAYE = (annualPAYE / 12) * payePeriodFactor;
                       const periodPAYE = annualPAYE ;
 
