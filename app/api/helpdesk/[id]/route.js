@@ -41,7 +41,6 @@ export async function POST(req) {
       newComplaintNumber = `TKT-${String(lastNumber + 1).padStart(3, "0")}`;
     }
 
-    // Naya ticket create karo
     const newTicket = new Ticket({
       ...body,
       complaintNumber: newComplaintNumber,
