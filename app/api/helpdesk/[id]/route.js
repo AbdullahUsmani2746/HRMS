@@ -1,6 +1,7 @@
-import { NextResponse } from "next/server";
-import connectDB from "@/utils/dbConnect";
 import Ticket from "@/models/Helpdesk/helpdesk.models";
+import connectDB from "@/utils/dbConnect";
+import mongoose from "mongoose";
+import { NextResponse } from "next/server";
 
 // Connect to the database
 await connectDB();
@@ -32,27 +33,46 @@ export async function POST(req) {
   try {
     const body = await req.json();
 
-    const lastTicket = await Ticket.findOne({}, {}, { sort: { createdAt: -1 } });
+    const session = await mongoose.startSession();
+    session.startTransaction();
 
-    let newComplaintNumber = "TKT-001"; // Default value
+    try {
+      const lastTicket = await Ticket.findOne().sort({ date: -1 }).session(session);
+      
+      let newComplaintNumber = "TKT-001"; // Default if no ticket exists
 
-    if (lastTicket && lastTicket.complaintNumber) {
-      const lastNumber = parseInt(lastTicket.complaintNumber.replace("TKT-", ""), 10);
-      newComplaintNumber = `TKT-${String(lastNumber + 1).padStart(3, "0")}`;
+      if (lastTicket) {
+        const lastNumber = parseInt(lastTicket.complaintNumber.split("-")[1], 10);
+        newComplaintNumber = `TKT-${String(lastNumber + 1).padStart(3, "0")}`;
+      }
+
+      const existingTicket = await Ticket.findOne({ complaintNumber: newComplaintNumber }).session(session);
+      if (existingTicket) {
+        throw new Error("Duplicate complaint number detected, retrying...");
+      }
+
+      const newTicket = new Ticket({
+        ...body,
+        complaintNumber: newComplaintNumber,
+      });
+
+      await newTicket.save({ session });
+
+      await session.commitTransaction();
+      session.endSession();
+
+      return NextResponse.json(newTicket, { status: 201 });
+    } catch (error) {
+      await session.abortTransaction();
+      session.endSession();
+      return NextResponse.json({ message: "Failed to create ticket.", error: error.message }, { status: 500 });
     }
-
-    const newTicket = new Ticket({
-      ...body,
-      complaintNumber: newComplaintNumber,
-    });
-
-    await newTicket.save();
-
-    return NextResponse.json(newTicket, { status: 201 });
   } catch (error) {
     return NextResponse.json({ message: "Failed to create ticket.", error: error.message }, { status: 500 });
   }
 }
+
+
 
 
 
