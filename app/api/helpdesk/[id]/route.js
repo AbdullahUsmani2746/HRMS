@@ -11,19 +11,29 @@ await connectDB();
  */
 export async function GET(req, { params }) {
   const { id } = params;
+
+  if (!id) {
+    return NextResponse.json({ message: "Employee ID is required." }, { status: 400 });
+  }
+
   try {
-    const tickets = await Ticket.find({ employeeId: id });
-    if (!tickets || tickets.length === 0) {
+    // Fetch only required fields
+    const tickets = await Ticket.find({ employeeId: id }).select("complaintNumber status");
+
+    if (!tickets.length) {
       return NextResponse.json({ message: "No tickets found." }, { status: 404 });
     }
+
     return NextResponse.json(tickets, { status: 200 });
   } catch (error) {
+    console.error("Error fetching tickets:", error); // Console log for debugging
     return NextResponse.json(
       { message: "Failed to fetch tickets.", error: error.message },
       { status: 500 }
     );
   }
 }
+
 
 /**
  * POST method to create a new ticket
