@@ -1,24 +1,20 @@
 "use client"
-import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
+import { AnimatePresence, motion } from "framer-motion";
 import {
-  Plus,
-  UserPlus,
+  Calendar,
+  ChevronRight,
   Clock,
   FileText,
   Mail,
-  Calendar,
-  ChevronRight,
-  Bell,
-  CheckCircle2,
-  AlertCircle
+  Plus,
+  UserPlus
 } from "lucide-react";
-import Image from "next/image";
-import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
 
 const Overview = () => {
   // State management

@@ -61,20 +61,20 @@ const DataManagementPage = ({
   pageTitle,
   pageDescription,
   addButtonText,
-  
+
   // Data Configuration
   columns,
   searchKeys = [], // Array of keys to search in
-  
+
   // Component to render in modal
   FormComponent,
-  
+
   // API Functions
   apiEndpoint,
   employerId,
   // onFetch,
   // onDelete,
-  
+
   // Optional configurations
   itemsPerPage = 5,
 }) => {
@@ -89,7 +89,7 @@ const DataManagementPage = ({
 
   useEffect(() => {
     onFetch(apiEndpoint, employerId, setData, setIsLoading);
-  }, [apiEndpoint,employerId]);
+  }, [apiEndpoint, employerId]);
 
   const onDelete = async (id) => {
     try {
@@ -114,7 +114,7 @@ const DataManagementPage = ({
 
   // Search and filter logic
   const filteredData = data.filter(item =>
-    searchKeys.some(key => 
+    searchKeys.some(key =>
       item[key]?.toString().toLowerCase().includes(searchTerm.toLowerCase())
     )
   );
@@ -140,7 +140,7 @@ const DataManagementPage = ({
   const generatePaginationItems = () => {
     const items = [];
     const maxVisiblePages = 5;
-    
+
     if (totalPages <= maxVisiblePages) {
       for (let i = 1; i <= totalPages; i++) {
         items.push(i);
@@ -170,7 +170,7 @@ const DataManagementPage = ({
   return (
     <div className="min-h-screen bg-background">
       <Header heading={pageTitle} />
-      <motion.div 
+      <motion.div
         className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8"
         variants={ANIMATION_VARIANTS.container}
         initial="hidden"
@@ -179,7 +179,7 @@ const DataManagementPage = ({
         <Card className="bg-foreground border-white/10 shadow-xl">
           <CardContent className="p-8">
             {/* Header Section */}
-            <motion.div 
+            <motion.div
               className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8"
               variants={ANIMATION_VARIANTS.item}
             >
@@ -206,7 +206,7 @@ const DataManagementPage = ({
             </motion.div>
 
             {/* Search Section */}
-            <motion.div 
+            <motion.div
               className="mb-6 flex flex-col sm:flex-row gap-4"
               variants={ANIMATION_VARIANTS.item}
             >
@@ -225,10 +225,9 @@ const DataManagementPage = ({
                 className="border-background/10 text-foreground hover:bg-background/5"
               >
                 Sort
-                <ChevronDown 
-                  className={`ml-2 h-4 w-4 transform transition-transform ${
-                    sortOrder === "desc" ? "rotate-180" : ""
-                  }`}
+                <ChevronDown
+                  className={`ml-2 h-4 w-4 transform transition-transform ${sortOrder === "desc" ? "rotate-180" : ""
+                    }`}
                 />
               </Button>
             </motion.div>
@@ -236,12 +235,12 @@ const DataManagementPage = ({
             {/* Table Section */}
             {isLoading ? (
               <div className="flex justify-center items-center h-64">
-<LoadingSpinner 
-  variant="pulse"
-  size="large"
-  text="Processing..."
-  fullscreen={true}
-/>              </div>
+                <LoadingSpinner
+                  variant="pulse"
+                  size="large"
+                  text="Processing..."
+                  fullscreen={true}
+                />              </div>
             ) : (
               <motion.div
                 variants={ANIMATION_VARIANTS.container}
@@ -252,7 +251,7 @@ const DataManagementPage = ({
                     <TableHeader>
                       <TableRow className="border-background/10 bg-background/5">
                         {columns.map((column) => (
-                          <TableHead 
+                          <TableHead
                             key={column.key}
                             className="text-background font-medium py-5 px-6"
                           >
@@ -260,9 +259,9 @@ const DataManagementPage = ({
                           </TableHead>
                         ))}
                         {pageTitle !== "Help Desk" &&
-                        <TableHead className="text-background font-medium py-5 px-6">
-                          Actions
-                        </TableHead>}
+                          <TableHead className="text-background font-medium py-5 px-6">
+                            Actions
+                          </TableHead>}
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -277,7 +276,7 @@ const DataManagementPage = ({
                             className="border-background/10 hover:bg-background/5 transition-colors"
                           >
                             {columns.map((column) => (
-                              <TableCell 
+                              <TableCell
                                 key={column.key}
                                 className="py-4 px-6 text-background"
                               >
@@ -322,7 +321,7 @@ const DataManagementPage = ({
                             onClick={() => currentPage > 1 && handlePageChange(currentPage - 1)}
                           />
                         </PaginationItem>
-                        
+
                         {generatePaginationItems().map((item, index) => (
                           <PaginationItem key={index}>
                             {item === 'ellipsis' ? (
@@ -354,7 +353,7 @@ const DataManagementPage = ({
 
             {/* Empty State */}
             {!isLoading && sortedData.length === 0 && (
-              <motion.div 
+              <motion.div
                 variants={ANIMATION_VARIANTS.item}
                 className="text-center py-12"
               >
