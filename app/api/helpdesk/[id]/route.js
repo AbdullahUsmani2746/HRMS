@@ -27,29 +27,34 @@ export async function GET(req, { params }) {
 /**
  * POST method to create a new ticket
  */
+
 export async function POST(req) {
-  const body = await req.json();
-
   try {
-    const lastTicket = await Ticket.findOne({}, {}, { sort: { complaintNumber: -1 } });
+    const body = await req.json();
 
-    let newComplaintNumber = "TKT-00100"; // Default number
+    const lastTicket = await Ticket.findOne({}, {}, { sort: { createdAt: -1 } });
+
+    let newComplaintNumber = "TKT-001"; // Default value
+
     if (lastTicket && lastTicket.complaintNumber) {
-      const lastNumber = parseInt(lastTicket.complaintNumber.split("-")[1]); // Extract numeric part
-      newComplaintNumber = `TKT-${(lastNumber + 1).toString().padStart(5, "0")}`;
+      const lastNumber = parseInt(lastTicket.complaintNumber.replace("TKT-", ""), 10);
+      newComplaintNumber = `TKT-${String(lastNumber + 1).padStart(3, "0")}`;
     }
 
+    // Naya ticket create karo
     const newTicket = new Ticket({
-      ...body, // Keep existing fields
-      complaintNumber: newComplaintNumber, // Assign new unique complaintNumber
+      ...body,
+      complaintNumber: newComplaintNumber,
     });
 
     await newTicket.save();
+
     return NextResponse.json(newTicket, { status: 201 });
   } catch (error) {
-    return NextResponse.json(
-      { message: "Failed to create ticket.", error: error.message },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: "Failed to create ticket.", error: error.message }, { status: 500 });
   }
 }
+
+
+
+

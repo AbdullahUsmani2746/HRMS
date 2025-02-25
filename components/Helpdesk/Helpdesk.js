@@ -24,25 +24,24 @@ const Helpdesk = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+  
     const newTicket = {
-      complaintNumber: `TKT-00${complaintNo}`,
       employeeId,
       questions: fields.map(field => ({ subject: field.title, description: field.description })),
     };
-    
+  
     try {
       const response = await axios.post(`/api/helpdesk/${employeeId}`, newTicket, {
         headers: { "Content-Type": "application/json" }
       });
-
+  
       setTickets([...tickets, response.data]);
-      setComplaintNo(complaintNo + 1);
       setFields([{ title: "", description: "" }]);
-
+  
     } catch (error) {
       console.error("Error creating ticket:", error);
     }
-  };
+  };  
 
   const addField = () => {
     setFields([...fields, { title: "", description: "" }]);
