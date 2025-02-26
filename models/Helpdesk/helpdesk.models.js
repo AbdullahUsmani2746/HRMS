@@ -4,6 +4,8 @@ const QuestionSchema = new mongoose.Schema({
   subject: { type: String, required: true },
   description: { type: String, required: true },
   answers: { type: String },
+  status: { type: String, default: "To-Do " },
+
 });
 
 const TicketSchema = new mongoose.Schema({
