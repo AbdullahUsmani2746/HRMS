@@ -164,9 +164,9 @@ const RequestForm = ({ type, onClose, existingData, employeeId }) => {
                       {formData.startDate
                         ? type === "leave" && formData.endDate
                           ? `${format(
-                              formData.startDate,
-                              "MMM dd, yyyy"
-                            )} - ${format(formData.endDate, "MMM dd, yyyy")}`
+                            formData.startDate,
+                            "MMM dd, yyyy"
+                          )} - ${format(formData.endDate, "MMM dd, yyyy")}`
                           : format(formData.startDate, "MMM dd, yyyy")
                         : "Select date"}
                     </Button>
@@ -287,19 +287,19 @@ const RequestManagement = () => {
   const columns =
     requestType === "leave"
       ? [
-          { key: "leaveType", header: "Leave Type" },
-          { key: "startDate", header: "Start Date" },
-          { key: "endDate", header: "End Date" },
-          { key: "reason", header: "Reason" },
-          { key: "status", header: "Status" },
-        ]
+        { key: "leaveType", header: "Leave Type" },
+        { key: "startDate", header: "Start Date" },
+        { key: "endDate", header: "End Date" },
+        { key: "reason", header: "Reason" },
+        { key: "status", header: "Status" },
+      ]
       : [
-          { key: "startDate", header: "Date" },
-          { key: "checkIn", header: "Check In" },
-          { key: "checkOut", header: "Check Out" },
-          { key: "reason", header: "Reason" },
-          { key: "status", header: "Status" },
-        ];
+        { key: "startDate", header: "Date" },
+        { key: "checkIn", header: "Check In" },
+        { key: "checkOut", header: "Check Out" },
+        { key: "reason", header: "Reason" },
+        { key: "status", header: "Status" },
+      ];
 
   useEffect(() => {
     fetchRequests();
@@ -469,9 +469,8 @@ const RequestManagement = () => {
               >
                 Sort
                 <ChevronDown
-                  className={`ml-2 h-4 w-4 transform transition-transform ${
-                    sortOrder === "desc" ? "rotate-180" : ""
-                  }`}
+                  className={`ml-2 h-4 w-4 transform transition-transform ${sortOrder === "desc" ? "rotate-180" : ""
+                    }`}
                 />
               </Button>
             </motion.div>
@@ -511,46 +510,46 @@ const RequestManagement = () => {
                     <TableBody>
                       <AnimatePresence>
                         {currentData
-                        .filter(item => item.type === requestType)
-                        .map((item) => (
-                          <motion.tr
-                            key={item._id}
-                            variants={ANIMATION_VARIANTS.item}
-                            initial="hidden"
-                            animate="visible"
-                            exit="hidden"
-                            className="border-background/10 hover:bg-background/5 transition-colors"
-                          >
-                            {columns.map((column) => (
-                            <TableCell key={`${item._id}-${column.key}`} className="py-4 px-6 text-background">
-                            {["Date", "Start Date", "End Date"].includes(column.header)
-                              ? format(new Date(item[column.key]), "MMM dd, yyyy")
-                              : item[column.key]}
-                          </TableCell>
-                            
-                            ))}
-                            <TableCell className="py-4 px-6">
-                              <div className="flex gap-4">
-                                <motion.button
-                                  whileHover={{ scale: 1.1 }}
-                                  whileTap={{ scale: 0.9 }}
-                                  onClick={() => openModal(item)}
-                                  className="text-blue-400 hover:text-blue-300 transition-colors"
-                                >
-                                  <Edit className="w-5 h-5" />
-                                </motion.button>
-                                <motion.button
-                                  whileHover={{ scale: 1.1 }}
-                                  whileTap={{ scale: 0.9 }}
-                                  onClick={() => onDelete(item._id)}
-                                  className="text-red-400 hover:text-red-300 transition-colors"
-                                >
-                                  <Trash2 className="w-5 h-5" />
-                                </motion.button>
-                              </div>
-                            </TableCell>
-                          </motion.tr>
-                        ))}
+                          .filter(item => item.type === requestType)
+                          .map((item) => (
+                            <motion.tr
+                              key={item._id}
+                              variants={ANIMATION_VARIANTS.item}
+                              initial="hidden"
+                              animate="visible"
+                              exit="hidden"
+                              className="border-background/10 hover:bg-background/5 transition-colors"
+                            >
+                              {columns.map((column) => (
+                                <TableCell key={`${item._id}-${column.key}`} className="py-4 px-6 text-background">
+                                  {["Date", "Start Date", "End Date"].includes(column.header)
+                                    ? format(new Date(item[column.key]), "MMM dd, yyyy")
+                                    : item[column.key]}
+                                </TableCell>
+
+                              ))}
+                              <TableCell className="py-4 px-6">
+                                <div className="flex gap-4">
+                                  <motion.button
+                                    whileHover={{ scale: 1.1 }}
+                                    whileTap={{ scale: 0.9 }}
+                                    onClick={() => openModal(item)}
+                                    className="text-blue-400 hover:text-blue-300 transition-colors"
+                                  >
+                                    <Edit className="w-5 h-5" />
+                                  </motion.button>
+                                  <motion.button
+                                    whileHover={{ scale: 1.1 }}
+                                    whileTap={{ scale: 0.9 }}
+                                    onClick={() => onDelete(item._id)}
+                                    className="text-red-400 hover:text-red-300 transition-colors"
+                                  >
+                                    <Trash2 className="w-5 h-5" />
+                                  </motion.button>
+                                </div>
+                              </TableCell>
+                            </motion.tr>
+                          ))}
                       </AnimatePresence>
                     </TableBody>
                   </Table>
@@ -563,11 +562,10 @@ const RequestManagement = () => {
                       <PaginationContent className="text-background">
                         <PaginationItem>
                           <PaginationPrevious
-                            className={`text-background ${
-                              currentPage === 1
+                            className={`text-background ${currentPage === 1
                                 ? "opacity-50 cursor-not-allowed"
                                 : "hover:bg-background/10"
-                            }`}
+                              }`}
                             onClick={() =>
                               currentPage > 1 &&
                               handlePageChange(currentPage - 1)
@@ -581,11 +579,10 @@ const RequestManagement = () => {
                               <PaginationEllipsis className="text-background" />
                             ) : (
                               <PaginationLink
-                                className={`text-background ${
-                                  currentPage === item
+                                className={`text-background ${currentPage === item
                                     ? "bg-background/20"
                                     : "hover:bg-background/10"
-                                }`}
+                                  }`}
                                 onClick={() => handlePageChange(item)}
                                 isActive={currentPage === item}
                               >
@@ -597,11 +594,10 @@ const RequestManagement = () => {
 
                         <PaginationItem>
                           <PaginationNext
-                            className={`text-background ${
-                              currentPage === totalPages
+                            className={`text-background ${currentPage === totalPages
                                 ? "opacity-50 cursor-not-allowed"
                                 : "hover:bg-background/10"
-                            }`}
+                              }`}
                             onClick={() =>
                               currentPage < totalPages &&
                               handlePageChange(currentPage + 1)
