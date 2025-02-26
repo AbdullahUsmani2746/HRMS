@@ -15,6 +15,21 @@ const LeaveSchema = new mongoose.Schema({
 
     },
 
+    balance: {
+        type: Number,
+        default: 0
+      },
+
+      maxCarryForward: {
+        type: Number,
+        default: 15 // Default maximum 15 days carry forward for any leave type
+      },
+
+      lastUpdated: {
+        type: Date,
+        default: Date.now
+      },
+
     employerId:{
         type: String,
         required: true,

@@ -2,7 +2,7 @@
 "use client"
 import DataManagementPage from "@/components/DataManagement";
 import { useSession } from "next-auth/react";
-import { FileText } from 'lucide-react';
+import { FileText, CalendarClock, Scale } from 'lucide-react';
 import DynamicFormComponent from "@/components/DynamicFormComponent";
 import axios from "axios";
 
@@ -22,6 +22,26 @@ const DynamicComponent = ({ existingData, onClose }) => {
       icon: FileText,
       required: true
     },
+
+    {
+      name: 'balance',
+      label: 'Balance',
+      type: 'number',
+      placeholder: 'Enter Balance',
+      icon: Scale,
+      required: true
+    },
+
+    {
+      name: 'maxCarryForward',
+      type: 'number',
+      label: 'Max Carry Forward',
+      placeholder: 'Enter Carry Forward',
+      icon: CalendarClock ,
+      required: true
+    },
+
+  
    
   ];
 
