@@ -1,7 +1,7 @@
 "use client"
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from "framer-motion";
-import { Edit, Trash2, Plus, Search, ChevronDown } from "lucide-react";
+import { Edit, Trash2, Plus, Search, ChevronDown, MessageSquare } from "lucide-react";
 import LoadingSpinner from "@/components/spinner";
 import { Button } from '@/components/ui/button';
 import Modal from '@/components/Modal';
@@ -9,6 +9,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import Header from "@/components/breadcumb";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+
 import {
   Pagination,
   PaginationContent,
@@ -19,6 +21,7 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import axios from 'axios';
+import HelpdeskModal from './Helpdesk/HelpdeskModal';
 
 const ANIMATION_VARIANTS = {
   container: {
@@ -42,11 +45,15 @@ const ANIMATION_VARIANTS = {
   }
 };
 
-const onFetch = async (apiEndpoint, employerId, setData, setIsLoading) => {
+const onFetch = async (apiEndpoint, employerId, setData, setIsLoading, Helpdesk) => {
   setIsLoading(true);
   try {
-    const response = await axios.get(`${apiEndpoint}?employerId=${employerId}`);
+    const response = await axios.get(`${apiEndpoint}${Helpdesk ? `?employeeId=${employerId}` : `?employerId=${employerId}`}`);
+
     setData(response.data.data);
+
+
+
   } catch (error) {
     console.error('Error fetching data:', error);
   } finally {
@@ -61,6 +68,7 @@ const DataManagementPage = ({
   pageTitle,
   pageDescription,
   addButtonText,
+  Helpdesk,
 
   // Data Configuration
   columns,
@@ -86,9 +94,10 @@ const DataManagementPage = ({
   const [currentPage, setCurrentPage] = useState(1);
   const [data, setData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [helpdeskViewModal, setHelpdeskViewModal] = useState(false)
 
   useEffect(() => {
-    onFetch(apiEndpoint, employerId, setData, setIsLoading);
+    onFetch(apiEndpoint, employerId, setData, setIsLoading, Helpdesk);
   }, [apiEndpoint, employerId]);
 
   const onDelete = async (id) => {
@@ -101,15 +110,28 @@ const DataManagementPage = ({
   };
 
   // Modal handlers
-  const openModal = (data = null) => {
+  const openModal = (data = null, condition=false) => {
+
     setSelectedData(data);
-    setIsModalOpen(true);
+
+    console.log(data)
+
+    if(condition){
+      setHelpdeskViewModal(true);
+    }
+    else{
+      setIsModalOpen(true);
+
+    }
   };
+
 
   const closeModal = async () => {
     setIsModalOpen(false);
+    setHelpdeskViewModal(false);
+
     setSelectedData(null);
-    await onFetch(apiEndpoint, employerId, setData, setIsLoading);
+    await onFetch(apiEndpoint, employerId, setData, setIsLoading,Helpdesk=true);
   };
 
   // Search and filter logic
@@ -258,10 +280,12 @@ const DataManagementPage = ({
                             {column.header}
                           </TableHead>
                         ))}
-                        {pageTitle !== "Help Desk" &&
-                          <TableHead className="text-background font-medium py-5 px-6">
-                            Actions
-                          </TableHead>}
+
+                        <TableHead className="text-background font-medium py-5 px-6">
+                          Actions
+                        </TableHead>
+
+
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -276,31 +300,66 @@ const DataManagementPage = ({
                             className="border-background/10 hover:bg-background/5 transition-colors"
                           >
                             {columns.map((column) => (
-                              <TableCell
-                                key={column.key}
-                                className="py-4 px-6 text-background"
-                              >
-                                {column.key2 ? item[column.key][column.key2] : item[column.key]}
-                              </TableCell>
+                              column.header === "Status" ? (
+                                <TableCell
+                                  key={column.key}
+                                  className="py-4 px-6 text-background"
+                                >
+                                  <Badge
+                                    key={column.key}
+                                    className={`text-white px-2 py-1 ${item[column.key] === "In Progress" ? "bg-[#F5A623]" :
+                                      item[column.key] === "To-Do" ? "bg-[#B0BEC5]" :
+                                        item[column.key] === "Resolved" ? "bg-[#A8E5A6]" :
+                                          item[column.key] === "Rejected" ? "bg-[#D0021B]" : " "
+                                      }`}
+                                  >
+                                    {item[column.key]}
+                                  </Badge>
+                                </TableCell>
+                              ) : (
+                                <TableCell
+                                  key={column.key}
+                                  className="py-4 px-6 text-background"
+                                >
+                                  {column.key2 ? item[column.key][column.key2] : item[column.key]}
+                                </TableCell>
+                              )
                             ))}
                             <TableCell className="py-4 px-6">
                               <div className="flex gap-4">
-                                <motion.button
-                                  whileHover={{ scale: 1.1 }}
-                                  whileTap={{ scale: 0.9 }}
-                                  onClick={() => openModal(item)}
-                                  className="text-blue-400 hover:text-blue-300 transition-colors"
-                                >
-                                  <Edit className="w-5 h-5" />
-                                </motion.button>
-                                <motion.button
-                                  whileHover={{ scale: 1.1 }}
-                                  whileTap={{ scale: 0.9 }}
-                                  onClick={() => onDelete(item._id)}
-                                  className="text-red-400 hover:text-red-300 transition-colors"
-                                >
-                                  <Trash2 className="w-5 h-5" />
-                                </motion.button>
+                                {Helpdesk ? (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => openModal(item, true)}
+                                    
+                                    className="flex items-center text-foreground hover:bg-background/10"
+                                  >
+                                    <MessageSquare className="w-4 h-4 mr-2" />
+                                    View
+                                  </Button>
+                                ) : (
+                                  <>
+                                    <motion.button
+                                      whileHover={{ scale: 1.1 }}
+                                      whileTap={{ scale: 0.9 }}
+                                      onClick={() => openModal(item)}
+                                      className="text-blue-400 hover:text-blue-300 transition-colors"
+                                    >
+                                      <Edit className="w-5 h-5" />
+                                    </motion.button>
+                                    <motion.button
+                                      whileHover={{ scale: 1.1 }}
+                                      whileTap={{ scale: 0.9 }}
+                                      onClick={() => onDelete(item._id)}
+                                      className="text-red-400 hover:text-red-300 transition-colors"
+                                    >
+                                      <Trash2 className="w-5 h-5" />
+                                    </motion.button>
+                                  </>
+                                )}
+
+
                               </div>
                             </TableCell>
                           </motion.tr>
@@ -375,6 +434,17 @@ const DataManagementPage = ({
               />
             </Modal>
           )}
+
+          {
+            helpdeskViewModal && (
+              <Modal onClose={closeModal}>
+              <HelpdeskModal
+                complaint={selectedData}
+                onClose={closeModal}
+              />
+            </Modal>
+            )
+          }
         </AnimatePresence>
       </motion.div>
     </div>

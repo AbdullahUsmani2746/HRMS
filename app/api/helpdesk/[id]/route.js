@@ -18,13 +18,13 @@ export async function GET(req, { params }) {
 
   try {
     // Fetch only required fields
-    const tickets = await Ticket.find({ employeeId: id }).select("complaintNumber status");
+    const tickets = await Ticket.find({ employeeId: id });
 
     if (!tickets.length) {
       return NextResponse.json({ message: "No tickets found." }, { status: 404 });
     }
 
-    return NextResponse.json(tickets, { status: 200 });
+    return NextResponse.json({data: tickets, status: 200 });
   } catch (error) {
     console.error("Error fetching tickets:", error); // Console log for debugging
     return NextResponse.json(
