@@ -82,8 +82,42 @@ export async function POST(req) {
   }
 }
 
+/**
+ * PUT method to update ticket status
+ */
+export async function PUT(req, { params }) {
+  let { id } = params;
 
+  if (!id) {
+    return NextResponse.json({ message: "Ticket ID is required." }, { status: 400 });
+  }
 
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return NextResponse.json({ message: "Invalid Ticket ID format." }, { status: 400 });
+  }
+
+  try {
+    const { status } = await req.json();
+
+    if (!status) {
+      return NextResponse.json({ message: "Status is required." }, { status: 400 });
+    }
+
+    const updatedTicket = await Ticket.findByIdAndUpdate(
+      new mongoose.Types.ObjectId(id),
+      { status },
+      { new: true }
+    );
+
+    if (!updatedTicket) {
+      return NextResponse.json({ message: "Ticket not found." }, { status: 404 });
+    }
+
+    return NextResponse.json({ data: updatedTicket, status: 200 });
+  } catch (error) {
+    return NextResponse.json({ message: "Failed to update ticket.", error: error.message }, { status: 500 });
+  }
+}
 
 
 

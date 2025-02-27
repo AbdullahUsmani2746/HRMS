@@ -39,6 +39,7 @@ const ANIMATION_VARIANTS = {
 
 const HelpdeskModal = ({ complaint, onClose }) => {
     const [employeeName, setEmployeeName] = useState("");
+    const [questions, setQuestions] = useState(complaint.questions || []);
 
     useEffect(() => {
         const fetchEmployeeName = async () => {
@@ -55,6 +56,27 @@ const HelpdeskModal = ({ complaint, onClose }) => {
             fetchEmployeeName();
         }
     }, [complaint.employeeId]);
+
+    const handleStatusChange = (index, newStatus) => {
+        const updatedQuestions = [...questions];
+        updatedQuestions[index].status = newStatus;
+        setQuestions(updatedQuestions);
+    };
+
+    const handleUpdateStatus = async (index) => {
+        const updatedQuestion = questions[index];
+
+        try {
+            await axios.put(`/api/helpdesk/${complaint._id}`, {
+                status: updatedQuestion.status,
+            });
+
+            alert("Status updated successfully!");
+        } catch (error) {
+            console.error("Error updating status:", error);
+            alert("Failed to update status.");
+        }
+    };
 
     return (
         <motion.div
@@ -103,7 +125,7 @@ const HelpdeskModal = ({ complaint, onClose }) => {
                                 collapsible
                                 className="border border-background/10 rounded-lg bg-background/5 text-background"
                             >
-                                {complaint.questions?.map((question, index) => (
+                                {questions.map((question, index) => (
                                     <AccordionItem key={index} value={`question-${index}`} className="border-b border-background/10">
                                         <AccordionTrigger className="text-base p-3 space-y-2 font-semibold text-background flex justify-between items-center">
                                             #{index + 1}: {question.subject}
@@ -120,8 +142,7 @@ const HelpdeskModal = ({ complaint, onClose }) => {
 
                                                 <Select
                                                     value={question.status}
-                                                    disabled
-
+                                                    onValueChange={(value) => handleStatusChange(index, value)}
                                                 >
                                                     <SelectTrigger className="bg-background/5 border-background/10 text-background w-[200px]">
                                                         <SelectValue placeholder="Select Status" />
@@ -138,8 +159,14 @@ const HelpdeskModal = ({ complaint, onClose }) => {
                                             <textarea
                                                 className="w-full p-2 border border-background/10 rounded-md bg-background/5 text-background"
                                                 placeholder="Enter your answer here..."
-                                                disabled={false ? false : true}
+                                                disabled={false}
                                             />
+                                            <Button
+                                                onClick={() => handleUpdateStatus(index)}
+                                                className="mt-2 bg-blue-500 hover:bg-blue-600 text-white w-full"
+                                            >
+                                                Update Status
+                                            </Button>
                                         </AccordionContent>
                                     </AccordionItem>
                                 ))}
