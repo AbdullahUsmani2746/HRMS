@@ -40,6 +40,7 @@ const ANIMATION_VARIANTS = {
 const HelpdeskModal = ({ complaint, onClose }) => {
     const [employeeName, setEmployeeName] = useState("");
     const [questions, setQuestions] = useState(complaint.questions || []);
+    const [complaintStatus, setComplaintStatus] = useState(complaint.status || "Open");
 
     useEffect(() => {
         const fetchEmployeeName = async () => {
@@ -65,11 +66,20 @@ const HelpdeskModal = ({ complaint, onClose }) => {
 
     const handleUpdateStatus = async (index) => {
         const updatedQuestion = questions[index];
-
         try {
             await axios.put(`/api/helpdesk/${complaint._id}`, {
                 status: updatedQuestion.status,
             });
+
+            const allResolved = questions.every(q => q.status === "Resolved");
+            if (allResolved) {
+                setComplaintStatus("Closed");
+                await axios.put(`/api/helpdesk/${complaint._id}`, {
+                    status: "Closed",
+                });
+            } else {
+                setComplaintStatus("Open");
+            }
 
             alert("Status updated successfully!");
         } catch (error) {
@@ -89,7 +99,7 @@ const HelpdeskModal = ({ complaint, onClose }) => {
             <Card className="bg-foreground border-white/10 shadow-xl">
                 <CardHeader className="pb-4">
                     <CardTitle className="text-2xl font-bold text-background">
-                        Helpdesk Complaint Details
+                        Helpdesk Complaint Details ({complaintStatus})
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -117,7 +127,6 @@ const HelpdeskModal = ({ complaint, onClose }) => {
                             </div>
                         </div>
 
-                        {/* Questions Section */}
                         <div className="space-y-2">
                             <h2 className="text-lg font-semibold text-background">Questions</h2>
                             <Accordion
@@ -139,7 +148,6 @@ const HelpdeskModal = ({ complaint, onClose }) => {
                                             />
                                             <div className="flex justify-between items-center">
                                                 <h3 className="text-sm font-medium text-background/80">Answer</h3>
-
                                                 <Select
                                                     value={question.status}
                                                     onValueChange={(value) => handleStatusChange(index, value)}
@@ -156,11 +164,6 @@ const HelpdeskModal = ({ complaint, onClose }) => {
                                                     </SelectContent>
                                                 </Select>
                                             </div>
-                                            <textarea
-                                                className="w-full p-2 border border-background/10 rounded-md bg-background/5 text-background"
-                                                placeholder="Enter your answer here..."
-                                                disabled={false}
-                                            />
                                             <Button
                                                 onClick={() => handleUpdateStatus(index)}
                                                 className="mt-2 bg-blue-500 hover:bg-blue-600 text-white w-full"
@@ -172,7 +175,6 @@ const HelpdeskModal = ({ complaint, onClose }) => {
                                 ))}
                             </Accordion>
                         </div>
-
                         <div className="flex justify-end gap-2 pt-4 border-t border-background/10">
                             <Button variant="outline" onClick={onClose} className="border-background/10 text-foreground hover:bg-background/5">
                                 Close
