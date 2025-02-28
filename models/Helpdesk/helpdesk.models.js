@@ -5,6 +5,12 @@ const QuestionSchema = new mongoose.Schema({
   description: { type: String, required: true },
   answers: { type: String },
   status: { type: String, default: "To-Do " },
+  rejectionReason: {
+    type: String,
+    required: function () {
+      return this.status === "Rejected";
+    },
+  },
 
 });
 
@@ -13,13 +19,7 @@ const TicketSchema = new mongoose.Schema({
   employeeId: { type: String, required: true },
   date: { type: Date, default: Date.now },
   questions: [QuestionSchema],
-  status: { type: String, default: "In Progress" },
-  rejectionReason: {
-    type: String,
-    required: function () {
-      return this.status === "Rejected";
-    },
-  },
+  status: { type: String, default: "open" },
 });
 
 export default mongoose.models.Ticket || mongoose.model("Ticket", TicketSchema);
