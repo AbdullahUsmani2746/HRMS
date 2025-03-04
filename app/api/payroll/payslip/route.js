@@ -119,3 +119,42 @@ export async function POST(req) {
     );
   }
 }
+
+// Helper function to generate plain text email content
+function generatePayslipText(payslip) {
+  return `
+    Dear ${payslip.employeeName},
+
+    Here is your payslip for the period from ${payslip.payPeriodDetails.startDate} to ${payslip.payPeriodDetails.endDate}:
+
+    - Base Salary: ${payslip.payrollBreakdown.baseSalary}
+    - Overtime Pay: ${payslip.payrollBreakdown.overtimePay}
+    - Deductions: ${JSON.stringify(payslip.payrollBreakdown.deductions)}
+    - Net Payable: ${payslip.payrollBreakdown.netPayable}
+
+    Please contact HR if you have any questions.
+
+    Best regards,
+    Your Company HR
+  `;
+}
+
+// Helper function to generate HTML email content
+function generatePayslipHtml(payslip) {
+  return `
+    <p>Dear ${payslip.employeeName},</p>
+
+    <p>Here is your payslip for the period from ${payslip.payPeriodDetails.startDate} to ${payslip.payPeriodDetails.endDate}:</p>
+
+    <ul>
+      <li><strong>Base Salary:</strong> ${payslip.payrollBreakdown.baseSalary}</li>
+      <li><strong>Overtime Pay:</strong> ${payslip.payrollBreakdown.overtimePay}</li>
+      <li><strong>Deductions:</strong> ${JSON.stringify(payslip.payrollBreakdown.deductions)}</li>
+      <li><strong>Net Payable:</strong> ${payslip.payrollBreakdown.netPayable}</li>
+    </ul>
+
+    <p>Please contact HR if you have any questions.</p>
+
+    <p>Best regards,<br/>Your Company HR</p>
+  `;
+}

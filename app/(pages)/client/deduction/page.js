@@ -3,37 +3,138 @@
 import DataManagementPage from "@/components/DataManagement";
 import { useSession } from "next-auth/react";
 // AllowancesPage.js
-import { DollarSign, FileText, Percent } from 'lucide-react';
 
 import DynamicFormComponent from "@/components/DynamicFormComponent";
 import axios from "axios";
 
+import { 
+  User, 
+  Mail, 
+  Phone, 
+  Home, 
+  Briefcase, 
+  Calculator, 
+  DollarSign, 
+  Percent, 
+  Building, 
+  CreditCard, 
+  Globe, 
+  Hash 
+} from 'lucide-react';
+
+
 const DynamicComponent = ({ existingData, onClose }) => {
   const fields = [
+    // Personal Information
     {
-      name: 'deduction',
-      label: 'Deduction Name',
-      placeholder: 'Enter deduction name',
-      icon: DollarSign,
+      name: 'title',
+      label: 'Title',
+      placeholder: 'Enter title',
+      icon: User,
       required: true
     },
     {
-      name: 'deduction_description',
-      label: 'Description',
-      placeholder: 'Enter description',
-      icon: FileText,
+      name: 'email',
+      label: 'Email',
+      placeholder: 'Enter email address',
+      type: 'email',
+      icon: Mail,
       required: true
     },
     {
-      name: 'rate',
-      label: 'Rate',
-      placeholder: 'Enter rate',
-      type: 'text',
-      icon: Percent,
+      name: 'phoneNumber',
+      label: 'Phone Number',
+      placeholder: 'Enter phone number',
+      icon: Phone,
+      required: true
+    },
+    {
+      name: 'address',
+      label: 'Address',
+      placeholder: 'Enter address',
+      icon: Home,
+      required: true
+    },
+    
+    // Account Information
+    {
+      name: 'holdingAccount',
+      label: 'Holding Account',
+      placeholder: 'Enter holding account',
+      type: 'select',
+      options: ['Bank', 'Wages', 'Savings', 'Loans'],
+
+      icon: Briefcase,
+      required: true
+    },
+    
+    // Calculation Details
+    {
+      name: 'calculation',
+      label: 'Calculation',
+      placeholder: 'Select calculation type',
+      type: 'select',
+      options: ['Amount Per Pay Period','Percentage', 'Time x Rate', 'Earning Rate'],
+
+      icon: Calculator,
+      required: true
+    },
+    
+    // Calculation Options
+    {
+      name: 'payslipYTD',
+      label: 'Payslip YTD',
+      type: 'checkbox',
+      defaultValue: false,
+      required: false
+    },
+    {
+      name: 'statutory',
+      label: 'Statutory',
+      type: 'checkbox',
+      defaultValue: false,
+      required: false
+    },
+    
+    // Payee Details - Bank
+    {
+      name: 'payeeDetails.bank',
+      label: 'Bank',
+      placeholder: 'Select bank',
+      type: 'select',
+      options: ['ANZ', 'BSP', 'NBS', 'SCB', 'Others/Overseas'],
+      icon: Building,
+      required: true
+    },
+    {
+      name: 'payeeDetails.accountName',
+      label: 'Account Name',
+      placeholder: 'Enter account name',
+      icon: User,
+      required: true
+    },
+    {
+      name: 'payeeDetails.accountNumber',
+      label: 'Account Number',
+      placeholder: 'Enter account number',
+      icon: CreditCard,
+      required: true
+    },
+    {
+      name: 'payeeDetails.country',
+      label: 'Country',
+      placeholder: 'Enter country',
+      icon: Globe,
+      required: true
+    },
+    {
+      name: 'payeeDetails.employerNumberAtFund',
+      label: 'Employer Number at Fund',
+      placeholder: 'Enter employer number',
+      icon: Hash,
       required: true
     }
   ];
-
   const handleSubmit = async (data, isEditing, editIndex) => {
     try {
       if (isEditing) {
@@ -61,10 +162,13 @@ const EmployeeTypePage = () => {
   const {data:session} = useSession();
   const employerId = session?.user?.username;
   const columns = [
-    { key: 'deduction', header: 'Deduction' },
-    { key: 'deduction_description', header: 'Deduction Description' },
-    { key: 'rate', header: 'Rate' }
-
+    { key: 'title', header: 'Title' },
+    { key: 'email', header: 'Email' },
+    { key: 'phoneNumber', header: 'Phone Number' },
+    { key: 'holdingAccount', header: 'Holding Account' },
+    { key: 'calculation', header: 'Calculation Type' },
+    { key: 'amountPerPayPeriod', header: 'Payment Type' },
+    { key: 'payeeDetails.bank', header: 'Bank' }
   ];
 
   return (
@@ -75,7 +179,7 @@ const EmployeeTypePage = () => {
       apiEndpoint={`/api/employees/deduction`}
       columns={columns}
       employerId={employerId}
-      searchKeys={['deduction', 'deduction_description']}
+      searchKeys={['title', 'email', 'payeeDetails.accountName']}
       FormComponent={DynamicComponent}
     />
   );

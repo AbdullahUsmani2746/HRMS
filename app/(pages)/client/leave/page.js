@@ -11,7 +11,7 @@ const DynamicComponent = ({ existingData, onClose }) => {
     {
       name: 'leave',
       label: 'Leave',
-      placeholder: 'Enter Leave',
+      placeholder: 'Enter Leave Name',
       icon: FileText,
       required: true
     },
@@ -73,6 +73,9 @@ const DynamicComponent = ({ existingData, onClose }) => {
   const columns = [
     { key: 'leave', header: 'Leave' },
     { key: 'leave_description', header: 'Description' },
+    { key: 'balance', header: 'Balance' },
+    { key: 'maxCarryForward', header: 'Max Carry Forward' },
+
   ];
 
   return (

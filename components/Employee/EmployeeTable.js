@@ -143,7 +143,7 @@ const EmployeeTable = () => {
 
  return (
    <div 
-   className="p-6 space-y-6 bg-foreground text-background rounded-xl p-8">
+   className="p-6 space-y-6 bg-foreground text-background rounded-xl p-8 overlow-auto">
      <motion.div
        initial={{ opacity: 0, y: -20 }}
        animate={{ opacity: 1, y: 0 }}
@@ -178,7 +178,7 @@ const EmployeeTable = () => {
          animate="visible"
          className="space-y-6"
        >
-         <div className="flex justify-between items-center">
+         <div className="flex justify-between items-left flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4">
            <div className="relative flex-1 max-w-md">
            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-background/40 w-4 h-4" />
            <Input
@@ -227,7 +227,7 @@ const EmployeeTable = () => {
 
          <motion.div
            variants={containerVariants}
-           className="relative overflow-hidden rounded-lg border border-background/10"
+           className="relative rounded-lg border border-background/10"
            >
            <Table className="text-white">
              <TableHeader>

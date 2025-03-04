@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useSession } from 'next-auth/react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Trash2, Save, PenSquare, Plus } from 'lucide-react';
@@ -114,7 +115,7 @@ const DynamicFormComponent = ({
     };
 
     if (field.type === 'select') {
-      const currentValue = value?._id || '';
+      const currentValue = value?._id || value || '';
       const currentLabel = value?.[field.displayKey] || field.placeholder;
 
       console.log("Value: ", currentValue)
@@ -129,15 +130,15 @@ const DynamicFormComponent = ({
           <Select
             value={currentValue}
             onValueChange={(selectedValue) => {
-              const selectedOption = field.options.find(opt => opt.value === selectedValue);
+              const selectedOption = field.options.find(opt => (opt.value ? opt.value : opt) === selectedValue);
               console.log(selectedOption)
               if (selectedOption) {
               console.log(selectedOption)
 
-                handleFieldChange(index, field.name, {
+                handleFieldChange(index, field.name, selectedOption.value ? {
                   _id: selectedOption.value,
                   [field.displayKey]: selectedOption.label
-                });
+                } : selectedOption);
               }
             }}
             disabled={field.disabled}
@@ -147,8 +148,8 @@ const DynamicFormComponent = ({
             </SelectTrigger>
             <SelectContent>
               {field.options.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
+                <SelectItem key={option.value ? option.value : option} value={option.value ? option.value : option}>
+                  {option.label ? option.label : option}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -166,6 +167,24 @@ const DynamicFormComponent = ({
             {...commonProps}
             className={`${commonProps.className} ${field.icon ? 'pl-10' : ''}`}
           />
+        </div>
+      );
+    }
+    if (field.type === 'checkbox') {
+      return (
+        <div className="flex items-center space-x-2">
+          <Checkbox
+            id={`${field.name}-${index}`}
+            checked={value || false}
+            onCheckedChange={(checked) => handleFieldChange(index, field.name, checked)}
+            disabled={field.disabled}
+          />
+          <label
+            htmlFor={`${field.name}-${index}`}
+            className="text-sm text-background/80 font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+          >
+            {field.label}
+          </label>
         </div>
       );
     }

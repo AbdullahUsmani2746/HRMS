@@ -1,8 +1,7 @@
+// models/ProvidentFund.js
+const mongoose = require('mongoose');
 
-import mongoose from "mongoose";
-
-// Pay Schedule Setup Model
-const DeductionSchema = new mongoose.Schema({
+const ProvidentFundSchema = new mongoose.Schema({
   // Personal Information
   title: {
     type: String,
@@ -29,7 +28,6 @@ const DeductionSchema = new mongoose.Schema({
   // Account Information
   holdingAccount: {
     type: String,
-    enum: ['Bank', 'Wages', 'Savings', 'Loans'],
     required: true
   },
   
@@ -37,7 +35,7 @@ const DeductionSchema = new mongoose.Schema({
   calculation: {
     type: String,
     required: true,
-    enum: ['Amount Per Pay Period','Percentage', 'Time x Rate', 'Earning Rate'],
+    enum: ['Bank', 'Wages', 'Savings', 'Loans']
   },
   
   // Calculation Options
@@ -50,6 +48,12 @@ const DeductionSchema = new mongoose.Schema({
     default: false
   },
   
+  // Payment Configuration
+  amountPerPayPeriod: {
+    type: String,
+    enum: ['Percentage', 'Time x Rate', 'Earning Rate'],
+    required: true
+  },
   
   // Payee Details
   payeeDetails: {
@@ -90,10 +94,9 @@ const DeductionSchema = new mongoose.Schema({
 });
 
 // Pre-save hook to update the 'updatedAt' field on save
-DeductionSchema.pre('save', function(next) {
+ProvidentFundSchema.pre('save', function(next) {
   this.updatedAt = Date.now();
   next();
 });
 
- const Deduction = mongoose.models.Deduction || mongoose.model('Deduction', DeductionSchema);
-export default Deduction;
+module.exports = mongoose.model('ProvidentFund', ProvidentFundSchema);
