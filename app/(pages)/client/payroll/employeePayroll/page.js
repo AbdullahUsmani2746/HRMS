@@ -744,7 +744,8 @@ const PayrollDashboard = () => {
                           <TableHead>Employee</TableHead>
                           <TableHead>Work Hours</TableHead>
                           <TableHead>Overtime</TableHead>
-                          <TableHead>Base Salary</TableHead>
+                          <TableHead>Pay Rate</TableHead>
+                          <TableHead>Email Address</TableHead>
                           <TableHead>Allowances</TableHead>
                           <TableHead>PAYE</TableHead>
                           <TableHead>NPF</TableHead>
@@ -772,6 +773,10 @@ const PayrollDashboard = () => {
                                     2
                                   )
                                 }
+                              </TableCell>
+                              <TableCell>
+                                {payroll.employeeEmail}
+                               
                               </TableCell>
                               <TableCell>
                                 $
