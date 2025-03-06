@@ -315,7 +315,7 @@ const Approvals = () => {
 
       await axios.put(apiEndpoint, { 
         _id: recordId, 
-        status: newStatus,
+        newStatus: newStatus,
         rejectionReason
       });
 

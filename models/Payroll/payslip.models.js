@@ -17,6 +17,10 @@ const payslipSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  employeeEmail: {
+    type: String,
+    required: true
+  },
   monthNo: {
     type: Number,
     required: true,

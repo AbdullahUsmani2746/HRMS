@@ -303,8 +303,8 @@ const PayrollDashboard = () => {
                   ? allPeriodicAttendance.data.data.filter(
                         (pa) =>
                             pa.employeeId === employee.employeeId &&
-                            new Date(pa.dateRange) >= start &&
-                            new Date(pa.dateRange) <= end &&
+                            // new Date(pa.dateRange) >= start &&
+                            // new Date(pa.dateRange) <= end &&
                             pa.status === "Approved"
                     )
                   : [];
@@ -426,6 +426,7 @@ const PayrollDashboard = () => {
           return {
               employeeId: employee.employeeId,
               employeeName: employee.firstName,
+              employeeEmail: employee.emailAddress,
               payType: employee.payType,
               monthNo: payrollPeriod.month_no,
               weekNo:payrollPeriod.week_no,
