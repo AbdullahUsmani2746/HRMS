@@ -202,7 +202,7 @@ const RequestApprovalDashboard = () => {
 
   const handleApprove = async (requestId) => {
     try {
-      await axios.patch(`/api/manager/requests/${requestId}/approve`);
+      await axios.patch(`/api/users/request/${requestId}/approve`);
       toast({
         title: "Success",
         description: "Request approved successfully",
@@ -220,7 +220,7 @@ const RequestApprovalDashboard = () => {
 
   const handleReject = async (requestId, reason) => {
     try {
-      await axios.patch(`/api/manager/requests/${requestId}/reject`, { reason });
+      await axios.patch(`/api/users/request/${requestId}/reject`, { reason });
       toast({
         title: "Success",
         description: "Request rejected successfully",
