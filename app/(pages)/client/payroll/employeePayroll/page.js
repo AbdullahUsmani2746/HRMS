@@ -342,11 +342,11 @@ const PayrollDashboard = () => {
                 console.log("Date Object End: ", endDate);
 
 
-                return (pa) =>
+                return( (pa) =>
                   pa.employeeId === employee.employeeId &&
                 new Date(startDate).getTime() >= new Date(start).getTime() &&
                 new Date(endDate).getTime() <= new Date(end).getTime() &&
-                  pa.status === "Approved";
+                  pa.status === "Approved")
               })
           ;
 
@@ -368,6 +368,7 @@ const PayrollDashboard = () => {
 
         if (regularAttendance.length > 0) {
           regularAttendance.forEach((att) => {
+            // const DateObject = new Date(att.date).toLocaleDateString();
             const dailyRegularHours =
               // Math.min(
               convertToTotalHours(att.totalWorkingHours) || 0;
@@ -386,7 +387,10 @@ const PayrollDashboard = () => {
             overtimeHours += dailyOvertimeHours;
           });
         } else if (periodicAttendance.length > 0) {
+          console.log("Periodic Attendance: ", periodicAttendance);
           periodicAttendance.forEach((pa) => {
+
+
             const hours =  pa.employeeId === employee.employeeId && pa.status === "Approved" &&
             convertToTotalHours(pa.totalWorkingHours);
             console.log("Periodic Hours: ", hours);

@@ -599,7 +599,7 @@ const [errors, setErrors] = useState({}); // Local error state
                                 <SelectValue placeholder="Pay Type"/>
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="HOUR">Per Hour</SelectItem>
+                                <SelectItem value="HOUR">WAGES</SelectItem>
                                 <SelectItem value="SALARY">Salary</SelectItem>
                               </SelectContent>
                             </Select>
