@@ -130,6 +130,8 @@ const PayrollDashboard = () => {
         `/api/employees?employerId=${employerId}`
       );
 
+      console.log("Employee Data: ", empData.data.data);
+
       const selectedPayrollPeriod = payrolls.find(
         (p) => p.payroll_id === formData.payroll_id
       );
@@ -306,7 +308,7 @@ const PayrollDashboard = () => {
         console.log("Processing employee:", employee.employeeId);
 
         // Fetch employee attendance
-        let EmployeeAttendance;
+        let EmployeeAttendance = [];
         try {
           EmployeeAttendance = await axios.get(
             `/api/users/attendance/${employee.employeeId}`
@@ -316,12 +318,12 @@ const PayrollDashboard = () => {
             console.log(
               `No attendance records found for employee: ${employee.employeeId}, skipping.`
             );
-            return null;
+            // return null;
           }
-          throw error; // Rethrow other errors
+          // throw error; // Rethrow other errors
         }
 
-        const regularAttendance = EmployeeAttendance.data.filter((a) => {
+        const regularAttendance = EmployeeAttendance.length > 0 && EmployeeAttendance.data.filter((a) => {
           let DateObject = new Date(a.date).toLocaleDateString();
 
           return (
@@ -337,16 +339,31 @@ const PayrollDashboard = () => {
                 let startDate = new Date(a.dateRange.split(" to ")[0]).toLocaleDateString();
                 let endDate = new Date(a.dateRange.split(" to ")[1]).toLocaleDateString();
 
-                console.log("Date Object Start: ", startDate);
+                console.log("=====================================================")
+                console.log("Date Object End: ", startDate);
+                console.log("Date Object Start: ",  new Date(startDate).getTime());
+                console.log("Date Object Start Compare: ",  new Date(start).getTime());
                 console.log("Date Object Employee: ", a.employeeId);
+                console.log("Date Object Employee: ", employee.employeeId);
+                
                 console.log("Date Object End: ", endDate);
+                console.log("Date Object Start: ",  new Date(endDate).getTime());
+                console.log("Date Object Start Compare: ",  new Date(end).getTime());
+
+                console.log("Retrun Statement: ", (
+                  a.employeeId === employee.employeeId &&
+                  new Date(startDate).getTime() >= new Date(start).getTime() &&
+                  new Date(endDate).getTime() <= new Date(end).getTime() &&
+                    a.status === "Approved"
+                ));
+                console.log("=====================================================")
 
 
-                return( (pa) =>
-                  pa.employeeId === employee.employeeId &&
+                return( 
+                  a.employeeId === employee.employeeId &&
                 new Date(startDate).getTime() >= new Date(start).getTime() &&
                 new Date(endDate).getTime() <= new Date(end).getTime() &&
-                  pa.status === "Approved")
+                  a.status === "Approved")
               })
           ;
 
@@ -386,10 +403,13 @@ const PayrollDashboard = () => {
             totalWorkHours += dailyRegularHours;
             overtimeHours += dailyOvertimeHours;
           });
-        } else if (periodicAttendance.length > 0) {
+        } 
+        
+       if (periodicAttendance.length > 0) {
           console.log("Periodic Attendance: ", periodicAttendance);
           periodicAttendance.forEach((pa) => {
 
+            console.log("employee ID:  ",employee.employeeId)
 
             const hours =  pa.employeeId === employee.employeeId && pa.status === "Approved" &&
             convertToTotalHours(pa.totalWorkingHours);
@@ -745,17 +765,17 @@ const PayrollDashboard = () => {
                   <div className="rounded-md border">
                     <Table>
                       <TableHeader>
-                        <TableRow className="bg-muted/50">
-                          <TableHead>Employee</TableHead>
-                          <TableHead>Work Hours</TableHead>
-                          <TableHead>Overtime</TableHead>
-                          <TableHead>Pay Rate</TableHead>
-                          <TableHead>Allowances</TableHead>
-                          <TableHead>PAYE</TableHead>
-                          <TableHead>NPF</TableHead>
-                          <TableHead>ACC</TableHead>
-                          <TableHead>Net Pay</TableHead>
-                          <TableHead>Email Address</TableHead>
+                        <TableRow className="bg-muted/50 text-bold">
+                          <TableHead className="font-bold">Employee</TableHead>
+                          <TableHead className="font-bold " >Work Hours</TableHead>
+                          <TableHead className="font-bold " >Overtime</TableHead>
+                          <TableHead className="font-bold " >Pay Rate</TableHead>
+                          <TableHead className="font-bold " >Allowances</TableHead>
+                          <TableHead className="font-bold " >PAYE</TableHead>
+                          <TableHead className="font-bold " >NPF</TableHead>
+                          <TableHead className="font-bold " >ACC</TableHead>
+                          <TableHead className="font-bold " >Net Pay</TableHead>
+                          <TableHead className="font-bold " >Email Address</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
