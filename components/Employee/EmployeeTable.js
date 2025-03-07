@@ -183,7 +183,7 @@ const EmployeeTable = () => {
            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-background/40 w-4 h-4" />
            <Input
                type="text"
-               placeholder="Search Employees by thier Name"
+               placeholder="Search Employees"
                value={searchQuery}
                onChange={(e) => setSearchQuery(e.target.value)}
                className="pl-10 bg-background/5 border-background/10 text-background placeholder:text-background/40 w-full"
