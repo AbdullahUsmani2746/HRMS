@@ -422,7 +422,8 @@ const PayrollDashboard = () => {
 
           baseSalary = (employee.ratePerHour || 0) * basePayMultiplier;
           hourlyRate = employee.ratePerHour / payrollSettings.baseHoursPerWeek;
-        } else if (employee.payType === "HOUR") {
+        } 
+        else if (employee.payType === "HOUR") {
           hourlyRate = employee.ratePerHour || 0;
           const regularHours = Math.min(totalWorkHours, expectedBaseHours);
           console.log("Regular Hours:", regularHours);

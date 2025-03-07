@@ -37,7 +37,7 @@ const EmployeeTable = () => {
  const [isLoading, setIsLoading] = useState(false);
  const [error, setError] = useState(null);
  const [currentPage, setCurrentPage] = useState(1);
- const itemsPerPage = 5;
+ const itemsPerPage = 30;
 
  const containerVariants = {
    hidden: { opacity: 0 },
