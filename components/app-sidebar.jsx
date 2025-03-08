@@ -90,7 +90,7 @@ const data = {
     },
     {
       title: "Help Desk",
-      url: "#",
+      url: "/admin/helpdesk",
       icon: CircleHelp,
       isActive: true,
     },
@@ -227,7 +227,12 @@ const data = {
        
       ],
     },
-
+    {
+      title: "Help Desk",
+      url: "/client/helpdesk",
+      icon: CircleHelp,
+      isActive: true,
+    },
     {
       title: "Reports",
       url: "/client/reports",
@@ -273,6 +278,12 @@ const data = {
       title: "Current PaySlip",
       url: "/employee/payslip",
       icon: DollarSignIcon,
+      isActive: true,
+    },
+    {
+      title: "Help Desk",
+      url: "/employee/helpdesk",
+      icon: CircleHelp,
       isActive: true,
     },
   ],

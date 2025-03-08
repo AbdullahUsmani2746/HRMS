@@ -110,16 +110,16 @@ const DataManagementPage = ({
   };
 
   // Modal handlers
-  const openModal = (data = null, condition=false) => {
+  const openModal = (data = null, condition = false) => {
 
     setSelectedData(data);
 
     console.log(data)
 
-    if(condition){
+    if (condition) {
       setHelpdeskViewModal(true);
     }
-    else{
+    else {
       setIsModalOpen(true);
 
     }
@@ -131,7 +131,7 @@ const DataManagementPage = ({
     setHelpdeskViewModal(false);
 
     setSelectedData(null);
-    await onFetch(apiEndpoint, employerId, setData, setIsLoading,Helpdesk=true);
+    await onFetch(apiEndpoint, employerId, setData, setIsLoading, Helpdesk = true);
   };
 
   // Search and filter logic
@@ -191,7 +191,7 @@ const DataManagementPage = ({
 
   return (
     <div className="min-h-screen bg-background">
-    {pageTitle !== "Help Desk"  && <Header heading={pageTitle} />}
+      {pageTitle !== "Help Desk" && <Header heading={pageTitle} />}
       <motion.div
         className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8"
         variants={ANIMATION_VARIANTS.container}
@@ -313,7 +313,7 @@ const DataManagementPage = ({
                                           item[column.key] === "Rejected" ? "bg-[#D0021B]" : " "
                                       }`}
                                   >
-                                    {item[column.key]}
+                                    {item[column.key] === "In Progress" ? "Open" : item[column.key]}
                                   </Badge>
                                 </TableCell>
                               ) : (
@@ -332,7 +332,7 @@ const DataManagementPage = ({
                                     variant="outline"
                                     size="sm"
                                     onClick={() => openModal(item, true)}
-                                    
+
                                     className="flex items-center text-foreground hover:bg-background/10"
                                   >
                                     <MessageSquare className="w-4 h-4 mr-2" />
@@ -438,11 +438,11 @@ const DataManagementPage = ({
           {
             helpdeskViewModal && (
               <Modal onClose={closeModal}>
-              <HelpdeskModal
-                complaint={selectedData}
-                onClose={closeModal}
-              />
-            </Modal>
+                <HelpdeskModal
+                  complaint={selectedData}
+                  onClose={closeModal}
+                />
+              </Modal>
             )
           }
         </AnimatePresence>

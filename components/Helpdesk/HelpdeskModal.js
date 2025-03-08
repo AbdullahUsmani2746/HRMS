@@ -34,11 +34,10 @@ const ANIMATION_VARIANTS = {
 const HelpdeskModal = ({ complaint, onClose, userRole }) => {
     const { data: session } = useSession();
     //   const IsResolver = session?.user?.isResolver;
-    const isResolver = false;
+    const isResolver = true;
     const [employeeName, setEmployeeName] = useState("Unknown Employee");
     const [questions, setQuestions] = useState(complaint.questions || []);
     const [complaintStatus, setComplaintStatus] = useState(complaint.status || "Open");
-
 
     useEffect(() => {
         if (complaint.employeeId) {
@@ -66,17 +65,37 @@ const HelpdeskModal = ({ complaint, onClose, userRole }) => {
             await axios.put(`/api/helpdesk/${complaint._id}`, {
                 status: updatedQuestion.status,
                 answer: updatedQuestion.answer,
+                index: index,
+                complaint: false
             });
 
-            const allResolved = questions.every(q => q.status === "Resolved");
-            if (allResolved) {
+            const allClosed = questions.every(q => 
+                q.status === "Resolved" || q.status === "Rejected"
+            );
+            
+            if (allClosed) {
                 setComplaintStatus("Closed");
-                await axios.put(`/api/helpdesk/${complaint._id}`, { status: "Closed" });
+                await axios.put(`/api/helpdesk/${complaint._id}`, { status: "Closed", complaint: true });
             }
             alert("Status updated successfully!");
         } catch (error) {
             console.error("Error updating status:", error);
             alert("Failed to update status.");
+        }
+    };
+    const handleSaveAnswer = async (index) => {
+        const updatedQuestion = questions[index];
+        try {
+            await axios.put(`/api/helpdesk/${complaint._id}`, {
+                answer: updatedQuestion.answer,
+                status: complaintStatus,
+                index: index,
+                complaint: false
+            });
+            alert("Answer saved successfully!");
+        } catch (error) {
+            console.error("Error saving answer:", error);
+            alert("Failed to save answer.");
         }
     };
 
@@ -130,39 +149,59 @@ const HelpdeskModal = ({ complaint, onClose, userRole }) => {
                                             </Badge>
                                         </div>
                                     </AccordionTrigger>
-                                    <AccordionContent className="p-3 space-y-4">
+                                    <AccordionContent className="p-3 space-y-2">
                                         <h3 className="text-sm font-medium text-background/80">Subject</h3>
                                         <textarea className="w-full p-2 border border-background/10 rounded-md bg-background/5 text-background" disabled value={question.subject} />
                                         <h3 className="text-sm font-medium text-background/80">Description</h3>
                                         <textarea className="w-full p-2 border border-background/10 rounded-md bg-background/5 text-background" disabled value={question.description} />
                                         <h3 className="text-sm font-medium text-background/80">Answer</h3>
-                                        <textarea className="w-full p-2 border border-background/10 rounded-md bg-background/5 text-background"
-                                            placeholder="Write your answer here..."
-                                            value={question.answer || ""}
-                                            onChange={(e) => handleAnswerChange(index, e.target.value)}
-                                            disabled={isResolver ? false : true}
-                                        />
+                                        <div className="relative w-full">
+                                            <textarea
+                                                className="w-full h-24 p-4 border border-background/10 rounded-md bg-background/5 text-background pr-16"
+                                                placeholder="Write your answer here..."
+                                                value={question.answer || ""}
+                                                onChange={(e) => handleAnswerChange(index, e.target.value)}
+                                                disabled={!isResolver}
+                                            />
+                                            {isResolver && (
+                                                <Button
+                                                    onClick={() => {
+                                                        if (question.answer?.trim()) {
+                                                            handleSaveAnswer(index);
+                                                        } else {
+                                                            alert("Answer field cannot be empty!");
+                                                        }
+                                                    }}
+                                                    className="absolute bottom-3 right-2 bg-primary text-white p-2 rounded-md"
+                                                >
+                                                    Save
+                                                </Button>
+                                            )}
+                                        </div>
+
 
                                         {isResolver && (
-                                            <Select
-                                                value={question.status}
-                                                onValueChange={(value) => handleStatusChange(index, value)}
-
-                                                className="bg-background/5 border-background/10 text-background w-[200px]"
-                                            >
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Select Status" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {["Rejected", "Resolved", "In Progress"].map(type => (
-                                                        <SelectItem key={type} value={type}>{type}</SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
+                                            <div className="space-y-2">
+                                                <h3 className="text-sm font-medium text-background/80">Status</h3>
+                                                <Select
+                                                    value={question.status}
+                                                    onValueChange={(value) => {
+                                                        handleStatusChange(index, value);
+                                                        handleUpdateStatus(index);
+                                                    }}
+                                                    className="bg-background/5 border-background/10 text-background w-[200px]"
+                                                >
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Select Status" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {["Rejected", "Resolved", "In Progress"].map(type => (
+                                                            <SelectItem key={type} value={type}>{type}</SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
                                         )}
-
-
-
 
                                     </AccordionContent>
                                 </AccordionItem>

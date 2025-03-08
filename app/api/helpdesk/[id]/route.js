@@ -1,5 +1,6 @@
 import Ticket from "@/models/Helpdesk/helpdesk.models";
 import connectDB from "@/utils/dbConnect";
+import { stat } from "fs";
 import mongoose from "mongoose";
 import { NextResponse } from "next/server";
 
@@ -7,33 +8,39 @@ import { NextResponse } from "next/server";
 await connectDB();
 
 /**
- * GET method to fetch ticket details by employee ID
+ * GET method to fetch ticket details by employee or employer ID
  */
 export async function GET(req, { params }) {
   const { id } = params;
 
   if (!id) {
-    return NextResponse.json({ message: "Employee ID is required." }, { status: 400 });
+    return NextResponse.json({ message: "ID is required." }, { status: 400 });
   }
 
   try {
-    // Fetch only required fields
-    const tickets = await Ticket.find({ employeeId: id });
+    let tickets;
+
+    if (id.startsWith("CLIENT-")) {
+
+      tickets = await Ticket.find({ employerId: id });
+    } else {
+
+      tickets = await Ticket.find({ employeeId: id });
+    }
 
     if (!tickets.length) {
       return NextResponse.json({ message: "No tickets found." }, { status: 404 });
     }
 
-    return NextResponse.json({data: tickets, status: 200 });
+    return NextResponse.json({ data: tickets, status: 200 });
   } catch (error) {
-    console.error("Error fetching tickets:", error); // Console log for debugging
+    console.error("Error fetching tickets:", error);
     return NextResponse.json(
       { message: "Failed to fetch tickets.", error: error.message },
       { status: 500 }
     );
   }
 }
-
 
 /**
  * POST method to create a new ticket
@@ -48,7 +55,7 @@ export async function POST(req) {
 
     try {
       const lastTicket = await Ticket.findOne().sort({ date: -1 }).session(session);
-      
+
       let newComplaintNumber = "TKT-001"; // Default if no ticket exists
 
       if (lastTicket) {
@@ -86,7 +93,7 @@ export async function POST(req) {
  * PUT method to update ticket status
  */
 export async function PUT(req, { params }) {
-  let { id } = params;
+  let { id } = await params;
 
   if (!id) {
     return NextResponse.json({ message: "Ticket ID is required." }, { status: 400 });
@@ -97,15 +104,36 @@ export async function PUT(req, { params }) {
   }
 
   try {
-    const { status } = await req.json();
+    const { status, answer,index,complaint } = await req.json();
 
-    if (!status) {
-      return NextResponse.json({ message: "Status is required." }, { status: 400 });
+    if (!status && (!answer || answer.trim().toLowerCase() === "none")) {
+      return NextResponse.json({ message: "Either status or a valid answer is required." }, { status: 400 });
     }
 
+    console.log(id, status, answer, index,complaint)
+    let updateData = complaint ? {} : { questions: [] };
+
+
+    
+    if(status && complaint){
+      updateData.status = status;
+
+    }
+
+    if (status && !complaint) {
+      updateData.questions[index] = { status };
+    }
+
+
+    if (answer && answer.trim().toLowerCase() !== "none") {
+      updateData.questions[index] = { answer };
+    }
+
+    
+    console.log(updateData)
     const updatedTicket = await Ticket.findByIdAndUpdate(
-      new mongoose.Types.ObjectId(id),
-      { status },
+      id,
+      updateData,
       { new: true }
     );
 
@@ -118,6 +146,3 @@ export async function PUT(req, { params }) {
     return NextResponse.json({ message: "Failed to update ticket.", error: error.message }, { status: 500 });
   }
 }
-
-
-
