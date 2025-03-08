@@ -61,6 +61,7 @@ import LoadingSpinner from "@/components/spinner";
 import Header from "@/components/breadcumb";
 import axios from "axios";
 import { useSession } from "next-auth/react";
+import { FaBullseye } from "react-icons/fa";
 
 // Animation Variants
 const ANIMATION_VARIANTS = {
@@ -266,7 +267,7 @@ const Modal = ({ onClose, children }) => {
 const PeriodicAttendanceComponent = () => {
   const { data: session } = useSession();
   const employerId = session?.user?.username || "default-employer";
-  const itemsPerPage = 5;
+  const itemsPerPage = 20;
 
   const [attendanceData, setAttendanceData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
@@ -377,6 +378,8 @@ const PeriodicAttendanceComponent = () => {
       closeModal();
     } catch (error) {
       console.error("Error adding attendance:", error);
+      setIsLoading(false);
+
       // Handle specific API errors here if needed
     } finally {
       setIsLoading(false);
@@ -406,11 +409,14 @@ const PeriodicAttendanceComponent = () => {
 
     // Filter by search term
     if (searchTerm) {
-      result = result.filter((record) =>
-        record.employeeId.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+      result = result.filter((record) => {
+        // Find the employee that matches this record's employeeId
+        const employee = employees.find(emp => emp.employeeId === record.employeeId);
+        
+        // If employee exists and their name includes the search term, keep this record
+        return employee && employee.firstName.toLowerCase().includes(searchTerm.toLowerCase());
+      });
     }
-
     // Filter by Status
     if (filterOptions.status) {
       result = result.filter(
@@ -461,10 +467,11 @@ const PeriodicAttendanceComponent = () => {
       const response = await axios.get(
         `/api/employees/periodicAttendance?employerId=${employerId}`
       );
-      setAttendanceData(response.data.data);
+      setAttendanceData(response.data.data || []);
+      setIsLoading(false);
+
     } catch (error) {
       console.error("Error fetching attendance:", error);
-    } finally {
       setIsLoading(false);
     }
   };
@@ -488,7 +495,7 @@ const PeriodicAttendanceComponent = () => {
   }, [employerId]);
 
   // Pagination logic
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+  const totalPages = filteredData.length === 0  ? 0 : Math.ceil(filteredData.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const currentData = filteredData.slice(startIndex, endIndex);
@@ -743,7 +750,7 @@ const PeriodicAttendanceComponent = () => {
                         <TableHeader>
                           <TableRow className="border-background/10 bg-background/5">
                             <TableHead className="text-background font-medium py-5 px-6">
-                              Employee ID
+                              ID
                             </TableHead>
                             <TableHead className="text-background font-medium py-5 px-6">
                               Name

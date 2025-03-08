@@ -4,7 +4,7 @@ const PayrollProcessSchema = new mongoose.Schema({
   payroll_id: {
     type: Number,
     required: true,
-    unique: true, // Primary key
+    unique: true,
   },
   date_from: {
     type: Date,
@@ -26,14 +26,33 @@ const PayrollProcessSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
-  status:{
-    type:String,
-    default:"Pending"
+  status: {
+    type: String,
+    enum: ['Draft', 'Pending', 'Partially Approved', 'Approved'],
+    default: 'Draft',
   },
   employerId: {
     type: String,
     required: true,
   },
+  processedEmployees: [{
+    type: String, // Stores employee IDs that have been processed
+    default: [],
+  }],
+  totalAmount: {
+    type: Number,
+    default: 0,
+  },
+  created_at: {
+    type: Date,
+    default: Date.now,
+  },
+  updated_at: {
+    type: Date,
+    default: Date.now,
+  },
+}, {
+  timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' }
 });
 
  const PayrollProcess = mongoose.models.PayrollProcess || mongoose.model('PayrollProcess', PayrollProcessSchema);
