@@ -34,7 +34,13 @@ const ANIMATION_VARIANTS = {
 const HelpdeskModal = ({ complaint, onClose, userRole }) => {
     const { data: session } = useSession();
     //   const IsResolver = session?.user?.isResolver;
-    const isResolver = true;
+    let isResolver;
+    if(session?.user?.isResolver || (session.user?.role === "admin")){
+        isResolver = true
+    }else {
+        isResolver = false 
+    }
+    // const isResolver = true;
     const [employeeName, setEmployeeName] = useState("Unknown Employee");
     const [questions, setQuestions] = useState(complaint.questions || []);
     const [complaintStatus, setComplaintStatus] = useState(complaint.status || "Open");
