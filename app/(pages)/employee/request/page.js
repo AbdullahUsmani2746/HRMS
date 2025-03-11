@@ -91,14 +91,6 @@ const RequestForm = ({ type, onClose, existingData, employeeId, Leaves }) => {
   });
 
 
-
-  const leaveTypes = [
-    { value: "annual", label: "Annual Leave" },
-    { value: "sick", label: "Sick Leave" },
-    { value: "emergency", label: "Emergency Leave" },
-    { value: "unpaid", label: "Unpaid Leave" },
-  ];
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {

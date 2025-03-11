@@ -179,7 +179,7 @@ const [errors, setErrors] = useState({}); // Local error state
   };
 
   return (
-    <Dialog open={true} onOpenChange={onClose}>
+    <Dialog open={true} >
       <DialogContent className="bg-foreground max-w-full md:max-w-4xl p-0 h-[90vh] md:h-auto">
         <DialogHeader className="bg-foreground text-background p-3 md:p-4 rounded-t-lg flex flex-row justify-between">
           <DialogTitle className="text-xl md:text-2xl font-bold">
