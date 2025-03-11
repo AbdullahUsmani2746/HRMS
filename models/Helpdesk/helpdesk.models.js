@@ -16,8 +16,9 @@ const QuestionSchema = new mongoose.Schema({
 
 const TicketSchema = new mongoose.Schema({
   complaintNumber: { type: String, required: true, unique: true },
-  employeeId: { type: String, required: true },
-  employerId: { type: String, required: true },
+  employeeId: { type: String },
+  employerId: { type: String },
+  isAdmin:{type:Boolean ,default:false},
   date: { type: Date, default: Date.now },
   questions: [QuestionSchema],
   status: { type: String, default: "open" },

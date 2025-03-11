@@ -21,9 +21,8 @@ const Helpdesk = ({ onClose }) => {
   const employeeId = session?.user?.username;
   const employerId = `CLIENT-${employeeId.split("-")[0]}`
   const [tickets, setTickets] = useState([]);
-  const [complaintNo, setComplaintNo] = useState(100);
   const [fields, setFields] = useState([{ title: "", description: "" }]);
-
+  const isDash = session?.user?.isDash || true;
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -44,6 +43,7 @@ const Helpdesk = ({ onClose }) => {
     const newTicket = {
       employeeId,
       employerId,
+      isAdmin:isDash ? true : false,
       questions: fields.map(field => ({ subject: field.title, description: field.description })),
     };
 
@@ -63,7 +63,7 @@ const Helpdesk = ({ onClose }) => {
     } catch (error) {
       console.error("Error creating ticket:", error);
       toast.error("Failed to submit complaint.");
-    }
+    } 
   };
 
   const addField = () => {

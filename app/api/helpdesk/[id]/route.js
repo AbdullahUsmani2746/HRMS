@@ -11,6 +11,7 @@ await connectDB();
  */
 export async function GET(req, { params }) {
   const { id } = await params;
+  console.log(id)
 
   if (!id) {
     return NextResponse.json({ message: "ID is required." }, { status: 400 });

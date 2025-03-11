@@ -11,7 +11,7 @@ const Page = () => {
   const [refreshDashboard, setRefreshDashboard] = useState(false);
 
   const employeeId = session?.user?.username;
-  const isResolver = true;
+  const isResolver = false;
   const employerId = `CLIENT-${employeeId?.split("-")[0]}`;
   const id = isResolver ? employerId : employeeId;
 
@@ -28,7 +28,7 @@ const Page = () => {
     <div>
       <Header heading="Help Desk" />
       
-      {isResolver && <HelpdeskDashboard refreshDashboard={refreshDashboard} />}
+      {isResolver && <HelpdeskDashboard refreshDashboard={refreshDashboard}/>}
 
       <DataManagementPage
         pageTitle="Help Desk"

@@ -48,7 +48,7 @@ const HelpdeskModal = ({ complaint, onClose, userRole, onStatusUpdate }) => {
     if (session?.user?.isResolver || (session.user?.role === "admin")) {
         isResolver = true
     } else {
-        isResolver = true
+        isResolver = false
     }
     // const isResolver = true;
     const [employeeName, setEmployeeName] = useState("Unknown Employee");

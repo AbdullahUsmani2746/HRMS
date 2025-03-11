@@ -4,7 +4,7 @@ import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { FaExclamationCircle, FaCheckCircle, FaHourglassHalf, FaList, FaThumbsUp, FaTimesCircle } from "react-icons/fa";
 
-const HelpdeskDashboard = ({ refreshDashboard }) => {
+const HelpdeskDashboard = ({ refreshDashboard, isAdmin}) => {
 
     const { data: session } = useSession();
     const [questionCounts, setQuestionCounts] = useState({});
@@ -31,7 +31,7 @@ const HelpdeskDashboard = ({ refreshDashboard }) => {
     const fetchCounts = async () => {
 
         try {
-            const response = await axios.get(`/api/helpdesk/${employerId}`);
+            const response = await axios.get(`/api/helpdesk/${isAdmin ? "admin": employerId}`);
 
             if (response) {
                 setQuestionCounts(response.data.questionStatusCounts)
