@@ -227,7 +227,7 @@ const EmployeeTable = () => {
 
          <motion.div
            variants={containerVariants}
-           className="relative rounded-lg border border-background/10"
+           className="relative rounded-lg border border-background/10 overflow-x-auto"
            >
            <Table className="text-white">
              <TableHeader>
@@ -236,7 +236,7 @@ const EmployeeTable = () => {
                  {columns.filter(col => col.isVisible).map((col) => (
                    <TableHead className="text-background font-medium py-3 px-3" key={col.id}>{col.header}</TableHead>
                  ))}
-                 <TableHead className="text-background font-medium py-3 px-3">Actions</TableHead>
+                 <TableHead className="text-background font-medium py-3 px-3 ">Actions</TableHead>
                </TableRow>
              </TableHeader>
              <TableBody>

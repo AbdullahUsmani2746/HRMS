@@ -394,7 +394,7 @@ const PayrollPageComponent = () => {
               </SelectTrigger>
               <SelectContent>
                 {payrollIds.map((payroll) => (
-                  <SelectItem key={payroll._id} value={payroll._id}>
+                  <SelectItem key={payroll.payroll_id} value={payroll.payroll_id}>
                     Payroll ID: {payroll.payroll_id}<br/>
                     Start Date: {new Date(payroll.date_from).toLocaleDateString()}<br/>
                     End Date: {new Date(payroll.date_to).toLocaleDateString()}

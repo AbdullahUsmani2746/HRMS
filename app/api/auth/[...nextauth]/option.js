@@ -35,6 +35,7 @@ export const authOptions = {
             email: user.email,
             role: user.role,
             isManager: user.isManager || false, // Default to false if not explicitly set
+            isResolver: user.isResolver || false, // Default to false if not explicitly set
 
           };
         },
@@ -49,6 +50,7 @@ export const authOptions = {
           token.email = user.email;
           token.role = user.role;
           token.isManager = user.isManager; // Include the isManager field
+          token.isResolver = user.isResolver; // Include the isManager field
 
         }
         return token;
@@ -61,6 +63,7 @@ export const authOptions = {
           email: token.email,
           role: token.role,
           isManager: token.isManager, // Include isManager in the session
+          isResolver: token.isResolver, // Include isManager in the session
 
         };
         return session;

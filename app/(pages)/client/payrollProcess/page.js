@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import React, { useEffect, useState } from "react";
 import { format } from "date-fns";
 import axios from "axios";
@@ -22,7 +22,6 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -34,15 +33,57 @@ import {
 import Header from "@/components/breadcumb";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, AlertCircle, Trash2, Calendar, Plus } from "lucide-react";
+import { Loader2, AlertCircle, Trash2, Calendar as CalendarIcon, Plus } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+
+const DateRangePicker = ({ selectedRange, onRangeChange }) => {
+  const [open, setOpen] = useState(false);
+  const [range, setRange] = useState(selectedRange);
+
+  useEffect(() => {
+    if (range?.from && range?.to) {
+      setOpen(false);
+      onRangeChange(range);
+    }
+  }, [range]);
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button variant="outline" className="w-full justify-start text-left">
+          <CalendarIcon className="mr-2 h-4 w-4" />
+          {range?.from ? (
+            range.to ? (
+              `${format(range.from, "MMM dd")} - ${format(range.to, "MMM dd")}`
+            ) : (
+              format(range.from, "MMM dd, yyyy")
+            )
+          ) : (
+            <span>Select date range</span>
+          )}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0">
+        <Calendar
+          mode="range"
+          selected={range}
+          onSelect={setRange}
+          numberOfMonths={2}
+          required
+          className="rounded-md border"
+        />
+      </PopoverContent>
+    </Popover>
+  );
+};
 
 export default function PayrollProcessPage() {
   const { data: session } = useSession();
   const employerId = session?.user?.username || "CLIENT-001";
   const [payrolls, setPayrolls] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [dateFrom, setDateFrom] = useState("");
-  const [dateTo, setDateTo] = useState("");
+  const [dateRange, setDateRange] = useState({});
   const [status, setStatus] = useState({ type: "", message: "" });
   const [stats, setStats] = useState({
     totalPayrolls: 0,
@@ -55,9 +96,7 @@ export default function PayrollProcessPage() {
   }, []);
 
   useEffect(() => {
-    if (payrolls.length > 0) {
-      calculateStats();
-    }
+    if (payrolls.length > 0) calculateStats();
   }, [payrolls]);
 
   const calculateStats = () => {
@@ -76,7 +115,7 @@ export default function PayrollProcessPage() {
     try {
       const { data } = await axios.get("/api/payroll/payroll-process?employerId=" + employerId);
       setPayrolls(data.data || []);
-      setStatus({ type: "success", message: "Payroll periods loaded successfully" });
+      setStatus({ type: "success", message: "Payroll periods loaded" });
     } catch (error) {
       setStatus({ type: "error", message: "Failed to fetch payroll periods" });
     } finally {
@@ -88,62 +127,59 @@ export default function PayrollProcessPage() {
     try {
       setIsLoading(true);
       await axios.delete(`/api/payroll/payroll-process/${payrollId}`);
-      setStatus({ type: "success", message: "Payroll period deleted successfully" });
+      setStatus({ type: "success", message: "Payroll period deleted" });
       fetchPayrollProcesses();
     } catch (error) {
-      setStatus({ type: "error", message: "Failed to delete payroll period" });
+      setStatus({ type: "error", message: "Delete failed" });
     } finally {
       setIsLoading(false);
     }
   };
 
   const generatePayroll = async () => {
-    if (!dateFrom || !dateTo) {
-      setStatus({ type: "error", message: "Please provide both 'Date From' and 'Date To'" });
+    if (!dateRange.from || !dateRange.to) {
+      setStatus({ type: "error", message: "Select date range" });
       return;
     }
 
-    if (new Date(dateFrom) > new Date(dateTo)) {
-      setStatus({ type: "error", message: "'Date From' cannot be later than 'Date To'" });
+    if (dateRange.from > dateRange.to) {
+      setStatus({ type: "error", message: "Invalid date range" });
       return;
     }
 
-    if (isDateRangeOverlapping(dateFrom, dateTo)) {
-      setStatus({ type: "error", message: "The provided date range overlaps with an existing payroll" });
+    if (isDateRangeOverlapping(dateRange.from, dateRange.to)) {
+      setStatus({ type: "error", message: "Date range overlaps" });
       return;
     }
 
     setIsLoading(true);
     try {
       const { data } = await axios.post("/api/payroll/payroll-process", {
-        date_from: dateFrom,
-        date_to: dateTo,
+        date_from: dateRange.from,
+        date_to: dateRange.to,
         employerId,
       });
       
       if (data.success) {
-        setStatus({ type: "success", message: "Payroll process generated successfully!" });
+        setStatus({ type: "success", message: "Payroll generated!" });
         fetchPayrollProcesses();
-        setDateFrom("");
-        setDateTo("");
+        setDateRange({});
       }
     } catch (error) {
-      setStatus({ type: "error", message: "Failed to generate payroll process" });
+      setStatus({ type: "error", message: "Generation failed" });
     } finally {
       setIsLoading(false);
     }
   };
 
   const isDateRangeOverlapping = (newStart, newEnd) => {
-    const newStartDate = new Date(newStart);
-    const newEndDate = new Date(newEnd);
     return payrolls.some(({ date_from, date_to }) => {
       const existingStart = new Date(date_from);
       const existingEnd = new Date(date_to);
       return (
-        (newStartDate >= existingStart && newStartDate <= existingEnd) ||
-        (newEndDate >= existingStart && newEndDate <= existingEnd) ||
-        (newStartDate <= existingStart && newEndDate >= existingEnd)
+        (newStart >= existingStart && newStart <= existingEnd) ||
+        (newEnd >= existingStart && newEnd <= existingEnd) ||
+        (newStart <= existingStart && newEnd >= existingEnd)
       );
     });
   };
@@ -152,162 +188,124 @@ export default function PayrollProcessPage() {
     <div className="min-h-screen bg-background">
       <Header heading="Payroll Process Management" />
       
-      <div className="container mx-auto p-6">
-        {/* Statistics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Payroll Periods</CardTitle>
-              <Calendar className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.totalPayrolls}</div>
-              <p className="text-xs text-muted-foreground">
-                All time payroll periods
-              </p>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Current Month</CardTitle>
-              <Calendar className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.currentMonth}</div>
-              <p className="text-xs text-muted-foreground">
-                Payroll periods this month
-              </p>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Pending Payrolls</CardTitle>
-              <Calendar className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.pendingPayrolls}</div>
-              <p className="text-xs text-muted-foreground">
-                Awaiting processing
-              </p>
-            </CardContent>
-          </Card>
+      <div className="container mx-auto p-4 sm:p-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          {Object.entries(stats).map(([key, value]) => (
+            <Card key={key} className="hover:shadow-lg transition-shadow">
+              <CardHeader className="flex flex-row items-center justify-between p-4">
+                <CardTitle className="text-sm font-medium capitalize">
+                  {key.replace(/([A-Z])/g, ' $1').trim()}
+                </CardTitle>
+                <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent className="p-4">
+                <div className="text-2xl font-bold">{value}</div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
 
-        {/* Status Alert */}
         {status.message && (
-          <Alert className={`mb-6 ${status.type === 'error' ? 'bg-red-50' : 'bg-green-50'}`}>
-            <AlertCircle className={status.type === 'error' ? 'text-red-600' : 'text-green-600'} />
-            <AlertTitle>
-              {status.type === 'error' ? 'Error' : 'Success'}
-            </AlertTitle>
-            <AlertDescription>{status.message}</AlertDescription>
+          <Alert className={`mb-6 ${status.type === 'error' ? 'border-red-200 bg-red-50' : 'border-green-200 bg-green-50'}`}>
+            <AlertCircle className={`h-4 w-4 ${status.type === 'error' ? 'text-red-600' : 'text-green-600'}`} />
+            <AlertDescription className={`${status.type === 'error' ? 'text-red-600' : 'text-green-600'}`}>
+              {status.message}
+            </AlertDescription>
           </Alert>
         )}
 
         <Card className="mb-6">
-          <CardHeader>
-            <CardTitle>Create Payroll Period</CardTitle>
-            <CardDescription>Set up a new payroll processing period</CardDescription>
+          <CardHeader className="p-4 sm:p-6">
+            <CardTitle className="text-lg">Create Payroll Period</CardTitle>
+            <CardDescription className="text-sm">Select date range for payroll processing</CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="flex gap-4 items-end">
-              <div className="flex-1">
-                <label className="block text-sm font-medium mb-2">Date From</label>
-                <Input
-                  type="date"
-                  value={dateFrom}
-                  onChange={(e) => setDateFrom(e.target.value)}
-                  className="w-full"
-                />
-              </div>
-              <div className="flex-1">
-                <label className="block text-sm font-medium mb-2">Date To</label>
-                <Input
-                  type="date"
-                  value={dateTo}
-                  onChange={(e) => setDateTo(e.target.value)}
-                  className="w-full"
+          <CardContent className="p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row gap-4 items-end">
+              <div className="w-full">
+                <DateRangePicker
+                  selectedRange={dateRange}
+                  onRangeChange={setDateRange}
                 />
               </div>
               <Button 
                 onClick={generatePayroll}
                 disabled={isLoading}
-                className="flex gap-2"
+                className="w-full sm:w-auto px-6 py-2"
               >
                 {isLoading ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
                 ) : (
-                  <Plus className="h-4 w-4" />
+                  <Plus className="h-4 w-4 mr-2" />
                 )}
-                Generate Period
+                Generate
               </Button>
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader>
-            <CardTitle>Payroll Periods</CardTitle>
-            <CardDescription>Manage your payroll processing periods</CardDescription>
+          <CardHeader className="p-4 sm:p-6">
+            <CardTitle className="text-lg">Payroll Periods</CardTitle>
+            <CardDescription className="text-sm">Manage existing payroll periods</CardDescription>
           </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-muted/50">
-                  <TableHead>Payroll ID</TableHead>
-                  <TableHead>Date Range</TableHead>
-                  <TableHead>Period</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {payrolls.map((payroll) => (
-                  <TableRow key={payroll._id}>
-                    <TableCell className="font-medium">{payroll.payroll_id}</TableCell>
-                    <TableCell>
-                      {format(new Date(payroll.date_from), "MMM dd, yyyy")} - {format(new Date(payroll.date_to), "MMM dd, yyyy")}
-                    </TableCell>
-                    <TableCell>
-                      Week {payroll.week_no}, {payroll.year}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={payroll.isProcessed ? "success" : "secondary"}>
-                        {payroll.isProcessed ? "Processed" : "Pending"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button variant="ghost" size="icon" className="text-red-600">
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Delete Payroll Period</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Are you sure you want to delete this payroll period? This action cannot be undone.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={() => deletePayrollPeriod(payroll._id)}
-                              className="bg-red-600"
-                            >
-                              Delete
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </TableCell>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <Table className="min-w-[600px]">
+                <TableHeader className="bg-muted/50">
+                  <TableRow>
+                    <TableHead className="px-4">ID</TableHead>
+                    <TableHead className="px-4">Date Range</TableHead>
+                    <TableHead className="px-4">Period</TableHead>
+                    <TableHead className="px-4">Status</TableHead>
+                    <TableHead className="px-4">Actions</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {payrolls.map((payroll) => (
+                    <TableRow key={payroll._id} className="hover:bg-muted/50">
+                      <TableCell className="px-4 font-medium">{payroll.payroll_id}</TableCell>
+                      <TableCell className="px-4">
+                        {format(new Date(payroll.date_from), "MMM dd")} - {format(new Date(payroll.date_to), "MMM dd, y")}
+                      </TableCell>
+                      <TableCell className="px-4">
+                        Week {payroll.week_no}, {payroll.year}
+                      </TableCell>
+                      <TableCell className="px-4">
+                        <Badge variant={payroll.isProcessed ? "default" : "secondary"} className="text-xs">
+                          {payroll.isProcessed ? "Processed" : "Pending"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="px-4">
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="ghost" size="icon" className="hover:bg-red-50">
+                              <Trash2 className="h-4 w-4 text-red-600" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This will permanently delete the payroll period.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => deletePayrollPeriod(payroll._id)}
+                                className="bg-red-600 hover:bg-red-700"
+                              >
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </CardContent>
         </Card>
       </div>

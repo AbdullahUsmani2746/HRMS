@@ -99,6 +99,7 @@ const EmployeeFormDialog = ({
 const [errors, setErrors] = useState({}); // Local error state
   const [activeTab, setActiveTab] = useState("profile");
   const fieldToTabMap = {
+    npfNumber:"profile",
     firstName: "personal",
     surname: "personal",
     dob: "personal",
@@ -119,6 +120,7 @@ const [errors, setErrors] = useState({}); // Local error state
 
   const validateForm = () => {
     const newErrors = {};
+    if (!employeeData.npfNumber?.trim()) newErrors.npfNumber = "NPF number is required";
     if (!employeeData.firstName?.trim()) newErrors.firstName = "First name is required";
     if (!employeeData.surname?.trim()) newErrors.surname = "Surname is required";
     if (!employeeData.dob) newErrors.dob = "Date of birth is required";
@@ -258,6 +260,21 @@ const [errors, setErrors] = useState({}); // Local error state
                                   className="bg-background/5 border-background/10"
                                 />
                               </div>
+
+                              <div>
+                            <label className="block pb-1 text-xs md:text-sm text-background/70">NPF Number</label>
+                            <div className="relative">
+                              <Input
+                                name="NPFNumber"
+                                value={employeeData.NPFNumber}
+                                onChange={handleChangeWithValidation}
+                                placeholder="NPF Number"
+                                className={` ${getInputClass("npfNumber")}`}
+                              />
+                              {errors.npfNumber && <AlertCircle className="absolute right-3 top-1/2 transform -translate-y-1/2 text-red-500 w-4 h-4"/>}
+                            </div>
+                            {errors.npfNumber && <p className="text-red-500 text-xs mt-1">{errors.npfNumber}</p>}
+                          </div>
                             </div>
                           </div>
                           
@@ -635,7 +652,6 @@ const [errors, setErrors] = useState({}); // Local error state
                               </SelectTrigger>
                               <SelectContent>
                                 <SelectGroup>
-                                  <SelectLabel className="ml-2">Pay Frequency</SelectLabel>
                                   <SelectItem value="Weekly">Weekly</SelectItem>
                                   <SelectItem value="Fortnightly">Fortnightly</SelectItem>
                                   <SelectItem value="Monthly">Monthly</SelectItem>
@@ -899,7 +915,7 @@ const [errors, setErrors] = useState({}); // Local error state
                     <Button
                       type="button"
                       onClick={() => {
-                        const tabs = ["profile", "personal", "job", "payment", "allowances", "documents"];
+                        const tabs = ["profile", "personal", "job", "payment", "allowances","documents"];
                         const currentIndex = tabs.indexOf(activeTab);
                         setActiveTab(tabs[currentIndex + 1]);
                       }}
@@ -910,14 +926,7 @@ const [errors, setErrors] = useState({}); // Local error state
                   )}
                 </div>
                 <div>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={onClose}
-                    className="mr-2 bg-background border border-foreground text-foreground hover:bg-foreground hover:text-background transition-all text-xs md:text-sm"
-                  >
-                    Cancel
-                  </Button>
+                  {activeTab === "documents" && (
                   <Button
                     type="submit"
                     disabled={isSubmitting}
@@ -932,6 +941,7 @@ const [errors, setErrors] = useState({}); // Local error state
                       "Save Employee"
                     )}
                   </Button>
+                   )}
                 </div>
               </DialogFooter>
             </form>
@@ -952,6 +962,7 @@ const PopupForm = ({ onClose, setEmployees, employeeToEdit }) => {
     dob: new Date(),
     gender: "",
     phoneNumber: "",
+    npfNumber: "",
     emailAddress: "",
     village: "",
     status: "ACTIVE",
@@ -959,7 +970,7 @@ const PopupForm = ({ onClose, setEmployees, employeeToEdit }) => {
     jobTitle: "",
     department: "",
     workLocation: "",
-    manager: null,
+    manager: "",
     clientId: clientId,
     employeeId: "",
     paymentMethod: "CHEQUE",
@@ -968,7 +979,7 @@ const PopupForm = ({ onClose, setEmployees, employeeToEdit }) => {
     accountNumber: "",
     payType: "HOUR",
     ratePerHour: "",
-    payFrequency: "WEEK",
+    payFrequency: "Weekly",
     employeeType: "",
     costCenter: "",
     allownces: [],

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 import {
   Calendar as CalendarIcon,
@@ -10,6 +11,7 @@ import {
   Plus,
   Search,
   ChevronDown,
+  HelpCircle
 } from "lucide-react";
 import { format } from "date-fns";
 import axios from "axios";
@@ -524,7 +526,24 @@ const RequestManagement = () => {
                                 <TableCell key={`${item._id}-${column.key}`} className="py-4 px-6 text-background">
                                   {["Date", "Start Date", "End Date"].includes(column.header)
                                     ? format(new Date(item[column.key]), "MMM dd, yyyy")
-                                    : item[column.key]}
+                                    : ["Status"].includes(column.header)
+                                      ? (item[column.key]==="Rejected" &&  
+                                      <div className="flex items-center">
+                                        Rejected
+                                      <TooltipProvider>
+                                        <Tooltip>
+                                          <TooltipTrigger className="underline underline-offset-4 decoration-dotted">
+                                          <HelpCircle className="ml-1 h-4 w-4 text-background" />
+                                          </TooltipTrigger>
+                                          <TooltipContent side="left">
+                                            <div className="space-y-1 text-xs">
+                                              <p>{item["reason"]}</p>
+                                              
+                                            </div>
+                                          </TooltipContent>
+                                        </Tooltip>
+                                      </TooltipProvider>
+                                      </div>): item[column.key] }
                                 </TableCell>
 
                               ))}

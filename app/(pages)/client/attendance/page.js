@@ -1,5 +1,7 @@
 "use client";
 import { useState, useEffect, useMemo } from "react";
+import { DateRange } from "react-day-picker";
+// import { isDateRange } from "react-day-picker";
 import { format, parseISO } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -159,9 +161,24 @@ const AttendanceStatsCard = ({ data }) => {
   );
 };
 
+
 // DatePickerWithRange Component
 const DateRangePicker = ({ selectedRange, onRangeChange }) => {
   const [open, setOpen] = useState(false);
+  const [range, setRange] = useState(selectedRange);
+
+
+  // Update both local and parent state
+  const handleSelect = (range) => {
+    setRange(range);
+    onRangeChange(range);
+  };
+  // Close popover when both dates are selected
+  useEffect(() => {
+    if (selectedRange?.from && selectedRange?.to) {
+      setOpen(false);
+    }
+  }, [selectedRange]);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -170,8 +187,8 @@ const DateRangePicker = ({ selectedRange, onRangeChange }) => {
           <CalendarIcon className="mr-2 h-4 w-4" />
           {selectedRange?.from && selectedRange?.to ? (
             <>
-              {format(new Date(selectedRange.from), "yyyy-MM-dd")} -{" "}
-              {format(new Date(selectedRange.to), "yyyy-MM-dd")}
+              {format(selectedRange.from, "yyyy-MM-dd")} -{" "}
+              {format(selectedRange.to, "yyyy-MM-dd")}
             </>
           ) : (
             "Pick a date range"
@@ -181,11 +198,10 @@ const DateRangePicker = ({ selectedRange, onRangeChange }) => {
       <PopoverContent className="w-auto p-0">
         <Calendar
           mode="range"
-          selected={selectedRange}
-          onSelect={(range) => {
-            onRangeChange(range);
-            setOpen(false);
-          }}
+          selected={range}
+          onSelect={handleSelect}
+          required
+          numberOfMonths={2}
         />
       </PopoverContent>
     </Popover>
@@ -411,10 +427,15 @@ const PeriodicAttendanceComponent = () => {
     if (searchTerm) {
       result = result.filter((record) => {
         // Find the employee that matches this record's employeeId
-        const employee = employees.find(emp => emp.employeeId === record.employeeId);
-        
+        const employee = employees.find(
+          (emp) => emp.employeeId === record.employeeId
+        );
+
         // If employee exists and their name includes the search term, keep this record
-        return employee && employee.firstName.toLowerCase().includes(searchTerm.toLowerCase());
+        return (
+          employee &&
+          employee.firstName.toLowerCase().includes(searchTerm.toLowerCase())
+        );
       });
     }
     // Filter by Status
@@ -431,8 +452,10 @@ const PeriodicAttendanceComponent = () => {
         const recordDateto = record.dateRange.split(" to ")[1];
 
         return (
-          new Date (recordDatefrom).getTime() >= new Date(filterOptions.dateRange.from).getTime() &&
-          new Date (recordDateto).getTime()  <= new Date(filterOptions.dateRange.to).getTime()
+          new Date(recordDatefrom).getTime() >=
+            new Date(filterOptions.dateRange.from).getTime() &&
+          new Date(recordDateto).getTime() <=
+            new Date(filterOptions.dateRange.to).getTime()
         );
       });
     }
@@ -469,7 +492,6 @@ const PeriodicAttendanceComponent = () => {
       );
       setAttendanceData(response.data.data || []);
       setIsLoading(false);
-
     } catch (error) {
       console.error("Error fetching attendance:", error);
       setIsLoading(false);
@@ -482,7 +504,6 @@ const PeriodicAttendanceComponent = () => {
         `/api/employees?employerId=${employerId}`
       );
 
-      
       setEmployees(response.data.data);
     } catch (error) {
       console.error("Error fetching employees:", error);
@@ -495,7 +516,10 @@ const PeriodicAttendanceComponent = () => {
   }, [employerId]);
 
   // Pagination logic
-  const totalPages = filteredData.length === 0  ? 0 : Math.ceil(filteredData.length / itemsPerPage);
+  const totalPages =
+    filteredData.length === 0
+      ? 0
+      : Math.ceil(filteredData.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const currentData = filteredData.slice(startIndex, endIndex);

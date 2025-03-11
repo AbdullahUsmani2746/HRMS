@@ -30,6 +30,12 @@ const EmployeeSchema = new mongoose.Schema({
     required: true,
     maxlength: 25,
   },
+
+  npfNumber: {
+    type: String,
+    required: true,
+    maxlength: 25,
+  },
   emailAddress: {
     type: String,
     required: true,
