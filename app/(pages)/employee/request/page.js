@@ -76,7 +76,7 @@ const ANIMATION_VARIANTS = {
   },
 };
 
-const RequestForm = ({ type, onClose, existingData, employeeId }) => {
+const RequestForm = ({ type, onClose, existingData, employeeId, Leaves }) => {
   const [formData, setFormData] = useState({
     type: type,
     employeeId: employeeId,
@@ -84,11 +84,13 @@ const RequestForm = ({ type, onClose, existingData, employeeId }) => {
     startDate: existingData?.startDate || null,
     endDate: existingData?.endDate || null,
     reason: existingData?.reason || "",
-    leaveType: existingData?.leaveType || "annual",
+    leaveType: existingData?.leaveType ,
     checkIn: existingData?.checkIn || "",
     checkOut: existingData?.checkOut || "",
     status: "Pending",
   });
+
+
 
   const leaveTypes = [
     { value: "annual", label: "Annual Leave" },
@@ -142,9 +144,9 @@ const RequestForm = ({ type, onClose, existingData, employeeId }) => {
                       <SelectValue placeholder="Select leave type" />
                     </SelectTrigger>
                     <SelectContent>
-                      {leaveTypes.map((type) => (
-                        <SelectItem key={type.value} value={type.value}>
-                          {type.label}
+                      {Leaves.map((type) => (
+                        <SelectItem key={type._id} value={type._id}>
+                          {type.leave}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -284,7 +286,9 @@ const RequestManagement = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [data, setData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const itemsPerPage = 5;
+  const itemsPerPage = 15;
+  const [Leaves, setLeaves] = useState({});
+
 
   const columns =
     requestType === "leave"
@@ -303,9 +307,29 @@ const RequestManagement = () => {
         { key: "status", header: "Status" },
       ];
 
+
+
   useEffect(() => {
     fetchRequests();
+    FetchLeaves();
+
   }, [requestType, currentPage]);
+
+
+
+
+  const FetchLeaves = async () => {
+    try {
+      const response = await axios.get(
+        `/api/employees/leave/?employerId=CLIENT-${employeeId.split("-")[0]}`
+      );
+      setLeaves(response.data.data);
+    } catch (error) {
+      console.error("Error fetching requests:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  }
 
   const fetchRequests = async () => {
     setIsLoading(true);
@@ -527,8 +551,8 @@ const RequestManagement = () => {
                                   {["Date", "Start Date", "End Date"].includes(column.header)
                                     ? format(new Date(item[column.key]), "MMM dd, yyyy")
                                     : ["Status"].includes(column.header)
-                                      ? (item[column.key]==="Rejected" &&  
-                                      <div className="flex items-center">
+                                      ? (item[column.key]==="Rejected" ? 
+                                     ( <div className="flex items-center">
                                         Rejected
                                       <TooltipProvider>
                                         <Tooltip>
@@ -543,7 +567,7 @@ const RequestManagement = () => {
                                           </TooltipContent>
                                         </Tooltip>
                                       </TooltipProvider>
-                                      </div>): item[column.key] }
+                                      </div>) : item[column.key] ): item[column.key] }
                                 </TableCell>
 
                               ))}
@@ -655,6 +679,7 @@ const RequestManagement = () => {
                 existingData={selectedData}
                 onClose={closeModal}
                 employeeId={employeeId}
+                Leaves = {Leaves}
               />
             </Modal>
           )}

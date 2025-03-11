@@ -1,5 +1,6 @@
 
 import mongoose from "mongoose";
+import Department from "./department.models.js";
 
 // JobTitle Setup Model
 const JobTitleSchema = new mongoose.Schema({
