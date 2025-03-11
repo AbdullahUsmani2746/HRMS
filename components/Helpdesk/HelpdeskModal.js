@@ -1,8 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
-import { format } from "date-fns";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle
+} from "@/components/ui/dialog";
 import {
     Select,
     SelectContent,
@@ -10,12 +18,14 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { XCircle } from "lucide-react";
 import axios from "axios";
+import { format } from "date-fns";
+import { motion } from "framer-motion";
 import { useSession } from "next-auth/react";
-import { Badge } from "@/components/ui/badge";
+import { useEffect, useState } from "react";
+import { toast } from 'sonner';
 
 const ANIMATION_VARIANTS = {
     container: {
@@ -31,19 +41,23 @@ const ANIMATION_VARIANTS = {
     },
 };
 
-const HelpdeskModal = ({ complaint, onClose, userRole }) => {
+const HelpdeskModal = ({ complaint, onClose, userRole, onStatusUpdate }) => {
     const { data: session } = useSession();
     //   const IsResolver = session?.user?.isResolver;
     let isResolver;
-    if(session?.user?.isResolver || (session.user?.role === "admin")){
+    if (session?.user?.isResolver || (session.user?.role === "admin")) {
         isResolver = true
-    }else {
-        isResolver = false 
+    } else {
+        isResolver = true
     }
     // const isResolver = true;
     const [employeeName, setEmployeeName] = useState("Unknown Employee");
     const [questions, setQuestions] = useState(complaint.questions || []);
     const [complaintStatus, setComplaintStatus] = useState(complaint.status || "Open");
+    const [showRejectDialog, setShowRejectDialog] = useState(false);
+    const [rejectionReason, setRejectionReason] = useState("");
+    const [selectedIndex, setSelectedIndex] = useState(null);
+
 
     useEffect(() => {
         if (complaint.employeeId) {
@@ -54,54 +68,116 @@ const HelpdeskModal = ({ complaint, onClose, userRole }) => {
     }, [complaint.employeeId]);
 
     const handleStatusChange = (index, newStatus) => {
-        const updatedQuestions = [...questions];
-        updatedQuestions[index].status = newStatus;
-        setQuestions(updatedQuestions);
+        if (newStatus === "Rejected") {
+            setSelectedIndex(index);
+            setShowRejectDialog(true);
+        } else {
+            const updatedQuestions = [...questions];
+            updatedQuestions[index].status = newStatus;
+            setQuestions(updatedQuestions);
+        }
     };
 
-    const handleAnswerChange = (index, answer) => {
+    const handleRejectConfirm = async () => {
         const updatedQuestions = [...questions];
-        updatedQuestions[index].answer = answer;
+        updatedQuestions[selectedIndex].status = "Rejected";
+        updatedQuestions[selectedIndex].rejectionReason = rejectionReason;
+        setQuestions(updatedQuestions);
+
+        try {
+            await axios.put(`/api/helpdesk/${complaint._id}`, {
+                status: "Rejected",
+                rejectionReason,
+                index: selectedIndex,
+                complaint: false
+            });
+            toast.success("Rejection reason saved successfully!", {
+                className: 'bg-green-500 text-white',
+            });
+            const allClosed = questions.every(q =>
+                q.status === "Resolved" || q.status === "Rejected"
+            );
+
+            if (allClosed) {
+                setComplaintStatus("Closed");
+                await axios.put(`/api/helpdesk/${complaint._id}`, { status: "Closed", complaint: true });
+            }
+
+            onStatusUpdate();
+            setShowRejectDialog(false);
+            onClose();
+        } catch (error) {
+            console.error("Error saving rejection reason:", error);
+            toast.error("Failed to save rejection reason.");
+        }
+    };
+
+    const handleAnswerChange = (index, answers) => {
+        const updatedQuestions = [...questions];
+        updatedQuestions[index].answers = answers;
         setQuestions(updatedQuestions);
     };
 
     const handleUpdateStatus = async (index) => {
         const updatedQuestion = questions[index];
+        console.log(updatedQuestion.status)
         try {
+
             await axios.put(`/api/helpdesk/${complaint._id}`, {
                 status: updatedQuestion.status,
-                answer: updatedQuestion.answer,
+                answer: updatedQuestion.answers,
                 index: index,
                 complaint: false
             });
 
-            const allClosed = questions.every(q => 
+
+            const allClosed = questions.every(q =>
                 q.status === "Resolved" || q.status === "Rejected"
             );
-            
+
             if (allClosed) {
                 setComplaintStatus("Closed");
                 await axios.put(`/api/helpdesk/${complaint._id}`, { status: "Closed", complaint: true });
             }
-            alert("Status updated successfully!");
+
+            onStatusUpdate();
+            onClose();
+
+            toast.success("Status updated successfully!", {
+                className: 'bg-green-500 text-white',
+            });
+
         } catch (error) {
             console.error("Error updating status:", error);
-            alert("Failed to update status.");
+            toast.error("Failed to update status.");
         }
     };
     const handleSaveAnswer = async (index) => {
         const updatedQuestion = questions[index];
         try {
             await axios.put(`/api/helpdesk/${complaint._id}`, {
-                answer: updatedQuestion.answer,
-                status: complaintStatus,
+                answer: updatedQuestion.answers,
+                status: updatedQuestion.status,
                 index: index,
                 complaint: false
             });
-            alert("Answer saved successfully!");
+
+            onClose();
+
+            const allClosed = questions.every(q =>
+                q.status === "Resolved" || q.status === "Rejected"
+            );
+
+            if (allClosed) {
+                setComplaintStatus("Closed");
+                await axios.put(`/api/helpdesk/${complaint._id}`, { status: "Closed", complaint: true });
+            }
+            toast.success("Answer saved successfully!", {
+                className: 'bg-green-500 text-white',
+            });
         } catch (error) {
             console.error("Error saving answer:", error);
-            alert("Failed to save answer.");
+            toast.error("Failed to save answer.");
         }
     };
 
@@ -141,18 +217,30 @@ const HelpdeskModal = ({ complaint, onClose, userRole }) => {
                                         <div className="flex justify-between items-center w-full pr-2">
                                             <p>
                                                 #{index + 1}: {question.subject.length > 20 ? question.subject.slice(0, 20) + "..." : question.subject}
-
                                             </p>
-                                            <Badge
-                                                key={question.status}
-                                                className={`text-white px-2 py-1 ${question.status === "In Progress" ? "bg-[#F5A623]" :
-                                                    question.status === "To-Do" ? "bg-[#B0BEC5]" :
-                                                        question.status === "Resolved" ? "bg-[#A8E5A6]" :
-                                                            question.status === "Rejected" ? "bg-[#D0021B]" : " "
-                                                    }`}
-                                            >
-                                                {question.status}
-                                            </Badge>
+
+                                            <TooltipProvider>
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <Badge
+                                                            key={question.status}
+                                                            className={`relative flex items-center gap-2 text-white px-2 py-1 ${question.status === "In Progress" ? "bg-[#F5A623]" :
+                                                                question.status === "To-Do" ? "bg-[#B0BEC5]" :
+                                                                    question.status === "Resolved" ? "bg-green-600" :
+                                                                        question.status === "Rejected" ? "bg-[#D0021B]" : ""
+                                                                }`}
+                                                        >
+                                                            {question.status}
+                                                            {question.status === "Rejected" && <XCircle className="w-4 h-4" />}
+                                                        </Badge>
+                                                    </TooltipTrigger>
+                                                    {question.status === "Rejected" && (
+                                                        <TooltipContent className="bg-gray-800 text-white p-2 rounded-md shadow-lg">
+                                                            <p className="text-sm">Reason: {question.rejectionReason || "No reason provided"}</p>
+                                                        </TooltipContent>
+                                                    )}
+                                                </Tooltip>
+                                            </TooltipProvider>
                                         </div>
                                     </AccordionTrigger>
                                     <AccordionContent className="p-3 space-y-2">
@@ -165,17 +253,19 @@ const HelpdeskModal = ({ complaint, onClose, userRole }) => {
                                             <textarea
                                                 className="w-full h-24 p-4 border border-background/10 rounded-md bg-background/5 text-background pr-16"
                                                 placeholder="Write your answer here..."
-                                                value={question.answer || ""}
+                                                value={question.answers || ""}
                                                 onChange={(e) => handleAnswerChange(index, e.target.value)}
                                                 disabled={!isResolver}
                                             />
                                             {isResolver && (
                                                 <Button
                                                     onClick={() => {
-                                                        if (question.answer?.trim()) {
+                                                        if (question.answers?.trim()) {
                                                             handleSaveAnswer(index);
                                                         } else {
-                                                            alert("Answer field cannot be empty!");
+                                                            toast.error("Answer field cannot be empty!", {
+                                                                className: 'bg-red-500 text-white',
+                                                            });
                                                         }
                                                     }}
                                                     className="absolute bottom-3 right-2 bg-primary text-white p-2 rounded-md"
@@ -192,8 +282,12 @@ const HelpdeskModal = ({ complaint, onClose, userRole }) => {
                                                 <Select
                                                     value={question.status}
                                                     onValueChange={(value) => {
-                                                        handleStatusChange(index, value);
-                                                        handleUpdateStatus(index);
+
+                                                        console.log(value !== "Rejected")
+                                                        handleStatusChange(index, value)
+                                                        value !== "Rejected" ? handleUpdateStatus(index) :
+                                                            handleStatusChange(index, value);
+
                                                     }}
                                                     className="bg-background/5 border-background/10 text-background w-[200px]"
                                                 >
@@ -216,6 +310,23 @@ const HelpdeskModal = ({ complaint, onClose, userRole }) => {
                     </motion.div>
                 </CardContent>
             </Card>
+            <Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Provide Rejection Reason</DialogTitle>
+                        <DialogDescription>Please specify why this complaint is being rejected.</DialogDescription>
+                    </DialogHeader>
+                    <textarea
+                        className="w-full h-24 p-2 border rounded-md"
+                        placeholder="Enter rejection reason..."
+                        value={rejectionReason}
+                        onChange={(e) => setRejectionReason(e.target.value)}
+                    />
+                    <Button onClick={handleRejectConfirm} className="mt-4 bg-red-500 text-white">
+                        Confirm Rejection
+                    </Button>
+                </DialogContent>
+            </Dialog>
         </motion.div>
     );
 };

@@ -173,8 +173,6 @@ const data = {
       icon: BriefcaseBusiness,
       isActive: true,
     },
-    
-   
     { 
       title: "Allowances",
       url: "/client/allowance",
@@ -223,15 +221,7 @@ const data = {
           title: "Payroll Calculation",
           url: "/client/payroll/employeePayroll"
         },
-        
-       
       ],
-    },
-    {
-      title: "Help Desk",
-      url: "/client/helpdesk",
-      icon: CircleHelp,
-      isActive: true,
     },
     {
       title: "Reports",

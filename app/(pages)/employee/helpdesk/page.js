@@ -1,42 +1,49 @@
-"use client"
-import Helpdesk from '@/components/Helpdesk/Helpdesk'
-import React from 'react'
-import Header from '@/components/breadcumb'
-import DataManagementPage from '@/components/DataManagement'
-import { useSession } from 'next-auth/react'
+"use client";
+import Helpdesk from '@/components/Helpdesk/Helpdesk';
+import React, { useState } from 'react';
+import Header from '@/components/breadcumb';
+import DataManagementPage from '@/components/DataManagement';
+import { useSession } from 'next-auth/react';
+import HelpdeskDashboard from '@/components/Helpdesk/HelpdeskDashboard';
 
-const page = () => {
+const Page = () => {
   const { data: session } = useSession();
+  const [refreshDashboard, setRefreshDashboard] = useState(false);
+
   const employeeId = session?.user?.username;
-  const IsResolver = true
+  const isResolver = true;
+  const employerId = `CLIENT-${employeeId?.split("-")[0]}`;
+  const id = isResolver ? employerId : employeeId;
+
   const columns = [
     { key: 'complaintNumber', header: 'Complaint No' },
-    {
-      key: 'status',
-      header: 'Status',
-
-    }
+    { key: 'status', header: 'Status' }
   ];
+
+  const handleStatusUpdate = () => {
+    setRefreshDashboard((prev) => !prev); 
+  };
 
   return (
     <div>
       <Header heading="Help Desk" />
+      
+      {isResolver && <HelpdeskDashboard refreshDashboard={refreshDashboard} />}
+
       <DataManagementPage
         pageTitle="Help Desk"
         pageDescription="Manage and track your complaints efficiently"
-        addButtonText="Report Issue"
+        addButtonText={isResolver ? "" : "Report Issue"}
         Helpdesk={true}
-        apiEndpoint={employeeId ? `/api/helpdesk/${employeeId}` : null}
+        apiEndpoint={id ? `/api/helpdesk/${id}` : null}
         columns={columns}
-        employerId={employeeId}
+        employerId={id}
         searchKeys={['complaintNumber', 'status']}
         FormComponent={Helpdesk}
-
-
-
+        onStatusUpdate={handleStatusUpdate}
       />
     </div>
-  )
-}
+  );
+};
 
-export default page;
+export default Page;

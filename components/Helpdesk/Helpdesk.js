@@ -4,44 +4,67 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import axios from 'axios';
 import { AnimatePresence, motion } from "framer-motion";
-import { Plus, Save, Ticket, Trash2 } from "lucide-react";
+import { Plus, Save, Trash2 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useState } from 'react';
-import axios from 'axios';
+import { toast } from 'sonner';
 
 const ANIMATION_VARIANTS = {
   container: { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.2 } } },
   item: { hidden: { opacity: 0, y: -10 }, visible: { opacity: 1, y: 0 }, exit: { opacity: 0, y: -10 } }
 };
 
-const Helpdesk = () => {
+const Helpdesk = ({ onClose }) => {
   const { data: session } = useSession();
   const employeeId = session?.user?.username;
+  const employerId = `CLIENT-${employeeId.split("-")[0]}`
   const [tickets, setTickets] = useState([]);
   const [complaintNo, setComplaintNo] = useState(100);
   const [fields, setFields] = useState([{ title: "", description: "" }]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
+
+    const cleanedFields = fields.map(field => ({
+      title: field.title.trim(),
+      description: field.description.trim()
+    }));
+
+    const hasEmptyFields = cleanedFields.some(field => field.title === "" || field.description === "");
+
+    if (hasEmptyFields) {
+      toast.error("All fields are required!", {
+        className: 'bg-red-500 text-white',
+      });
+      return;
+    }
+
     const newTicket = {
       employeeId,
+      employerId,
       questions: fields.map(field => ({ subject: field.title, description: field.description })),
     };
-  
+
     try {
       const response = await axios.post(`/api/helpdesk/${employeeId}`, newTicket, {
         headers: { "Content-Type": "application/json" }
       });
-  
+
       setTickets([...tickets, response.data]);
       setFields([{ title: "", description: "" }]);
-  
+
+      toast.success("Complaint submitted successfully!", {
+        className: 'bg-green-500 text-white',
+      });
+      onClose()
+
     } catch (error) {
       console.error("Error creating ticket:", error);
+      toast.error("Failed to submit complaint.");
     }
-  };  
+  };
 
   const addField = () => {
     setFields([...fields, { title: "", description: "" }]);
@@ -63,7 +86,7 @@ const Helpdesk = () => {
     <>
       <Card className="w-full max-w-3xl bg-foreground border-white/10 shadow-xl">
         <CardHeader className="px-4 py-3 border-b border-background/10">
-          <CardTitle className="text-2xl text-background font-bold">Ticket View</CardTitle>
+          <CardTitle className="text-2xl text-background font-bold mb-3">Raise New Complaint</CardTitle>
 
           <motion.form
             onSubmit={handleSubmit}
