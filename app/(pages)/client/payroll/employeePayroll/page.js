@@ -654,6 +654,7 @@ const recalculateSelectedPayroll = async () => {
         return {
           employeeId: employee.employeeId,
           employeeName: employee.firstName,
+          npfNumber: employee.npfNumber,
           employeeEmail: employee.emailAddress,
           payType: employee.payType,
           monthNo: payrollPeriod.month_no,

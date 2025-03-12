@@ -17,6 +17,7 @@ import { Pagination, PaginationContent, PaginationItem, PaginationLink, Paginati
 import { Table, TableHead, TableRow, TableCell, TableBody, TableHeader } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import BulkEmployeeUpload from "./BulkEmployee";
 
 
 
@@ -32,6 +33,7 @@ const EmployeeTable = () => {
  const [searchQuery, setSearchQuery] = useState("");
  const [statusFilter, setStatusFilter] = useState("All");
  const [isPopupOpen, setIsPopupOpen] = useState(false);
+ const [isPopupBulkOpen, setIsPopupBulkOpen] = useState(false);
  const [columns, setColumns] = useState(defaultColumns);
  const [employeeToEdit, setEmployeeToEdit] = useState(null);
  const [isLoading, setIsLoading] = useState(false);
@@ -118,13 +120,15 @@ const EmployeeTable = () => {
    );
  };
 
- const openPopup = (employee = null) => {
+ const openPopup = (employee = null, bulk=false) => {
    setEmployeeToEdit(employee);
-   setIsPopupOpen(true);
+   bulk ? setIsPopupBulkOpen(true) : setIsPopupOpen(true);
  };
 
  const closePopup = async () => {
    setIsPopupOpen(false);
+   setIsPopupBulkOpen(false);
+
    setEmployeeToEdit(null);
    fetchEmployees();
  };
@@ -221,6 +225,14 @@ const EmployeeTable = () => {
                   <Plus className="w-5 h-5 mr-2" />
 
                Add Employee
+             </Button>
+
+             <Button onClick={() => openPopup(null, true)} 
+                  className="bg-background text-foreground hover:bg-background/90 transition-all duration-200 shadow-lg hover:shadow-background/20"
+                  >
+                  <Plus className="w-5 h-5 mr-2" />
+
+               Add Bulk Employee
              </Button>
            </div>
          </div>
@@ -397,6 +409,19 @@ const EmployeeTable = () => {
            employeeToEdit={employeeToEdit}
          />
        </motion.div>
+     )}
+
+{isPopupBulkOpen && (
+      //  <motion.div
+      //    initial={{ opacity: 0 }}
+      //    animate={{ opacity: 1 }}
+      //    exit={{ opacity: 0 }}
+      //  >
+         <BulkEmployeeUpload
+           onClose={closePopup}
+           setEmployees={setEmployees}
+         />
+      //  </motion.div>
      )}
    </div>
  );

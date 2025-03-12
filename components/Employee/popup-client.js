@@ -265,8 +265,8 @@ const [errors, setErrors] = useState({}); // Local error state
                             <label className="block pb-1 text-xs md:text-sm text-background/70">NPF Number</label>
                             <div className="relative">
                               <Input
-                                name="NPFNumber"
-                                value={employeeData.NPFNumber}
+                                name="npfNumber"
+                                value={employeeData.npfNumber}
                                 onChange={handleChangeWithValidation}
                                 placeholder="NPF Number"
                                 className={` ${getInputClass("npfNumber")}`}
