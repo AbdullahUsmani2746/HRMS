@@ -41,11 +41,13 @@ const ANIMATION_VARIANTS = {
     },
 };
 
-const HelpdeskModal = ({ complaint, onClose, userRole, onStatusUpdate }) => {
+const HelpdeskModal = ({ complaint, onClose, userRole, onStatusUpdate, clients = null }) => {
     const { data: session } = useSession();
+    const isAdmin = true
+    console.log(clients)
     //   const IsResolver = session?.user?.isResolver;
     let isResolver;
-    if (session?.user?.isResolver || (session.user?.role === "admin")) {
+    if (session?.user?.isResolver || (session?.user?.role === "admin")) {
         isResolver = true
     } else {
         isResolver = false
@@ -57,6 +59,20 @@ const HelpdeskModal = ({ complaint, onClose, userRole, onStatusUpdate }) => {
     const [showRejectDialog, setShowRejectDialog] = useState(false);
     const [rejectionReason, setRejectionReason] = useState("");
     const [selectedIndex, setSelectedIndex] = useState(null);
+    const [clientName, setClientName] = useState("N/A");
+
+    useEffect(() => {
+        if (complaint.employerId) {
+            const localClientName = clients?.[complaint.employerId]?.businessName;
+            if (localClientName) {
+                setClientName(localClientName);
+            } else {
+                axios.get(`/api/clients/${complaint.employerId}`)
+                    .then(response => setClientName(response.data.data?.businessName || "N/A"))
+                    .catch(() => setClientName("N/A"));
+            }
+        }
+    }, [complaint.employerId, clients]);
 
 
     useEffect(() => {
@@ -192,21 +208,43 @@ const HelpdeskModal = ({ complaint, onClose, userRole, onStatusUpdate }) => {
                 <CardContent>
                     <motion.div variants={ANIMATION_VARIANTS.item} className="space-y-6">
                         <div className="grid grid-cols-2 gap-4 p-4 rounded-lg bg-background/5 border border-background/10">
+
+                            {isAdmin ? (
+                                <>
+                                    <motion.div variants={ANIMATION_VARIANTS.item}>
+                                        <label className="text-sm text-background/60">Client ID</label>
+                                        <p className="mt-1 text-background">{complaint.employerId || "N/A"}</p>
+                                    </motion.div>
+
+                                    <motion.div variants={ANIMATION_VARIANTS.item}>
+                                        <label className="text-sm text-background/60">Client Name</label>
+                                        <p className="mt-1 text-background">{clientName}</p>
+                                    </motion.div>
+                                </>
+                            ) : (
+                                <>
+                                    <motion.div variants={ANIMATION_VARIANTS.item}>
+                                        <label className="text-sm text-background/60">Employee ID</label>
+                                        <p className="mt-1 text-background">{complaint.employeeId || "N/A"}</p>
+                                    </motion.div>
+
+                                    <motion.div variants={ANIMATION_VARIANTS.item}>
+                                        <label className="text-sm text-background/60">Employee Name</label>
+                                        <p className="mt-1 text-background">{employeeName || "N/A"}</p>
+                                    </motion.div>
+                                </>
+                            )}
+
+
                             <motion.div variants={ANIMATION_VARIANTS.item}>
                                 <label className="text-sm text-background/60">Complaint #</label>
-                                <p className="mt-1 text-background">{complaint.complaintNumber}</p>
-                            </motion.div>
-                            <motion.div variants={ANIMATION_VARIANTS.item}>
-                                <label className="text-sm text-background/60">Employee ID</label>
-                                <p className="mt-1 text-background">{complaint.employeeId}</p>
+                                <p className="mt-1 text-background">
+                                    <span>{complaint.complaintNumber}</span>
+                                </p>
                             </motion.div>
                             <motion.div variants={ANIMATION_VARIANTS.item}>
                                 <label className="text-sm text-background/60">Date</label>
                                 <p className="mt-1 text-background">{format(new Date(complaint.date), "MMM dd, yyyy")}</p>
-                            </motion.div>
-                            <motion.div variants={ANIMATION_VARIANTS.item}>
-                                <label className="text-sm text-background/60">Employee Name</label>
-                                <p className="mt-1 text-background">{employeeName}</p>
                             </motion.div>
                         </div>
 

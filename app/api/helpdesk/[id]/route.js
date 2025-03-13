@@ -1,3 +1,4 @@
+import Employer from "@/models/employer.models";
 import Ticket from "@/models/Helpdesk/helpdesk.models";
 import connectDB from "@/utils/dbConnect";
 import mongoose from "mongoose";
@@ -19,13 +20,16 @@ export async function GET(req, { params }) {
 
   try {
     let tickets;
+    let clients;
 
     if (id.startsWith("CLIENT-")) {
 
       tickets = await Ticket.find({ employerId: id });
     }
     else if (id === "admin") {
+
       tickets = await Ticket.find({ isAdmin: true });
+      clients = await Employer.find({})
 
     }
     else {
@@ -56,7 +60,16 @@ export async function GET(req, { params }) {
     }, { "In Progress": 0, Resolved: 0, Rejected: 0 });
 
 
-    return NextResponse.json({ complaintStatusCounts, questionStatusCounts, data: tickets, status: 200 });
+    return NextResponse.json({
+      complaintStatusCounts,
+      questionStatusCounts,
+      data: tickets,
+      clients: clients
+        ? Object.fromEntries(clients.map(c => [c.employerId, { businessName: c.businessName }]))
+        : "",
+      status: 200
+    });
+
   } catch (error) {
     console.error("Error fetching tickets:", error);
     return NextResponse.json(
@@ -78,13 +91,17 @@ export async function POST(req) {
     session.startTransaction();
 
     try {
-      const lastTicket = await Ticket.findOne().sort({ date: -1 }).session(session);
+      const complaintPrefix = body.isAdmin ? "TFD" : "TKT";
 
-      let newComplaintNumber = "TKT-001"; // Default if no ticket exists
+      const lastTicket = await Ticket.findOne({ complaintNumber: new RegExp(`^${complaintPrefix}-\\d+$`) })
+        .sort({ date: -1 })
+        .session(session);
+
+      let newComplaintNumber = `${complaintPrefix}-001`;
 
       if (lastTicket) {
         const lastNumber = parseInt(lastTicket.complaintNumber.split("-")[1], 10);
-        newComplaintNumber = `TKT-${String(lastNumber + 1).padStart(3, "0")}`;
+        newComplaintNumber = `${complaintPrefix}-${String(lastNumber + 1).padStart(3, "0")}`;
       }
 
       const existingTicket = await Ticket.findOne({ complaintNumber: newComplaintNumber }).session(session);
@@ -112,6 +129,7 @@ export async function POST(req) {
     return NextResponse.json({ message: "Failed to create ticket.", error: error.message }, { status: 500 });
   }
 }
+
 
 /**
  * PUT method to update ticket status

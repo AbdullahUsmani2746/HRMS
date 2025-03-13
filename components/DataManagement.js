@@ -45,11 +45,14 @@ const ANIMATION_VARIANTS = {
   }
 };
 
-const onFetch = async (apiEndpoint, employerId, setData, setIsLoading, Helpdesk) => {
+const onFetch = async (apiEndpoint, employerId, setData, setIsLoading, Helpdesk, setClients) => {
   setIsLoading(true);
   try {
     const response = await axios.get(`${apiEndpoint}${Helpdesk ? `?employeeId=${employerId}` : `?employerId=${employerId}`}`);
 
+    if (response.data.clients) {
+      setClients(response.data.clients)
+    }
     setData(response.data.data);
 
 
@@ -94,11 +97,12 @@ const DataManagementPage = ({
   const [sortOrder, setSortOrder] = useState("asc");
   const [currentPage, setCurrentPage] = useState(1);
   const [data, setData] = useState([]);
+  const [clients, setClients] = useState([])
   const [isLoading, setIsLoading] = useState(false);
   const [helpdeskViewModal, setHelpdeskViewModal] = useState(false)
 
   useEffect(() => {
-    onFetch(apiEndpoint, employerId, setData, setIsLoading, Helpdesk);
+    onFetch(apiEndpoint, employerId, setData, setIsLoading, Helpdesk, setClients);
   }, [apiEndpoint, employerId]);
 
   const onDelete = async (id) => {
@@ -445,6 +449,7 @@ const DataManagementPage = ({
               <Modal onClose={closeModal}>
                 <HelpdeskModal
                   complaint={selectedData}
+                  clients={clients}
                   onClose={closeModal}
                   onStatusUpdate={onStatusUpdate}
                 />
