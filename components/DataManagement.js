@@ -50,9 +50,9 @@ const onFetch = async (apiEndpoint, employerId, setData, setIsLoading, Helpdesk,
   try {
     const response = await axios.get(`${apiEndpoint}${Helpdesk ? `?employeeId=${employerId}` : `?employerId=${employerId}`}`);
 
-    if (response.data.clients) {
-      setClients(response.data.clients)
-    }
+    if (response.data.clients && setClients) {
+      setClients(response.data.clients);
+  }
     setData(response.data.data);
 
 
@@ -72,6 +72,7 @@ const DataManagementPage = ({
   pageDescription,
   addButtonText,
   Helpdesk,
+  userRole,
 
   // Data Configuration
   columns,
@@ -450,6 +451,7 @@ const DataManagementPage = ({
                 <HelpdeskModal
                   complaint={selectedData}
                   clients={clients}
+                  userRole={userRole}
                   onClose={closeModal}
                   onStatusUpdate={onStatusUpdate}
                 />

@@ -43,7 +43,7 @@ const ANIMATION_VARIANTS = {
 
 const HelpdeskModal = ({ complaint, onClose, userRole, onStatusUpdate, clients = null }) => {
     const { data: session } = useSession();
-    const isAdmin = true
+    // const isAdmin = true
     console.log(clients)
     //   const IsResolver = session?.user?.isResolver;
     let isResolver;
@@ -62,7 +62,7 @@ const HelpdeskModal = ({ complaint, onClose, userRole, onStatusUpdate, clients =
     const [clientName, setClientName] = useState("N/A");
 
     useEffect(() => {
-        if (complaint.employerId) {
+        if (userRole === "admin" && complaint.employerId) {
             const localClientName = clients?.[complaint.employerId]?.businessName;
             if (localClientName) {
                 setClientName(localClientName);
@@ -72,16 +72,16 @@ const HelpdeskModal = ({ complaint, onClose, userRole, onStatusUpdate, clients =
                     .catch(() => setClientName("N/A"));
             }
         }
-    }, [complaint.employerId, clients]);
+    }, [complaint.employerId, clients,userRole]);
 
 
     useEffect(() => {
-        if (complaint.employeeId) {
+        if (userRole === "employee" && complaint.employeeId) {
             axios.get(`/api/employees/${complaint.employeeId}`)
                 .then(response => setEmployeeName(response.data.data || "Unknown Employee"))
                 .catch(() => setEmployeeName("Unknown Employee"));
         }
-    }, [complaint.employeeId]);
+    }, [complaint.employeeId,userRole]);
 
     const handleStatusChange = (index, newStatus) => {
         if (newStatus === "Rejected") {
@@ -209,7 +209,7 @@ const HelpdeskModal = ({ complaint, onClose, userRole, onStatusUpdate, clients =
                     <motion.div variants={ANIMATION_VARIANTS.item} className="space-y-6">
                         <div className="grid grid-cols-2 gap-4 p-4 rounded-lg bg-background/5 border border-background/10">
 
-                            {isAdmin ? (
+                            {userRole === "admin" ? (
                                 <>
                                     <motion.div variants={ANIMATION_VARIANTS.item}>
                                         <label className="text-sm text-background/60">Client ID</label>

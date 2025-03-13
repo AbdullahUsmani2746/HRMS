@@ -41,6 +41,7 @@ const Page = () => {
         searchKeys={['complaintNumber', 'status']}
         FormComponent={Helpdesk}
         onStatusUpdate={handleStatusUpdate}
+        userRole="employee"
       />
     </div>
   );
