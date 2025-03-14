@@ -1,5 +1,6 @@
 "use client"
 import { signOut } from "next-auth/react";
+import { useState } from "react";
 
 import {
   BadgeCheck,
@@ -32,14 +33,21 @@ import {
 } from "@/components/ui/sidebar"
 import { redirect } from "next/dist/server/api-utils";
 import { useRouter } from "next/navigation";
+import SettingsModal from "./settingModal";
+import LoadingSpinner from "./spinner";
 
 export function NavUser({
   user
 }) {
   const { isMobile } = useSidebar()
+  const [isOpen, setIsOpen] = useState(false); // Manage modal state
+
+  const onClose = ()=> setIsOpen(false)
+
 console.log(user.avatar)
   return (
-    (<SidebarMenu>
+    (<>
+    <SidebarMenu>
       <SidebarMenuItem>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -91,10 +99,11 @@ console.log(user.avatar)
                 <CreditCard />
                 Billing
               </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Bell />
-                Notifications
-              </DropdownMenuItem>
+            {/* Open modal when clicking 'Setting' */}
+            <DropdownMenuItem onClick={() => setIsOpen(true)}>
+                  <Bell />
+                  Setting
+                </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => 
@@ -109,6 +118,12 @@ console.log(user.avatar)
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>
-    </SidebarMenu>)
+    </SidebarMenu>
+
+     {/* Render the SettingsModal if isOpen is true */}
+{     !isOpen  && !<SettingsModal/> && <LoadingSpinner />} 
+    {isOpen && <SettingsModal isOpenSetting={isOpen} onClose={onClose}/>}
+    </>
+    )
   );
 }

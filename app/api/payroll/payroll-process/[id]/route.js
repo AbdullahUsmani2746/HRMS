@@ -82,6 +82,7 @@ export async function PUT(request, context){
     // Calculate total approved amount for this batch
     const batchAmount = amounts.reduce((acc, curr) => acc + curr, 0);
     
+    console.log(existingPayroll.processedEmployees.length + employeeIds.length, existingPayroll.totalEmployees)
     // Update payroll document
     const updatedPayroll = await PayrollProcess.findOneAndUpdate(
       { payroll_id: payrollId },

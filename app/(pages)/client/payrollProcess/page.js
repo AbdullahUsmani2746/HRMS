@@ -257,6 +257,7 @@ export default function PayrollProcessPage() {
                     <TableHead className="px-4">Date Range</TableHead>
                     <TableHead className="px-4">Period</TableHead>
                     <TableHead className="px-4">Status</TableHead>
+                    <TableHead className="px-4">Processed Employees</TableHead>
                     <TableHead className="px-4">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -271,9 +272,12 @@ export default function PayrollProcessPage() {
                         Week {payroll.week_no}, {payroll.year}
                       </TableCell>
                       <TableCell className="px-4">
-                        <Badge variant={payroll.isProcessed ? "default" : "secondary"} className="text-xs">
-                          {payroll.isProcessed ? "Processed" : "Pending"}
+                        <Badge variant={payroll.status ? "default" : "secondary"} className="text-xs">
+                          {payroll.status}
                         </Badge>
+                      </TableCell>
+                      <TableCell className="px-4">
+                        {payroll.processedEmployees.length}
                       </TableCell>
                       <TableCell className="px-4">
                         <AlertDialog>

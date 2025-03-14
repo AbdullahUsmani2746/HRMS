@@ -3,6 +3,7 @@ import { createColumnHelper } from "@tanstack/react-table";
 const columnHelper = createColumnHelper();
 
 export const columns_employee = [
+  columnHelper.accessor("id", { header: "ID", id: "employeeId", isVisible: true }),
   columnHelper.accessor("name", { header: "Name", id: "firstName", id2:"surname", isVisible: true }),
   columnHelper.accessor("email", { header: "Email", id: "emailAddress", isVisible: true }),
   columnHelper.accessor("phone", { header: "Phone", id: "phoneNumber", isVisible: true }),

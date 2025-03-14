@@ -20,6 +20,7 @@ import {
   Table,
   TableBody,
   TableCell,
+  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
@@ -801,16 +802,14 @@ const approveSelectedPayroll = async () => {
       }
     );
 
-    // Create payslips only for newly approved employees
-    const approvePromises = selectedPayrolls.map((payroll) =>
-      axios.post("/api/payroll/payslip", {
-        ...payroll,
-        payrollId: formData.payroll_id,
-        employerId,
-      })
-    );
-
-    await Promise.all(approvePromises);
+   // Create payslips sequentially for newly approved employees
+for (const payroll of selectedPayrolls) {
+  await axios.post("/api/payroll/payslip", {
+    ...payroll,
+    payrollId: formData.payroll_id,
+    employerId,
+  });
+}
     
     setStatus({
       type: "success",
@@ -1483,6 +1482,7 @@ const reopenPayrollPeriod = async () => {
             </TableRow>
           ))}
         </TableBody>
+        <TableFooter>
         <TableRow className="bg-muted/20 font-bold">
           <TableCell>Total</TableCell>
           <TableCell className="text-right">
@@ -1492,6 +1492,7 @@ const reopenPayrollPeriod = async () => {
             ${getSelectedEmployees().reduce((sum, emp) => sum + emp.payrollBreakdown.netPayable, 0).toFixed(2)}
           </TableCell>
         </TableRow>
+        </TableFooter>
       </Table>
     </div>
 

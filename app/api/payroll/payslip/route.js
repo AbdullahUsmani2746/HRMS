@@ -3,8 +3,9 @@ import connectDB from '@/utils/dbConnect';
 import Payslip from '@/models/Payroll/payslip.models';
 import Employee from '@/models/Employee/employee.models';
 import { z } from 'zod';
-import ExcelJS from 'exceljs';
 import nodemailer from 'nodemailer';
+import puppeteer from 'puppeteer';
+
 
 export async function GET(req) {
   try {
@@ -55,13 +56,17 @@ export async function POST(req) {
       }
     }
 
-    // Send email with payslip and Excel attachment
-    if (employeeEmail) {
+   // Attempt email with error isolation
+   if (employeeEmail) {
+    try {
       await sendPayslipEmail(employeeEmail, payslip);
-    } else {
-      console.warn(`No email found for employee: ${payslip.employeeName} (ID: ${payslip.employeeId})`);
+    } catch (emailError) {
+      console.error('Email failed:', emailError);
+      // // Optional: Update payslip status here
+      // payslip.emailStatus = 'failed';
+      // await payslip.save();
     }
-
+  }
     return NextResponse.json(payslip, { status: 201 });
 
   } catch (error) {
@@ -80,106 +85,110 @@ export async function POST(req) {
 }
 
 // Function to generate Excel file for payslip
-async function generatePayslipExcel(payslip) {
-  const workbook = new ExcelJS.Workbook();
-  const worksheet = workbook.addWorksheet('Payslip');
-  
-  // Add company logo and header
-  worksheet.mergeCells('A1:F1');
-  const headerCell = worksheet.getCell('A1');
-  headerCell.value = 'EMPLOYEE PAYSLIP';
-  headerCell.font = { size: 16, bold: true };
-  headerCell.alignment = { horizontal: 'center' };
-  
-  // Add payslip period details
-  worksheet.mergeCells('A2:F2');
-  worksheet.getCell('A2').value = `Pay Period: ${new Date(payslip.payPeriodDetails.startDate).toLocaleDateString()} to ${new Date(payslip.payPeriodDetails.endDate).toLocaleDateString()}`;
-  worksheet.getCell('A2').alignment = { horizontal: 'center' };
-  
-  // Employee details
-  worksheet.addRow([]);
-  worksheet.addRow(['Employee Details', '', '', '', '', '']);
-  worksheet.mergeCells('A4:F4');
-  worksheet.getCell('A4').font = { bold: true };
-  
-  worksheet.addRow(['Employee Name:', payslip.employeeName, '', 'Employee ID:', payslip.employeeId, '']);
-  worksheet.addRow(['Pay Type:', payslip.payType, '', '', '', '']);
-  worksheet.addRow([]);
-  
-  // Work details
-  if (payslip.workDetails) {
-    worksheet.addRow(['Work Details', '', '', '', '', '']);
-    worksheet.mergeCells('A8:F8');
-    worksheet.getCell('A8').font = { bold: true };
-    
-    worksheet.addRow(['Total Work Hours:', payslip.workDetails.totalWorkHours, '', 'Overtime Hours:', payslip.workDetails.overtimeHours, '']);
-    worksheet.addRow(['Hourly Rate:', payslip.workDetails.hourlyRate, '', 'Overtime Rate:', payslip.workDetails.overtimeRate, '']);
-    worksheet.addRow([]);
-  }
-  
-  // Payroll breakdown
-  worksheet.addRow(['Payroll Breakdown', '', '', '', '', '']);
-  worksheet.mergeCells('A12:F12');
-  worksheet.getCell('A12').font = { bold: true };
-  
-  // Earnings
-  worksheet.addRow(['Earnings', '', '', '', '', '']);
-  worksheet.getCell('A13').font = { bold: true };
-  
-  worksheet.addRow(['Base Salary:', payslip.payrollBreakdown.baseSalary, '', '', '', '']);
-  worksheet.addRow(['Allowances:', payslip.payrollBreakdown.allowances, '', '', '', '']);
-  worksheet.addRow(['Overtime Pay:', payslip.payrollBreakdown.overtimePay, '', '', '', '']);
-  
-  // Deductions
-  worksheet.addRow([]);
-  worksheet.addRow(['Deductions', '', '', '', '', '']);
-  worksheet.getCell('A18').font = { bold: true };
-  
-  worksheet.addRow(['PAYE Tax:', payslip.payrollBreakdown.deductions.paye, '', '', '', '']);
-  worksheet.addRow(['ACC Levy:', payslip.payrollBreakdown.deductions.acc, '', '', '', '']);
-  worksheet.addRow(['NPF Contribution:', payslip.payrollBreakdown.deductions.npf, '', '', '', '']);
-  worksheet.addRow(['Other Deductions:', payslip.payrollBreakdown.deductions.other, '', '', '', '']);
-  worksheet.addRow(['Total Deductions:', payslip.payrollBreakdown.deductions.total, '', '', '', '']);
-  
-  // Summary
-  worksheet.addRow([]);
-  worksheet.addRow(['Summary', '', '', '', '', '']);
-  worksheet.getCell('A24').font = { bold: true };
-  
-  worksheet.addRow(['Gross Pay:', payslip.payrollBreakdown.baseSalary + payslip.payrollBreakdown.allowances + payslip.payrollBreakdown.overtimePay, '', '', '', '']);
-  worksheet.addRow(['Total Deductions:', payslip.payrollBreakdown.deductions.total, '', '', '', '']);
-  worksheet.addRow(['Net Payable:', payslip.payrollBreakdown.netPayable, '', '', '', '']);
-  worksheet.getCell('A27').font = { bold: true };
-  worksheet.getCell('B27').font = { bold: true };
-  
-  // Employer contributions (for information)
-  worksheet.addRow([]);
-  worksheet.addRow(['Employer Contributions (For Information)', '', '', '', '', '']);
-  worksheet.getCell('A29').font = { bold: true };
-  
-  worksheet.addRow(['Employer ACC Contribution:', payslip.payrollBreakdown.employerContributions.acc, '', '', '', '']);
-  worksheet.addRow(['Employer NPF Contribution:', payslip.payrollBreakdown.employerContributions.npf, '', '', '', '']);
-  worksheet.addRow(['Total Employer Contributions:', payslip.payrollBreakdown.employerContributions.total, '', '', '', '']);
-  
-  // Style the worksheet
-  worksheet.columns.forEach(column => {
-    column.width = 18;
+async function generatePayslipPDF(payslip) {
+  const browser = await puppeteer.launch();
+  const page = await browser.newPage();
+
+  // Create HTML template matching your sample
+  const htmlContent = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 30px; }
+        .company-header { text-align: center; margin-bottom: 20px; }
+        .payslip-title { text-align: center; font-size: 24px; margin: 30px 0; }
+        .details-row { display: flex; justify-content: space-between; margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { padding: 8px; border: 1px solid #ddd; text-align: left; }
+        .totals { display: flex; justify-content: space-between; margin: 20px 0; }
+        .net-pay { font-weight: bold; margin: 20px 0; }
+      </style>
+    </head>
+    <body>
+      <div class="company-header">
+        <h2>BRAVOS LIMITED</h2>
+        <p>2nd Floor, Potoi Building, Matafele, Apia, Samoa</p>
+        <p>T: (+685) 609061 | E: team@bravoslimited.com</p>
+      </div>
+
+      <h1 class="payslip-title">PAYSLIP</h1>
+
+      <div class="details-row">
+        <div>
+          <p><strong>Employee:</strong> ${payslip.employeeName}</p>
+          <p><strong>Position:</strong> ${payslip.position}</p>
+        </div>
+        <div>
+          <p><strong>Employee ID:</strong> ${payslip.employeeId}</p>
+          <p><strong>Department:</strong> ${payslip.department}</p>
+        </div>
+      </div>
+
+      <div class="details-row">
+        <p><strong>Period:</strong> ${payslip.payPeriodDetails.startDate} - ${payslip.payPeriodDetails.endDate}</p>
+        <p><strong>Pay Day:</strong> ${payslip.payDate}</p>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Payments</th>
+            <th>Hours</th>
+            <th>Rate</th>
+            <th>Value</th>
+            <th>Deductions</th>
+            <th>Reference</th>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Normal Time</td>
+            <td>${payslip.workDetails.totalWorkHours}</td>
+            <td>${payslip.hourlyRate}</td>
+            <td>${payslip.payrollBreakdown.baseSalary}</td>
+            <td>SNPF</td>
+            <td>KYY56</td>
+            <td>${payslip.payrollBreakdown.deductions.npf}</td>
+          </tr>
+          <!-- Add other rows -->
+        </tbody>
+      </table>
+
+      <div class="totals">
+        <div>
+          <p><strong>Total Payments:</strong> ${
+            payslip.payrollBreakdown.baseSalary + 
+            payslip.payrollBreakdown.allowances + 
+            payslip.payrollBreakdown.overtimePay
+          }</p>
+        </div>
+        <div>
+          <p><strong>Total Deductions:</strong> ${payslip.payrollBreakdown.deductions.total}</p>
+        </div>
+      </div>
+
+      <p class="net-pay">Net Pay: ${payslip.payrollBreakdown.netPayable}</p>
+    </body>
+    </html>
+  `;
+
+  await page.setContent(htmlContent);
+  const pdfBuffer = await page.pdf({ 
+    format: 'A4',
+    margin: { top: '30px', right: '40px', bottom: '30px', left: '40px' }
   });
-  
-  // Format currency cells
-  ['B14', 'B15', 'B16', 'B19', 'B20', 'B21', 'B22', 'B23', 'B25', 'B26', 'B27', 'B30', 'B31', 'B32'].forEach(cell => {
-    worksheet.getCell(cell).numFmt = '$#,##0.00';
-  });
-  
-  // Return as buffer
-  return await workbook.xlsx.writeBuffer();
+
+  await browser.close();
+  return pdfBuffer;
 }
 
 // Function to send the email to the employee using Nodemailer
 async function sendPayslipEmail(employeeEmail, payslip) {
   try {
     // Generate Excel file
-    const excelBuffer = await generatePayslipExcel(payslip);
+    const pdfBuffer = await generatePayslipPDF(payslip);
     
     // Create a nodemailer transporter
     const transporter = nodemailer.createTransport({
@@ -211,8 +220,8 @@ async function sendPayslipEmail(employeeEmail, payslip) {
       html: generatePayslipHtml(payslip),
       attachments: [
         {
-          filename: `Payslip_${payslip.employeeName}_${endDate.replace(/\//g, '-')}.xlsx`,
-          content: excelBuffer
+          filename: `Payslip_${payslip.employeeName}_${endDate.replace(/\//g, '-')}.pdf`,
+          content: pdfBuffer
         }
       ]
     };
@@ -246,7 +255,7 @@ function generatePayslipText(payslip) {
     Total Deductions: $${payslip.payrollBreakdown.deductions.total.toFixed(2)}
     Net Pay: $${payslip.payrollBreakdown.netPayable.toFixed(2)}
     
-    Your detailed payslip is attached to this email as an Excel file.
+    Your detailed payslip is attached to this email as a PDF file
     
     If you have any questions regarding your payslip, please contact the HR department.
 
@@ -313,7 +322,7 @@ function generatePayslipHtml(payslip) {
             </tr>
           </table>
           
-          <p>Your detailed payslip is attached to this email as an Excel file.</p>
+          <p>Your detailed payslip is attached to this email as a PDF file.</p>
           
           <p>If you have any questions regarding your payslip, please contact the HR department.</p>
           

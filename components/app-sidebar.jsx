@@ -4,11 +4,7 @@ import * as React from "react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSession } from "next-auth/react";
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Contact,
   CircleDollarSign,
@@ -30,7 +26,7 @@ import {
   Clipboard,
   Target,
   Send,
-  CheckCircle
+  CheckCircle,
 } from "lucide-react";
 import SettingsModal from "./settingModal";
 
@@ -115,113 +111,22 @@ const data = {
       isActive: true,
     },
     {
-      title: "Employee Management",
-      url: "#",
+      title: "Employee",
+      url: "/client/employee",
       icon: Users,
-      isActive: false,
-      items:[
-        {
-          title: "Employee Onboarding",
-          url: "/client/employee",
-          icon: Locate,
-          isActive: true,
-        },
-    
-    {
-      title: "Work Location",
-      url: "/client/location",
-      icon: Locate,
       isActive: true,
     },
     {
-      title: "Department",
-      url: "/client/department",
-      icon: Building,
+      title: "Time Entry",
+      url: "/client/attendance",
+      icon: Clipboard,
       isActive: true,
     },
     {
-      title: "Cost Center",
-      url: "/client/costCenter",
-      icon: PieChart,
-      isActive: true,
-    },
-    {
-      title: "Employee Type",
-      url: "/client/employeeType",
-      icon: UserCheck2Icon,
-      isActive: true,
-    },
-  ]
-    },
-  {
-    title: "HR Operations",
-    url: "#",
-    icon: Users,
-    isActive: false,
-    items:[
-
-   
-    {
-      title: "Manager",
-      url: "/client/manager",
-      icon: BriefcaseConveyorBelt,
-      isActive: true,
-    },
-    {
-      title: "Job Title",
-      url: "/client/jobTitle",
-      icon: BriefcaseBusiness,
-      isActive: true,
-    },
-    { 
-      title: "Allowances",
-      url: "/client/allowance",
-      icon: DollarSignIcon,
-      isActive: true,
-    },
-    {
-      title: "Deductions",
-      url: "/client/deduction",
-      icon: MinusCircleIcon,
-      isActive: true,
-    },
-    
-    {
-      title: "Leaves",
-      url: "/client/leave",
+      title: "Run Payroll",
+      url: "/client/payroll/employeePayroll",
       icon: LucideUmbrella,
       isActive: true,
-    },
-  ]
-},
-
-{
-  title: "Time Entry Management",
-  url: "/client/attendance",
-  icon: Clipboard,
-  isActive: true,
-},
-    
-
-    {
-      title: "Payroll & Benefits",
-      url: "#",
-      icon: LucideUmbrella,
-      isActive: true,
-      items: [
-        {
-          title: "Payroll Cycle",
-          url: "/client/payrollProcess",
-        },
-        {
-          title: "Payroll Compensation",
-          url: "/client/payroll",
-        },
-        {
-          title: "Payroll Calculation",
-          url: "/client/payroll/employeePayroll"
-        },
-      ],
     },
     {
       title: "Reports",
@@ -230,13 +135,88 @@ const data = {
       isActive: true,
     },
     {
+      title: "Payroll Operations",
+      url: "#",
+      icon: Users,
+      isActive: false,
+      items: [
+
+        
+        {
+          title: "Work Location",
+          url: "/client/location",
+          icon: Locate,
+          isActive: true,
+        },
+        {
+          title: "Department",
+          url: "/client/department",
+          icon: Building,
+          isActive: true,
+        },
+        {
+          title: "Cost Center",
+          url: "/client/costCenter",
+          icon: PieChart,
+          isActive: true,
+        },
+        {
+          title: "Employee Type",
+          url: "/client/employeeType",
+          icon: UserCheck2Icon,
+          isActive: true,
+        },
+
+        {
+          title: "Manager",
+          url: "/client/manager",
+          icon: BriefcaseConveyorBelt,
+          isActive: true,
+        },
+        {
+          title: "Job Title",
+          url: "/client/jobTitle",
+          icon: BriefcaseBusiness,
+          isActive: true,
+        },
+        {
+          title: "Allowances",
+          url: "/client/allowance",
+          icon: DollarSignIcon,
+          isActive: true,
+        },
+        {
+          title: "Deductions",
+          url: "/client/deduction",
+          icon: MinusCircleIcon,
+          isActive: true,
+        },
+
+        {
+          title: "Leaves",
+          url: "/client/leave",
+          icon: LucideUmbrella,
+          isActive: true,
+        },
+
+        {
+          title: "Payroll Cycle",
+          url: "/client/payrollProcess",
+        },
+        {
+          title: "Payroll Compensation",
+          url: "/client/payroll",
+        }
+      ],
+    },
+
+   
+    {
       title: "Settings",
-      url: "/client/setting",  // Set to "#" since the modal will open without navigating
+      url: "/client/setting", // Set to "#" since the modal will open without navigating
       icon: Settings2,
       isActive: true,
-    }
-    
-    
+    },
   ],
   navUserEmployee: [
     {
@@ -246,11 +226,10 @@ const data = {
       isActive: true,
     },
     {
-      title:"Profile",
-      url:"/employee/profile",
-      icon:Contact,
+      title: "Profile",
+      url: "/employee/profile",
+      icon: Contact,
       isActive: true,
-
     },
     {
       title: "Attendances",
@@ -280,10 +259,8 @@ const data = {
 };
 
 export function AppSidebar({ userType = "client", ...props }) {
-
-
-    const { data: session } = useSession();
-    const isManager = session?.user?.isManager;
+  const { data: session } = useSession();
+  const isManager = session?.user?.isManager;
   // Determine the navigation data based on the user type
   let navData = null;
   if (userType === "client") {
@@ -300,14 +277,14 @@ export function AppSidebar({ userType = "client", ...props }) {
       ...data.navUserEmployee, // Existing items
       {
         title: "Request Approvals",
-        url: "/employee/requestApproval",  // Link to the approval page
-        icon: CheckCircle,     // Example icon, can be customized
+        url: "/employee/requestApproval", // Link to the approval page
+        icon: CheckCircle, // Example icon, can be customized
         isActive: true,
       },
       {
         title: "Attendance Approvals",
-        url: "/employee/approvals",  // Link to the approval page
-        icon: BriefcaseBusiness,     // Example icon, can be customized
+        url: "/employee/approvals", // Link to the approval page
+        icon: BriefcaseBusiness, // Example icon, can be customized
         isActive: true,
       },
     ];
@@ -319,40 +296,42 @@ export function AppSidebar({ userType = "client", ...props }) {
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
-      >      <SidebarHeader>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton size="lg" asChild className="bg-foreground">
-              <a href="#">
-                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                  <Avatar className="h-8 w-8 rounded-lg">
-                    <AvatarImage src={ivilasiLogo.src} alt={data.user.name} />
-                    <AvatarFallback className="rounded-lg">CN</AvatarFallback>
-                  </Avatar>
-                </div>
-                <div className="grid flex-1 text-left text-sm leading-tight bar-group">
-                  <span className="truncate font-semibold text-foregound bar-group-hover:text-foregound">
-                    DASH
-                  </span>
-                  <span className="truncate text-xs text-foregound bar-group-hover:text-background">Payroll Software</span>
-                </div>
-              </a>  
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarHeader>
+      >
+        {" "}
+        <SidebarHeader>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton size="lg" asChild className="bg-foreground">
+                <a href="#">
+                  <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+                    <Avatar className="h-8 w-8 rounded-lg">
+                      <AvatarImage src={ivilasiLogo.src} alt={data.user.name} />
+                      <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+                    </Avatar>
+                  </div>
+                  <div className="grid flex-1 text-left text-sm leading-tight bar-group">
+                    <span className="truncate font-semibold text-foregound bar-group-hover:text-foregound">
+                      DASH
+                    </span>
+                    <span className="truncate text-xs text-foregound bar-group-hover:text-background">
+                      Payroll Software
+                    </span>
+                  </div>
+                </a>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarHeader>
       </motion.div>
 
       <SidebarContent>
-      <motion.div
+        <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.3, delay: 0.2 }}
         >
-        <NavMain items={navData} />
+          <NavMain items={navData} />
         </motion.div>
-
-     
       </SidebarContent>
       <SidebarFooter>
         <motion.div
@@ -363,8 +342,6 @@ export function AppSidebar({ userType = "client", ...props }) {
           <NavUser user={data.user} />
         </motion.div>
       </SidebarFooter>
-
-      
     </Sidebar>
   );
 }

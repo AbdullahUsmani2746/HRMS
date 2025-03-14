@@ -24,7 +24,6 @@ const DynamicComponent = ({ existingData, onClose }) => {
     },
    
   ];
-
   const handleSubmit = async (data, isEditing, editIndex) => {
     try {
       if (isEditing) {
